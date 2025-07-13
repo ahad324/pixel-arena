@@ -19,7 +19,7 @@ export const initializeSockets = (io: Server) => {
 
   const gameLoop = () => {
     const eventsByRoom = gameService.tick();
-    eventsByRoom.forEach((events, roomId) => {
+    eventsByRoom.forEach((events: GameEvent[], roomId: string) => {
       if (events.length > 0) {
         dispatchEvents(roomId, events);
       }
@@ -80,7 +80,7 @@ export const initializeSockets = (io: Server) => {
           socket
             .to(roomId)
             .emit("player-joined", {
-              player: room.players.find((p) => p.id === player.id),
+              player: room.players.find((p:Player) => p.id === player.id),
             });
           notifyAvailableRoomsUpdate();
           console.log(`Player ${player.name} joined room ${roomId}`);
