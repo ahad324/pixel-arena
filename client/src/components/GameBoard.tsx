@@ -1,7 +1,7 @@
-import React from "react";
+import React, { useState, useEffect, useRef } from "react";
 import type { Room } from "../types";
 import { GameMode } from "../types";
-import { GRID_SIZE, CELL_SIZE } from "@constants/index";
+import { GRID_SIZE } from "@constants/index";
 import PlayerAvatar from "@components/PlayerAvatar";
 import { FreezeIcon, SlowIcon, TeleportIcon } from "@components/icons";
 
@@ -11,6 +11,38 @@ interface GameBoardProps {
 
 const GameBoard: React.FC<GameBoardProps> = ({ room }) => {
   const { players, gameState, gameMode } = room;
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [cellSize, setCellSize] = useState(32);
+
+  useEffect(() => {
+    const updateCellSize = () => {
+      if (containerRef.current) {
+        const { width, height } = containerRef.current.getBoundingClientRect();
+        // Use the smaller dimension to fit the square board
+        const newSize = Math.floor(Math.min(width, height) / GRID_SIZE);
+        setCellSize(newSize > 1 ? newSize : 1);
+      }
+    };
+
+    // We need a slight delay to ensure parent containers have resized, especially on initial load.
+    const timeoutId = setTimeout(updateCellSize, 50);
+
+    const resizeObserver = new ResizeObserver(() => {
+      // Debounce resize updates to avoid flickering and performance issues
+      setTimeout(updateCellSize, 50);
+    });
+
+    if (containerRef.current) {
+      resizeObserver.observe(containerRef.current);
+    }
+
+    return () => {
+      clearTimeout(timeoutId);
+      resizeObserver.disconnect();
+    };
+  }, []);
+
+  const boardSize = GRID_SIZE * cellSize;
 
   const renderGameSpecificElements = () => {
     switch (gameMode) {
@@ -21,10 +53,10 @@ const GameBoard: React.FC<GameBoardProps> = ({ room }) => {
               key={index}
               className="absolute transition-colors duration-500"
               style={{
-                left: `${(index % GRID_SIZE) * CELL_SIZE}px`,
-                top: `${Math.floor(index / GRID_SIZE) * CELL_SIZE}px`,
-                width: CELL_SIZE,
-                height: CELL_SIZE,
+                left: `${(index % GRID_SIZE) * cellSize}px`,
+                top: `${Math.floor(index / GRID_SIZE) * cellSize}px`,
+                width: cellSize,
+                height: cellSize,
                 backgroundColor: tile.color,
                 opacity: 0.4,
               }}
@@ -39,10 +71,10 @@ const GameBoard: React.FC<GameBoardProps> = ({ room }) => {
                 key={`${x}-${y}`}
                 className="absolute bg-gray-600 border border-gray-500"
                 style={{
-                  left: x * CELL_SIZE,
-                  top: y * CELL_SIZE,
-                  width: CELL_SIZE,
-                  height: CELL_SIZE,
+                  left: x * cellSize,
+                  top: y * cellSize,
+                  width: cellSize,
+                  height: cellSize,
                 }}
               ></div>
             ) : gameState.maze?.end &&
@@ -52,10 +84,10 @@ const GameBoard: React.FC<GameBoardProps> = ({ room }) => {
                 key="end-point"
                 className="absolute bg-green-500/50 rounded-full animate-pulse"
                 style={{
-                  left: x * CELL_SIZE + CELL_SIZE / 4,
-                  top: y * CELL_SIZE + CELL_SIZE / 4,
-                  width: CELL_SIZE / 2,
-                  height: CELL_SIZE / 2,
+                  left: x * cellSize + cellSize / 4,
+                  top: y * cellSize + cellSize / 4,
+                  width: cellSize / 2,
+                  height: cellSize / 2,
                 }}
               ></div>
             ) : null
@@ -67,12 +99,12 @@ const GameBoard: React.FC<GameBoardProps> = ({ room }) => {
             key={spike.id}
             className="absolute text-red-500 text-center font-black"
             style={{
-              left: spike.x * CELL_SIZE,
-              top: spike.y * CELL_SIZE,
-              width: CELL_SIZE,
-              height: CELL_SIZE,
+              left: spike.x * cellSize,
+              top: spike.y * cellSize,
+              width: cellSize,
+              height: cellSize,
               transform: "translateY(-5px)",
-              fontSize: `${CELL_SIZE * 0.8}px`,
+              fontSize: `${cellSize * 0.8}px`,
             }}
           >
             ▼
@@ -94,10 +126,10 @@ const GameBoard: React.FC<GameBoardProps> = ({ room }) => {
                 key={`${x}-${y}`}
                 className="absolute p-2"
                 style={{
-                  left: x * CELL_SIZE,
-                  top: y * CELL_SIZE,
-                  width: CELL_SIZE,
-                  height: CELL_SIZE,
+                  left: x * cellSize,
+                  top: y * cellSize,
+                  width: cellSize,
+                  height: cellSize,
                 }}
               >
                 <div className="w-full h-full bg-gray-900/50 rounded-full animate-in fade-in">
@@ -113,12 +145,12 @@ const GameBoard: React.FC<GameBoardProps> = ({ room }) => {
             className="absolute"
             style={{
               left: 0,
-              top: gameState.finishLine! * CELL_SIZE,
+              top: gameState.finishLine! * cellSize,
               width: "100%",
-              height: CELL_SIZE,
+              height: cellSize,
               backgroundImage:
                 "repeating-conic-gradient(#1F2937 0% 25%, #4B5563 0% 50%)",
-              backgroundSize: `${CELL_SIZE}px ${CELL_SIZE}px`,
+              backgroundSize: `${cellSize}px ${cellSize}px`,
               opacity: 0.8,
             }}
           ></div>
@@ -131,19 +163,24 @@ const GameBoard: React.FC<GameBoardProps> = ({ room }) => {
 
   return (
     <div
-      className="relative bg-gray-900 border-2 border-gray-700 rounded-lg overflow-hidden"
-      style={{
-        width: GRID_SIZE * CELL_SIZE,
-        height: GRID_SIZE * CELL_SIZE,
-        backgroundImage:
-          "linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px)",
-        backgroundSize: `${CELL_SIZE}px ${CELL_SIZE}px`,
-      }}
+      ref={containerRef}
+      className="w-full h-full flex items-center justify-center"
     >
-      {renderGameSpecificElements()}
-      {players.map((player) => (
-        <PlayerAvatar key={player.id} player={player} />
-      ))}
+      <div
+        className="relative bg-gray-900 border-2 border-gray-700 rounded-lg overflow-hidden"
+        style={{
+          width: boardSize,
+          height: boardSize,
+          backgroundImage:
+            "linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px)",
+          backgroundSize: `${cellSize}px ${cellSize}px`,
+        }}
+      >
+        {renderGameSpecificElements()}
+        {players.map((player) => (
+          <PlayerAvatar key={player.id} player={player} cellSize={cellSize} />
+        ))}
+      </div>
     </div>
   );
 };

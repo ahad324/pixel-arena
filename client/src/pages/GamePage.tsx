@@ -14,7 +14,11 @@ import {
   GAME_SETTINGS,
   INFECTED_COLOR,
 } from "@constants/index";
-import { InfoIcon, CheckCircleIcon, EnterFullscreenIcon } from "@components/icons";
+import {
+  InfoIcon,
+  CheckCircleIcon,
+  EnterFullscreenIcon,
+} from "@components/icons";
 import { useDeviceDetection } from "@hooks/useDeviceDetection";
 import VirtualJoystick from "@components/VirtualJoystick";
 import { useGame } from "@contexts/GameContext";
@@ -69,7 +73,9 @@ const SpyDecodeUI: React.FC<{ room: Room; user: Omit<Player, "socketId"> }> = ({
           {gameState.codes?.map((code) => (
             <button
               key={code.id}
-              onClick={() => socketService.submitGuess(room.id, user.id, code.id)}
+              onClick={() =>
+                socketService.submitGuess(room.id, user.id, code.id)
+              }
               disabled={!!self?.guess}
               className={`p-2 rounded font-bold text-white transition-colors ${
                 self?.guess === code.id
@@ -157,7 +163,7 @@ const AbilityButton: React.FC<{
 const GamePage: React.FC = () => {
   const { user, room, leaveRoom, endGame } = useGame();
   const { isMobile } = useDeviceDetection();
-  
+
   // These hooks need non-null user/room, so we check before rendering the component
   usePlayerMovement(user!, room!, isMobile);
 
@@ -273,8 +279,8 @@ const GamePage: React.FC = () => {
           ref={gameAreaRef}
           className={
             isFullscreen
-              ? "fixed inset-0 bg-gray-900 flex items-center justify-center z-50"
-              : "flex-grow"
+              ? "fixed inset-0 bg-gray-900 flex items-center justify-center z-50 p-2"
+              : "flex-grow flex items-center justify-center relative min-h-[300px] lg:min-h-0"
           }
         >
           <GameBoard room={room} />

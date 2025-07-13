@@ -1,9 +1,6 @@
-
-
 import { GameMode } from "../types";
 
 export const GRID_SIZE = 20;
-export const CELL_SIZE = 32; // in pixels
 
 export const PLAYER_COLORS = [
   "#3B82F6", // blue-500
@@ -173,11 +170,11 @@ export const GAME_SETTINGS = {
     // No specific settings needed here for now
   },
   [GameMode.DODGE_THE_SPIKES]: {
-    SPIKE_SPAWN_RATE: 1500, // ms
+    SPIKE_SPAWN_RATE: 1000, // ms
     SPIKE_MOVE_RATE: 200, // ms
   },
   [GameMode.INFECTION_ARENA]: {
-    TIME_LIMIT: 90, // seconds
+    TIME_LIMIT: 60, // seconds
     SPRINT_DURATION: 1500, // ms
     SPRINT_COOLDOWN: 5000, // ms
     SHIELD_DURATION: 2000, // ms
@@ -185,8 +182,8 @@ export const GAME_SETTINGS = {
   },
   [GameMode.TRAP_RUSH]: {
     TRAP_DENSITY: 0.2, // 20% of tiles are traps
-    SLOW_DURATION: 3000, // ms
-    FREEZE_DURATION: 3000, // ms
+    SLOW_DURATION: 2000, // ms
+    FREEZE_DURATION: 2000, // ms
     TELEPORT_DISTANCE: 5, // tiles
   },
   [GameMode.SPY_AND_DECODE]: {

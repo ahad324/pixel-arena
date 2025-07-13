@@ -13,8 +13,6 @@ interface VirtualJoystickProps {
   user: Omit<Player, "socketId">;
 }
 
-const joystickSize = 120;
-const thumbSize = 60;
 const moveIntervalTime = 120; // ms, similar to holding a key
 
 const VirtualJoystick: React.FC<VirtualJoystickProps> = ({ room, user }) => {
@@ -23,6 +21,21 @@ const VirtualJoystick: React.FC<VirtualJoystickProps> = ({ room, user }) => {
   const moveInterval = useRef<number | null>(null);
   const lastDirection = useRef<string | null>(null);
   const touchId = useRef<number | null>(null);
+
+  const [joystickSize, setJoystickSize] = useState(120);
+  const [thumbSize, setThumbSize] = useState(60);
+
+  useEffect(() => {
+    const handleResize = () => {
+      const newSize = Math.min(window.innerWidth, window.innerHeight) * 0.35;
+      const newJoystickSize = Math.max(100, Math.min(newSize, 150));
+      setJoystickSize(newJoystickSize);
+      setThumbSize(newJoystickSize / 2);
+    };
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   // Use a ref to hold the latest room data to avoid stale closures in setInterval
   const roomRef = useRef(room);
@@ -117,7 +130,7 @@ const VirtualJoystick: React.FC<VirtualJoystickProps> = ({ room, user }) => {
       }
       handleMove(direction);
     },
-    [handleMove, stopMovement]
+    [handleMove, stopMovement, joystickSize, thumbSize]
   );
 
   const handleTouchStart = (e: TouchEvent<HTMLDivElement>) => {
