@@ -45,6 +45,7 @@ const LoginPage: React.FC = () => {
               id="username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
+              autoFocus
               className="text-center text-lg shadow-inner appearance-none border-2 border-gray-600 rounded-lg w-full py-3 px-4 bg-gray-700/50 text-white leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300"
               placeholder="Enter your name"
               required

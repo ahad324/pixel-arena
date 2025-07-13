@@ -18,8 +18,8 @@ export default defineConfig({
       "@constants": path.resolve(__dirname, "src/constants"),
     },
   },
-  server: {
-    host: true,
-    allowedHosts: [".ngrok-free.app"],
-  },
+  // server: {
+  //   host: true,
+  //   allowedHosts: [".ngrok-free.app"],
+  // },
 });
