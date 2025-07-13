@@ -13,7 +13,9 @@ interface VirtualJoystickProps {
   user: Omit<Player, "socketId">;
 }
 
-const moveIntervalTime = 120; // ms, similar to holding a key
+const MOVE_INTERVAL_MS = 120; // ms, similar to holding a key
+const JOYSTICK_SIZE = 120; // px
+const THUMB_SIZE = 60; // px
 
 const VirtualJoystick: React.FC<VirtualJoystickProps> = ({ room, user }) => {
   const baseRef = useRef<HTMLDivElement>(null);
@@ -21,21 +23,6 @@ const VirtualJoystick: React.FC<VirtualJoystickProps> = ({ room, user }) => {
   const moveInterval = useRef<number | null>(null);
   const lastDirection = useRef<string | null>(null);
   const touchId = useRef<number | null>(null);
-
-  const [joystickSize, setJoystickSize] = useState(120);
-  const [thumbSize, setThumbSize] = useState(60);
-
-  useEffect(() => {
-    const handleResize = () => {
-      const newSize = Math.min(window.innerWidth, window.innerHeight) * 0.35;
-      const newJoystickSize = Math.max(100, Math.min(newSize, 150));
-      setJoystickSize(newJoystickSize);
-      setThumbSize(newJoystickSize / 2);
-    };
-    handleResize();
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
 
   // Use a ref to hold the latest room data to avoid stale closures in setInterval
   const roomRef = useRef(room);
@@ -84,7 +71,7 @@ const VirtualJoystick: React.FC<VirtualJoystickProps> = ({ room, user }) => {
       if (direction !== lastDirection.current) {
         if (moveInterval.current) clearInterval(moveInterval.current);
         moveFn(); // Move immediately on direction change
-        moveInterval.current = window.setInterval(moveFn, moveIntervalTime);
+        moveInterval.current = window.setInterval(moveFn, MOVE_INTERVAL_MS);
         lastDirection.current = direction;
       }
     },
@@ -101,7 +88,7 @@ const VirtualJoystick: React.FC<VirtualJoystickProps> = ({ room, user }) => {
       let dx = touchX - centerX;
       let dy = touchY - centerY;
       const distance = Math.sqrt(dx * dx + dy * dy);
-      const radius = (joystickSize - thumbSize) / 2;
+      const radius = (JOYSTICK_SIZE - THUMB_SIZE) / 2;
 
       if (distance > radius) {
         dx = (dx / distance) * radius;
@@ -110,7 +97,6 @@ const VirtualJoystick: React.FC<VirtualJoystickProps> = ({ room, user }) => {
 
       setThumbPos({ x: dx, y: dy });
 
-      // Dead zone in the center to make it easier to stop
       if (distance < radius / 2) {
         stopMovement();
         return;
@@ -130,11 +116,11 @@ const VirtualJoystick: React.FC<VirtualJoystickProps> = ({ room, user }) => {
       }
       handleMove(direction);
     },
-    [handleMove, stopMovement, joystickSize, thumbSize]
+    [handleMove, stopMovement]
   );
 
   const handleTouchStart = (e: TouchEvent<HTMLDivElement>) => {
-    if (touchId.current !== null) return; // Already tracking a touch
+    if (touchId.current !== null) return;
     const touch = e.changedTouches[0];
     if (!touch) return;
     touchId.current = touch.identifier;
@@ -145,7 +131,6 @@ const VirtualJoystick: React.FC<VirtualJoystickProps> = ({ room, user }) => {
     for (let i = 0; i < e.changedTouches.length; i++) {
       const touch = e.changedTouches[i];
       if (touch && touch.identifier === touchId.current) {
-        // e.preventDefault();
         updateThumb(touch.clientX, touch.clientY);
         break;
       }
@@ -162,7 +147,6 @@ const VirtualJoystick: React.FC<VirtualJoystickProps> = ({ room, user }) => {
     }
   };
 
-  // Cleanup interval on unmount
   useEffect(() => {
     return () => {
       if (moveInterval.current) {
@@ -175,7 +159,7 @@ const VirtualJoystick: React.FC<VirtualJoystickProps> = ({ room, user }) => {
     <div
       ref={baseRef}
       className="fixed bottom-6 left-6 z-50 rounded-full bg-black/20 backdrop-blur-sm"
-      style={{ width: joystickSize, height: joystickSize }}
+      style={{ width: JOYSTICK_SIZE, height: JOYSTICK_SIZE }}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
@@ -184,10 +168,10 @@ const VirtualJoystick: React.FC<VirtualJoystickProps> = ({ room, user }) => {
       <div
         className="absolute rounded-full bg-white/40"
         style={{
-          width: thumbSize,
-          height: thumbSize,
-          top: (joystickSize - thumbSize) / 2 + thumbPos.y,
-          left: (joystickSize - thumbSize) / 2 + thumbPos.x,
+          width: THUMB_SIZE,
+          height: THUMB_SIZE,
+          top: (JOYSTICK_SIZE - THUMB_SIZE) / 2 + thumbPos.y,
+          left: (JOYSTICK_SIZE - THUMB_SIZE) / 2 + thumbPos.x,
           transition: "top 50ms, left 50ms",
         }}
       ></div>

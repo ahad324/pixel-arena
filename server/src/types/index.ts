@@ -1,16 +1,14 @@
-
-
 export enum GameMode {
-  TAG = 'Tag',
-  TERRITORY_CONTROL = 'Territory Control',
-  MAZE_RACE = 'Maze Race',
-  DODGE_THE_SPIKES = 'Dodge the Spikes',
-  INFECTION_ARENA = 'Infection Arena',
-  TRAP_RUSH = 'Trap Rush',
-  SPY_AND_DECODE = 'Spy & Decode',
+  TAG = "Tag",
+  TERRITORY_CONTROL = "Territory Control",
+  MAZE_RACE = "Maze Race",
+  DODGE_THE_SPIKES = "Dodge the Spikes",
+  INFECTION_ARENA = "Infection Arena",
+  TRAP_RUSH = "Trap Rush",
+  SPY_AND_DECODE = "Spy & Decode",
 }
 
-export type TrapType = 'slow' | 'teleport' | 'freeze';
+export type TrapType = "slow" | "teleport" | "freeze";
 
 export interface Trap {
   type: TrapType;
@@ -18,7 +16,7 @@ export interface Trap {
 }
 
 export interface PlayerEffect {
-  type: 'slow' | 'frozen';
+  type: "slow" | "frozen";
   expires: number;
 }
 
@@ -63,7 +61,7 @@ export interface Maze {
   end: { x: number; y: number };
 }
 
-export type GameStatus = 'waiting' | 'playing' | 'finished';
+export type GameStatus = "waiting" | "playing" | "finished";
 
 export interface GameState {
   status: GameStatus;
@@ -72,11 +70,14 @@ export interface GameState {
   tiles?: Tile[][];
   maze?: Maze;
   spikes?: Spike[];
+  // Dodge the Spikes
+  nextSpikeSpawnTime?: number;
+  nextSpikeMoveTime?: number;
   // Trap Rush
   trapMap?: (Trap | null)[][];
   finishLine?: number;
   // Spy & Decode
-  phase?: 'signaling' | 'guessing' | 'reveal';
+  phase?: "signaling" | "guessing" | "reveal";
   codes?: { id: string; value: string }[];
   correctCodeId?: string;
   playerGuesses?: Record<string, string>;
@@ -88,4 +89,10 @@ export interface Room {
   gameMode: GameMode;
   players: Player[];
   gameState: GameState;
+}
+
+export interface GameEvent {
+  name: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  data?: any;
 }

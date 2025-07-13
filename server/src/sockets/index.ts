@@ -1,24 +1,39 @@
 import { Server, Socket } from "socket.io";
 import { gameService } from "@services/gameService";
-import type { Player, Room, GameMode } from "@app-types/index";
+import type { Player, Room, GameMode, GameEvent } from "@app-types/index";
+
+const TICK_RATE = 20; // Ticks per second
+const TICK_INTERVAL = 1000 / TICK_RATE;
 
 export const initializeSockets = (io: Server) => {
-  const socketPlayerMap = new Map<string, { playerId: string; roomId: string }>();
+  const socketPlayerMap = new Map<
+    string,
+    { playerId: string; roomId: string }
+  >();
 
-  const notifyRoomUpdate = (roomId: string, room: Room | undefined | null) => {
-    if (room) io.to(roomId).emit("room-update", room);
+  const dispatchEvents = (roomId: string, events: GameEvent[]) => {
+    events.forEach((event) => {
+      io.to(roomId).emit(event.name, event.data);
+    });
   };
 
-  const notifyAvailableRoomsUpdate = () => {
-    io.emit("available-rooms-update", gameService.getAvailableRooms());
+  const gameLoop = () => {
+    const eventsByRoom = gameService.tick();
+    eventsByRoom.forEach((events, roomId) => {
+      if (events.length > 0) {
+        dispatchEvents(roomId, events);
+      }
+    });
   };
 
-  const notifyCallback = (roomId: string, room: Room) => {
-    io.to(roomId).emit("room-update", room);
-  };
+  setInterval(gameLoop, TICK_INTERVAL);
 
   io.on("connection", (socket: Socket) => {
     console.log("A user connected:", socket.id);
+
+    const notifyAvailableRoomsUpdate = () => {
+      io.emit("available-rooms-update", gameService.getAvailableRooms());
+    };
 
     socket.on("get-available-rooms", () => {
       socket.emit("available-rooms-update", gameService.getAvailableRooms());
@@ -27,14 +42,20 @@ export const initializeSockets = (io: Server) => {
     socket.on(
       "create-room",
       (
-        { user, gameMode }: { user: Omit<Player, "socketId">; gameMode: GameMode },
+        {
+          user,
+          gameMode,
+        }: { user: Omit<Player, "socketId">; gameMode: GameMode },
         callback: (room: Room) => void
       ) => {
         const player: Player = { ...user, socketId: socket.id };
         const room = gameService.createRoom(player);
         gameService.setGameMode(room.id, gameMode);
         socket.join(room.id);
-        socketPlayerMap.set(socket.id, { playerId: player.id, roomId: room.id });
+        socketPlayerMap.set(socket.id, {
+          playerId: player.id,
+          roomId: room.id,
+        });
         callback(room);
         notifyAvailableRoomsUpdate();
         console.log(`Player ${player.name} created and joined room ${room.id}`);
@@ -51,9 +72,16 @@ export const initializeSockets = (io: Server) => {
         const room = gameService.joinRoom(roomId, player);
         if (room) {
           socket.join(roomId);
-          socketPlayerMap.set(socket.id, { playerId: player.id, roomId: roomId });
+          socketPlayerMap.set(socket.id, {
+            playerId: player.id,
+            roomId: roomId,
+          });
           callback({ room });
-          notifyRoomUpdate(roomId, room);
+          socket
+            .to(roomId)
+            .emit("player-joined", {
+              player: room.players.find((p) => p.id === player.id),
+            });
           notifyAvailableRoomsUpdate();
           console.log(`Player ${player.name} joined room ${roomId}`);
         } else {
@@ -65,17 +93,19 @@ export const initializeSockets = (io: Server) => {
     socket.on(
       "set-game-mode",
       ({ roomId, gameMode }: { roomId: string; gameMode: GameMode }) => {
-        const room = gameService.setGameMode(roomId, gameMode);
-        notifyRoomUpdate(roomId, room);
+        const events = gameService.setGameMode(roomId, gameMode);
+        dispatchEvents(roomId, events);
       }
     );
 
     socket.on(
       "start-game",
       ({ roomId, playerId }: { roomId: string; playerId: string }) => {
-        const room = gameService.startGame(roomId, playerId, notifyCallback);
-        notifyRoomUpdate(roomId, room);
-        notifyAvailableRoomsUpdate();
+        const { room, events } = gameService.startGame(roomId, playerId);
+        if (room) {
+          dispatchEvents(roomId, events);
+          notifyAvailableRoomsUpdate();
+        }
       }
     );
 
@@ -90,16 +120,20 @@ export const initializeSockets = (io: Server) => {
         playerId: string;
         newPos: { x: number; y: number };
       }) => {
-        const room = gameService.updatePlayerPosition(roomId, playerId, newPos);
-        if (room) notifyRoomUpdate(roomId, room);
+        const events = gameService.updatePlayerPosition(
+          roomId,
+          playerId,
+          newPos
+        );
+        if (events.length > 0) dispatchEvents(roomId, events);
       }
     );
 
     socket.on(
       "player-ability",
       ({ roomId, playerId }: { roomId: string; playerId: string }) => {
-        const room = gameService.activateAbility(roomId, playerId);
-        if (room) notifyRoomUpdate(roomId, room);
+        const events = gameService.activateAbility(roomId, playerId);
+        if (events.length > 0) dispatchEvents(roomId, events);
       }
     );
 
@@ -114,49 +148,39 @@ export const initializeSockets = (io: Server) => {
         playerId: string;
         guess: string;
       }) => {
-        const room = gameService.submitGuess(roomId, playerId, guess);
-        if (room) notifyRoomUpdate(roomId, room);
+        const events = gameService.submitGuess(roomId, playerId, guess);
+        if (events.length > 0) dispatchEvents(roomId, events);
       }
     );
 
-    socket.on(
-      "leave-room",
-      ({ roomId, playerId }: { roomId: string; playerId: string }) => {
-        const { updatedRoom, roomWasDeleted } = gameService.leaveRoom(
+    const handleLeave = (socketId: string) => {
+      const playerInfo = socketPlayerMap.get(socketId);
+      if (playerInfo) {
+        const { playerId, roomId } = playerInfo;
+        const { events, roomWasDeleted, updatedRoom } = gameService.leaveRoom(
           roomId,
           playerId
         );
-        socket.leave(roomId);
+
+        socketPlayerMap.delete(socketId);
+
         if (roomWasDeleted) {
           console.log(`Room ${roomId} was deleted.`);
         } else {
-          notifyRoomUpdate(roomId, updatedRoom);
+          dispatchEvents(roomId, events);
           console.log(`Player ${playerId} left room ${roomId}`);
         }
         notifyAvailableRoomsUpdate();
       }
-    );
+    };
+
+    socket.on("leave-room", () => {
+      handleLeave(socket.id);
+    });
 
     socket.on("disconnect", () => {
       console.log("A user disconnected:", socket.id);
-      const playerInfo = socketPlayerMap.get(socket.id);
-      if (playerInfo) {
-        const { playerId, roomId } = playerInfo;
-        const { updatedRoom, roomWasDeleted } = gameService.leaveRoom(
-          roomId,
-          playerId
-        );
-        socketPlayerMap.delete(socket.id);
-        if (roomWasDeleted) {
-          console.log(`Room ${roomId} was deleted after player disconnect.`);
-        } else {
-          notifyRoomUpdate(roomId, updatedRoom);
-          console.log(
-            `Player ${playerId} was removed from room ${roomId} on disconnect.`
-          );
-        }
-        notifyAvailableRoomsUpdate();
-      }
+      handleLeave(socket.id);
     });
   });
 };

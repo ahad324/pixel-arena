@@ -8,7 +8,6 @@ import GameBoard from "@components/GameBoard";
 import EndScreen from "@components/EndScreen";
 import InstructionsModal from "@components/InstructionsModal";
 import LoadingScreen from "@components/LoadingScreen";
-import GameStatusDisplay from "@components/GameStatusDisplay";
 import {
   GAME_DESCRIPTIONS,
   PLAYER_COLORS,
@@ -165,7 +164,6 @@ const GamePage: React.FC = () => {
   const { user, room, leaveRoom, endGame } = useGame();
   const { isMobile } = useDeviceDetection();
 
-  // These hooks need non-null user/room, so we check before rendering the component
   usePlayerMovement(user!, room!, isMobile);
 
   const [isInstructionsVisible, setIsInstructionsVisible] = useState(false);
@@ -176,14 +174,12 @@ const GamePage: React.FC = () => {
   const gameAreaRef = useRef<HTMLDivElement>(null);
   const { isFullscreen, enterFullscreen, exitFullscreen } = useFullscreen();
 
-  // Effect to enter fullscreen on game start
   useEffect(() => {
     if (
       room?.gameState.status === "playing" &&
       !isFullscreen &&
       gameAreaRef.current
     ) {
-      // On mobile, always go fullscreen. On desktop, only if the user checked the box.
       if (isMobile || requestFullscreenOnStart) {
         enterFullscreen(gameAreaRef.current);
       }
@@ -196,7 +192,6 @@ const GamePage: React.FC = () => {
     requestFullscreenOnStart,
   ]);
 
-  // Effect to exit fullscreen when game ends
   useEffect(() => {
     if (room?.gameState.status !== "playing" && isFullscreen) {
       exitFullscreen();
@@ -204,9 +199,39 @@ const GamePage: React.FC = () => {
   }, [room?.gameState.status, isFullscreen, exitFullscreen]);
 
   if (!user || !room) {
-    // This should technically not happen due to the logic in App.tsx, but it's good practice
     return <LoadingScreen />;
   }
+
+  const getStatusMessage = () => {
+    const { status, timer, phase } = room.gameState;
+    const { gameMode } = room;
+    const you = room.players.find((p) => p.id === user.id);
+
+    if (status === "waiting") return "Waiting for host to start...";
+    if (timer > 0)
+      return `${
+        phase
+          ? `${phase.charAt(0).toUpperCase() + phase.slice(1)} Phase: `
+          : "Time Left: "
+      }${timer}s`;
+
+    switch (gameMode) {
+      case GameMode.TAG:
+        return you?.isIt ? "You are It!" : "Don't get tagged!";
+      case GameMode.MAZE_RACE:
+        return "First to the finish wins!";
+      case GameMode.DODGE_THE_SPIKES:
+        return you?.isEliminated ? "You were eliminated!" : "Dodge the spikes!";
+      case GameMode.INFECTION_ARENA:
+        return you?.isInfected ? "Infect everyone!" : "Don't get infected!";
+      case GameMode.TRAP_RUSH:
+        return "Get to the finish line!";
+      case GameMode.SPY_AND_DECODE:
+        return "Awaiting next phase...";
+      default:
+        return "";
+    }
+  };
 
   const handleCopyCode = () => {
     navigator.clipboard
@@ -215,9 +240,7 @@ const GamePage: React.FC = () => {
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
       })
-      .catch((err) => {
-        console.error("Failed to copy text: ", err);
-      });
+      .catch((err) => console.error("Failed to copy text: ", err));
   };
 
   const handleStartGame = () => {
@@ -235,6 +258,8 @@ const GamePage: React.FC = () => {
   if (room.gameState.status === "finished") {
     return <EndScreen room={room} onBackToLobby={endGame} />;
   }
+
+  const statusMessage = getStatusMessage();
 
   return (
     <>
@@ -254,11 +279,9 @@ const GamePage: React.FC = () => {
           }
         >
           {isFullscreen && (
-            <GameStatusDisplay
-              room={room}
-              user={user}
-              className="absolute top-4 left-1/2 -translate-x-1/2 bg-black/40 backdrop-blur-sm text-white font-bold text-lg md:text-2xl px-2 py-2 md:px-6 md:py-3 rounded-xl z-10 pointer-events-none shadow-lg"
-            />
+            <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-black/40 backdrop-blur-sm text-white font-bold text-lg md:text-2xl px-2 py-2 md:px-6 md:py-3 rounded-xl z-10 pointer-events-none shadow-lg">
+              {statusMessage}
+            </div>
           )}
           <GameBoard room={room} />
           {isMobile && room.gameState.status === "playing" && (
@@ -311,11 +334,9 @@ const GamePage: React.FC = () => {
               {GAME_DESCRIPTIONS[room.gameMode]}
             </p>
 
-            <GameStatusDisplay
-              room={room}
-              user={user}
-              className="bg-blue-900/40 text-blue-200 rounded-md p-3 text-center mb-4 font-semibold"
-            />
+            <div className="bg-blue-900/40 text-blue-200 rounded-md p-3 text-center mb-4 font-semibold">
+              {statusMessage}
+            </div>
 
             {room.gameMode === GameMode.SPY_AND_DECODE && (
               <SpyDecodeUI room={room} user={user} />

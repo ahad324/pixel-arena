@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import type { Room } from "../types";
 import { GameMode } from "../types";
 import { GRID_SIZE } from "@constants/index";
@@ -15,31 +15,22 @@ const GameBoard: React.FC<GameBoardProps> = ({ room }) => {
   const [cellSize, setCellSize] = useState(32);
 
   useEffect(() => {
-    const updateCellSize = () => {
-      if (containerRef.current) {
-        const { width, height } = containerRef.current.getBoundingClientRect();
-        // Use the smaller dimension to fit the square board
-        const newSize = Math.floor(Math.min(width, height) / GRID_SIZE);
-        setCellSize(newSize > 1 ? newSize : 1);
-      }
+    const container = containerRef.current;
+    if (!container) return;
+
+    const updateSize = () => {
+      const { offsetWidth, offsetHeight } = container;
+      const minDimension = Math.min(offsetWidth, offsetHeight);
+      const newCellSize = Math.max(1, Math.floor(minDimension / GRID_SIZE));
+      setCellSize(newCellSize);
     };
 
-    // We need a slight delay to ensure parent containers have resized, especially on initial load.
-    const timeoutId = setTimeout(updateCellSize, 50);
+    const resizeObserver = new ResizeObserver(updateSize);
+    resizeObserver.observe(container);
 
-    const resizeObserver = new ResizeObserver(() => {
-      // Debounce resize updates to avoid flickering and performance issues
-      setTimeout(updateCellSize, 50);
-    });
+    updateSize(); // Initial size check
 
-    if (containerRef.current) {
-      resizeObserver.observe(containerRef.current);
-    }
-
-    return () => {
-      clearTimeout(timeoutId);
-      resizeObserver.disconnect();
-    };
+    return () => resizeObserver.disconnect();
   }, []);
 
   const boardSize = GRID_SIZE * cellSize;
@@ -97,14 +88,14 @@ const GameBoard: React.FC<GameBoardProps> = ({ room }) => {
         return gameState.spikes?.map((spike) => (
           <div
             key={spike.id}
-            className="absolute text-red-500 text-center font-black"
+            className="absolute text-red-500 text-center font-black flex items-center justify-center"
             style={{
               left: spike.x * cellSize,
               top: spike.y * cellSize,
               width: cellSize,
               height: cellSize,
-              transform: "translateY(-5px)",
-              fontSize: `${cellSize * 0.8}px`,
+              fontSize: `${cellSize * 1.1}px`,
+              lineHeight: 1,
             }}
           >
             ▼
@@ -167,7 +158,7 @@ const GameBoard: React.FC<GameBoardProps> = ({ room }) => {
       className="w-full h-full flex items-center justify-center"
     >
       <div
-        className="relative bg-gray-900 border-2 border-gray-700 rounded-lg overflow-hidden"
+        className="relative bg-gray-900 border-2 border-gray-700 rounded-lg overflow-hidden flex-shrink-0"
         style={{
           width: boardSize,
           height: boardSize,
