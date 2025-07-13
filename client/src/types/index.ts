@@ -1,0 +1,91 @@
+
+
+export enum GameMode {
+  TAG = 'Tag',
+  TERRITORY_CONTROL = 'Territory Control',
+  MAZE_RACE = 'Maze Race',
+  DODGE_THE_SPIKES = 'Dodge the Spikes',
+  INFECTION_ARENA = 'Infection Arena',
+  TRAP_RUSH = 'Trap Rush',
+  SPY_AND_DECODE = 'Spy & Decode',
+}
+
+export type TrapType = 'slow' | 'teleport' | 'freeze';
+
+export interface Trap {
+  type: TrapType;
+  revealed: boolean;
+}
+
+export interface PlayerEffect {
+  type: 'slow' | 'frozen';
+  expires: number;
+}
+
+export interface Player {
+  id: string;
+  name: string;
+  x: number;
+  y: number;
+  color: string;
+  score: number;
+  socketId: string;
+  isIt: boolean;
+  isEliminated: boolean;
+  // Infection Arena
+  isInfected?: boolean;
+  isShielded?: boolean;
+  shieldUntil?: number;
+  sprintUntil?: number;
+  lastShieldTime?: number;
+  lastSprintTime?: number;
+  // Trap Rush
+  effects?: PlayerEffect[];
+  lastMoveTime?: number;
+  // Spy & Decode
+  isSpy?: boolean;
+  guess?: string | null;
+}
+
+export interface Tile {
+  claimedBy: string | null;
+  color: string | null;
+}
+
+export interface Spike {
+  id: string;
+  x: number;
+  y: number;
+}
+
+export interface Maze {
+  grid: number[][]; // 0 for path, 1 for wall
+  end: { x: number; y: number };
+}
+
+export type GameStatus = 'waiting' | 'playing' | 'finished';
+
+export interface GameState {
+  status: GameStatus;
+  timer: number;
+  winner: Player | { name: string } | null;
+  tiles?: Tile[][];
+  maze?: Maze;
+  spikes?: Spike[];
+  // Trap Rush
+  trapMap?: (Trap | null)[][];
+  finishLine?: number;
+  // Spy & Decode
+  phase?: 'signaling' | 'guessing' | 'reveal';
+  codes?: { id: string; value: string }[];
+  correctCodeId?: string;
+  playerGuesses?: Record<string, string>;
+}
+
+export interface Room {
+  id: string;
+  hostId: string;
+  gameMode: GameMode;
+  players: Player[];
+  gameState: GameState;
+}
