@@ -8,6 +8,7 @@ import GameBoard from "@components/GameBoard";
 import EndScreen from "@components/EndScreen";
 import InstructionsModal from "@components/InstructionsModal";
 import LoadingScreen from "@components/LoadingScreen";
+import GameStatusDisplay from "@components/GameStatusDisplay";
 import {
   GAME_DESCRIPTIONS,
   PLAYER_COLORS,
@@ -235,37 +236,6 @@ const GamePage: React.FC = () => {
     return <EndScreen room={room} onBackToLobby={endGame} />;
   }
 
-  const getStatusMessage = () => {
-    const { status, timer, phase } = room.gameState;
-    const { gameMode } = room;
-    const you = room.players.find((p) => p.id === user.id);
-
-    if (status === "waiting") return "Waiting for host to start...";
-    if (timer > 0)
-      return `${
-        phase
-          ? `${phase.charAt(0).toUpperCase() + phase.slice(1)} Phase: `
-          : "Time Left: "
-      }${timer}s`;
-
-    switch (gameMode) {
-      case GameMode.TAG:
-        return you?.isIt ? "You are It!" : "Don't get tagged!";
-      case GameMode.MAZE_RACE:
-        return "First to the finish wins!";
-      case GameMode.DODGE_THE_SPIKES:
-        return you?.isEliminated ? "You were eliminated!" : "Dodge the spikes!";
-      case GameMode.INFECTION_ARENA:
-        return you?.isInfected ? "Infect everyone!" : "Don't get infected!";
-      case GameMode.TRAP_RUSH:
-        return "Get to the finish line!";
-      case GameMode.SPY_AND_DECODE:
-        return "Awaiting next phase...";
-      default:
-        return "";
-    }
-  };
-
   return (
     <>
       {isInstructionsVisible && (
@@ -283,6 +253,13 @@ const GamePage: React.FC = () => {
               : "flex-grow flex items-center justify-center relative min-h-[300px] lg:min-h-0"
           }
         >
+          {isFullscreen && (
+            <GameStatusDisplay
+              room={room}
+              user={user}
+              className="absolute top-4 left-1/2 -translate-x-1/2 bg-black/40 backdrop-blur-sm text-white font-bold text-lg md:text-2xl px-2 py-2 md:px-6 md:py-3 rounded-xl z-10 pointer-events-none shadow-lg"
+            />
+          )}
           <GameBoard room={room} />
           {isMobile && room.gameState.status === "playing" && (
             <VirtualJoystick room={room} user={user} />
@@ -334,9 +311,11 @@ const GamePage: React.FC = () => {
               {GAME_DESCRIPTIONS[room.gameMode]}
             </p>
 
-            <div className="bg-blue-900/40 text-blue-200 rounded-md p-3 text-center mb-4 font-semibold">
-              {getStatusMessage()}
-            </div>
+            <GameStatusDisplay
+              room={room}
+              user={user}
+              className="bg-blue-900/40 text-blue-200 rounded-md p-3 text-center mb-4 font-semibold"
+            />
 
             {room.gameMode === GameMode.SPY_AND_DECODE && (
               <SpyDecodeUI room={room} user={user} />

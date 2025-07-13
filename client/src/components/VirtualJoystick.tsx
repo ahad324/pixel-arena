@@ -145,7 +145,7 @@ const VirtualJoystick: React.FC<VirtualJoystickProps> = ({ room, user }) => {
     for (let i = 0; i < e.changedTouches.length; i++) {
       const touch = e.changedTouches[i];
       if (touch && touch.identifier === touchId.current) {
-        e.preventDefault();
+        // e.preventDefault();
         updateThumb(touch.clientX, touch.clientY);
         break;
       }
