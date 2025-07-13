@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import type { Room } from "../types";
 import { GameMode } from "../types";
 import { socketService } from "@services/socketService";
 import { GAME_DESCRIPTIONS, PLAYER_COLORS } from "@constants/index";
@@ -26,7 +25,12 @@ interface GameModeCardProps {
   onSelect: () => void;
 }
 
-const GameModeCard: React.FC<GameModeCardProps> = ({ mode, icon, selected, onSelect }) => (
+const GameModeCard: React.FC<GameModeCardProps> = ({
+  mode,
+  icon,
+  selected,
+  onSelect,
+}) => (
   <button
     onClick={onSelect}
     className={`p-4 md:p-6 border-2 rounded-lg text-left transition-all duration-200 w-full h-full flex flex-col ${
@@ -119,8 +123,8 @@ const LobbyPage: React.FC = () => {
           <h1 className="text-4xl font-bold tracking-wider">GAME LOBBY</h1>
           <p className="text-gray-400 mt-2">
             Welcome,{" "}
-            <span className="text-blue-400 font-bold">{user?.name}</span>! Choose
-            your game.
+            <span className="text-blue-400 font-bold">{user?.name}</span>!
+            Choose your game.
           </p>
         </div>
 
