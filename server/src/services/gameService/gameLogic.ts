@@ -175,6 +175,9 @@ function initializeGameMode(room: Room) {
     if (room.gameMode === GameMode.TRAP_RUSH) {
       p.x = Math.floor(Math.random() * GRID_SIZE);
       p.y = 0;
+    } else if (room.gameMode === GameMode.DODGE_THE_SPIKES) {
+      p.x = Math.floor(Math.random() * GRID_SIZE);
+      p.y = GRID_SIZE - 1;
     } else if (room.gameMode !== GameMode.MAZE_RACE) {
       p.x = Math.floor(Math.random() * GRID_SIZE);
       p.y = Math.floor(Math.random() * GRID_SIZE);

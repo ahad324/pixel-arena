@@ -1,8 +1,4 @@
-import type {
-  Room,
-  Player,
-  GameEvent,
-} from "@app-types/index";
+import type { Room, Player, GameEvent } from "@app-types/index";
 import { GameMode } from "@app-types/index";
 import { PLAYER_COLORS } from "@config/constants";
 import { generateRoomId, createInitialGameState } from "./helpers";
@@ -58,9 +54,8 @@ export const roomManagement = {
     const room = rooms.get(roomId);
     if (!room || room.gameState.status !== "waiting") return [];
     room.gameMode = gameMode;
-    if (gameMode === GameMode.MAZE_RACE || gameMode === GameMode.TRAP_RUSH) {
-      room.gameState = createInitialGameState(gameMode);
-    }
+    // Always create a fresh game state for the new mode
+    room.gameState = createInitialGameState(gameMode);
     return [
       {
         name: "game-mode-changed",
