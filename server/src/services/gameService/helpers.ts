@@ -1,134 +1,211 @@
-import type {
-  GameState,
-  Trap,
-  TrapType,
-  Room,
-  CodePad,
-} from "@app-types/index";
+import type { Room, Player, GameEvent } from "@app-types/index";
+import { generateRoomId, createInitialGameState } from "./common/helpers";
+import { GRID_SIZE } from "@config/constants";
 import { GameMode } from "@app-types/index";
-import { GRID_SIZE, GAME_SETTINGS } from "@config/constants";
-import { generateMaze } from "@utils/mazeGenerator";
+import { PLAYER_COLORS } from "@config/constants";
+import { tagLogic } from "./modes/tag";
+import { territoryControlLogic } from "./modes/teritorryControl";
+import { mazeRaceLogic } from "./modes/mazeRace";
+import { infectionArenaLogic } from "./modes/infectionArena";
+import { trapRushLogic } from "./modes/trapRush";
+import { spyAndDecodeLogic } from "./modes/spyAndDecode";
+import { heistPanicLogic } from "./modes/heistPanic";
 
-export function createInitialGameState(
-  gameMode: GameMode,
-  playerCount: number
-): GameState {
-  const baseState: GameState = { status: "waiting", timer: 0, winner: null };
-  switch (gameMode) {
-    case GameMode.TERRITORY_CONTROL:
-      baseState.tiles = Array(GRID_SIZE)
-        .fill(null)
-        .map(() => Array(GRID_SIZE).fill({ claimedBy: null, color: null }));
-      break;
-    case GameMode.MAZE_RACE:
-      const mazeData = generateMaze(GRID_SIZE, GRID_SIZE);
-      baseState.maze = { grid: mazeData.grid, end: { x: 0, y: 0 } };
-      break;
-    case GameMode.TRAP_RUSH:
-      baseState.trapMap = generateTrapMap();
-      baseState.finishLine = GRID_SIZE - 1;
-      break;
-    case GameMode.SPY_AND_DECODE:
-      const { DECOY_CODES } = GAME_SETTINGS[GameMode.SPY_AND_DECODE];
-      const shuffledCodes = [...DECOY_CODES].sort(() => 0.5 - Math.random());
-      const selectedCodes = shuffledCodes.slice(0, 3);
-      baseState.codes = selectedCodes.map((value, i) => ({
-        id: String.fromCharCode(65 + i),
-        value,
-      }));
-      baseState.correctCodeId =
-        baseState.codes[Math.floor(Math.random() * baseState.codes.length)].id;
-      baseState.phase = "signaling";
-      baseState.playerGuesses = {};
-      break;
-    case GameMode.HEIST_PANIC:
-      const numPads = Math.max(3, 3 + (playerCount - 1));
-      const pads: CodePad[] = [];
-      const occupiedCoords = new Set<string>();
-      while (pads.length < numPads) {
-        const x = Math.floor(Math.random() * GRID_SIZE);
-        const y = Math.floor(Math.random() * GRID_SIZE);
-        const coordKey = `${x},${y}`;
-        if (!occupiedCoords.has(coordKey)) {
-          pads.push({ id: crypto.randomUUID(), x, y });
-          occupiedCoords.add(coordKey);
-        }
-      }
-      baseState.codePads = pads;
-      baseState.correctPadId = pads[Math.floor(Math.random() * pads.length)].id;
-      break;
-  }
-  return baseState;
-}
+export const roomManagement = {
+  createRoom: (rooms: Map<string, Room>, hostPlayer: Player): Room => {
+    const roomId = generateRoomId();
+    const hostWithColor = {
+      ...hostPlayer,
+      color: PLAYER_COLORS[0],
+      x: 1,
+      y: 1,
+      score: 0,
+    };
 
-export function calculateTerritoryScores(room: Room): { [id: string]: number } {
-  const scores: { [id: string]: number } = {};
-  room.gameState.tiles?.flat().forEach((t) => {
-    if (t.claimedBy) scores[t.claimedBy] = (scores[t.claimedBy] || 0) + 1;
-  });
-  console.log(scores);
-  return scores;
-}
+    const newRoom: Room = {
+      id: roomId,
+      hostId: hostPlayer.id,
+      gameMode: GameMode.TAG,
+      players: [hostWithColor],
+      gameState: createInitialGameState(GameMode.TAG, 1),
+    };
 
-export function calculateDistances(
-  grid: number[][],
-  startX: number,
-  startY: number
-): number[][] {
-  const distances = Array(grid.length)
-    .fill(null)
-    .map(() => Array(grid[0].length).fill(-1));
-  if (grid[startY]?.[startX] === 1) return distances;
-  const queue: { x: number; y: number; dist: number }[] = [];
-  distances[startY][startX] = 0;
-  queue.push({ x: startX, y: startY, dist: 0 });
-  let head = 0;
-  while (head < queue.length) {
-    const { x, y, dist } = queue[head++]!;
-    const directions = [
-      { dx: 0, dy: 1 },
-      { dx: 0, dy: -1 },
-      { dx: 1, dy: 0 },
-      { dx: -1, dy: 0 },
+    rooms.set(roomId, newRoom);
+    return newRoom;
+  },
+
+  joinRoom: (
+    rooms: Map<string, Room>,
+    roomId: string,
+    player: Player
+  ): Room | null => {
+    const room = rooms.get(roomId);
+    if (!room || room.players.length >= PLAYER_COLORS.length) return null;
+
+    const playerWithDetails = {
+      ...player,
+      color: PLAYER_COLORS[room.players.length % PLAYER_COLORS.length],
+      x: 1,
+      y: 1,
+      score: 0,
+    };
+
+    room.players.push(playerWithDetails);
+    return room;
+  },
+
+  setGameMode: (
+    rooms: Map<string, Room>,
+    roomId: string,
+    gameMode: GameMode
+  ): GameEvent[] => {
+    const room = rooms.get(roomId);
+    if (!room || room.gameState.status !== "waiting") return [];
+    room.gameMode = gameMode;
+    room.gameState = createInitialGameState(gameMode, room.players.length);
+    return [
+      {
+        name: "game-mode-changed",
+        data: { gameMode, gameState: room.gameState },
+      },
     ];
-    for (const dir of directions) {
-      const nx = x + dir.dx;
-      const ny = y + dir.dy;
-      if (
-        ny >= 0 &&
-        ny < grid.length &&
-        nx >= 0 &&
-        nx < grid[0].length &&
-        grid[ny][nx] === 0 &&
-        distances[ny][nx] === -1
-      ) {
-        distances[ny][nx] = dist + 1;
-        queue.push({ x: nx, y: ny, dist: dist + 1 });
-      }
-    }
-  }
-  return distances;
-}
+  },
 
-export function generateTrapMap(): (Trap | null)[][] {
-  const { TRAP_DENSITY } = GAME_SETTINGS[GameMode.TRAP_RUSH];
-  const trapTypes: TrapType[] = ["slow", "teleport", "freeze"];
-  const map: (Trap | null)[][] = Array(GRID_SIZE)
-    .fill(null)
-    .map(() => Array(GRID_SIZE).fill(null));
-  for (let y = 1; y < GRID_SIZE - 1; y++) {
-    for (let x = 0; x < GRID_SIZE; x++) {
-      if (Math.random() < TRAP_DENSITY) {
-        map[y][x] = {
-          type: trapTypes[Math.floor(Math.random() * trapTypes.length)],
-          revealed: false,
-        };
-      }
-    }
-  }
-  return map;
-}
+  leaveRoom: (
+    rooms: Map<string, Room>,
+    roomId: string,
+    playerId: string
+  ): { events: GameEvent[]; roomWasDeleted: boolean; updatedRoom?: Room } => {
+    const room = rooms.get(roomId);
+    if (!room) return { events: [], roomWasDeleted: true };
 
-export function generateRoomId(): string {
-  return Math.random().toString(36).substring(2, 8).toUpperCase();
-}
+    const wasHost = room.hostId === playerId;
+    room.players = room.players.filter((p) => p.id !== playerId);
+
+    if (room.players.length === 0) {
+      rooms.delete(roomId);
+      return { events: [], roomWasDeleted: true };
+    }
+
+    const events: GameEvent[] = [{ name: "player-left", data: { playerId } }];
+    if (wasHost) {
+      room.hostId = room.players[0].id;
+      events.push({ name: "host-changed", data: { newHostId: room.hostId } });
+    }
+    return { events, roomWasDeleted: false, updatedRoom: room };
+  },
+
+  getRoom: (rooms: Map<string, Room>, roomId: string): Room | undefined => {
+    return rooms.get(roomId);
+  },
+
+  getAvailableRooms: (
+    rooms: Map<string, Room>
+  ): { id: string; gameMode: GameMode; playerCount: number }[] => {
+    return Array.from(rooms.values())
+      .filter(
+        (room) =>
+          room.gameState.status === "waiting" &&
+          room.players.length < PLAYER_COLORS.length
+      )
+      .map((room) => ({
+        id: room.id,
+        gameMode: room.gameMode,
+        playerCount: room.players.length,
+      }));
+  },
+};
+
+export const playerActions = {
+  updatePlayerPosition: (
+    rooms: Map<string, Room>,
+    roomId: string,
+    playerId: string,
+    newPos: { x: number; y: number }
+  ): GameEvent[] => {
+    const room = rooms.get(roomId);
+    const events: GameEvent[] = [];
+    if (!room || room.gameState.status !== "playing") return events;
+
+    const player = room.players.find((p) => p.id === playerId);
+    if (!player || player.isEliminated) return events;
+
+    const now = Date.now();
+    if (player.effects?.some((e) => e.type === "frozen" && e.expires > now))
+      return events;
+
+    if (
+      newPos.x < 0 ||
+      newPos.x >= GRID_SIZE ||
+      newPos.y < 0 ||
+      newPos.y >= GRID_SIZE
+    )
+      return events;
+
+    const isSlowed = player.effects?.some(
+      (e) => e.type === "slow" && e.expires > now
+    );
+    const isSprinting =
+      player.isInfected && player.sprintUntil && now < player.sprintUntil;
+    const moveCooldown = isSprinting ? 50 : isSlowed ? 250 : 100;
+
+    if (player.lastMoveTime && now - player.lastMoveTime < moveCooldown)
+      return events;
+    player.lastMoveTime = now;
+
+    // Delegate to game mode specific move logic
+    switch (room.gameMode) {
+      case GameMode.TAG:
+        return tagLogic.handleMove(room, player, newPos);
+      case GameMode.TERRITORY_CONTROL:
+        return territoryControlLogic.handleMove(room, player, newPos);
+      case GameMode.MAZE_RACE:
+        return mazeRaceLogic.handleMove(room, player, newPos);
+      case GameMode.INFECTION_ARENA:
+        return infectionArenaLogic.handleMove(room, player, newPos);
+      case GameMode.TRAP_RUSH:
+        return trapRushLogic.handleMove(room, player, newPos);
+      case GameMode.SPY_AND_DECODE:
+        return spyAndDecodeLogic.handleMove(room, player, newPos);
+      case GameMode.HEIST_PANIC:
+        return heistPanicLogic.handleMove(room, player, newPos);
+    }
+    return events;
+  },
+
+  activateAbility: (
+    rooms: Map<string, Room>,
+    roomId: string,
+    playerId: string
+  ): GameEvent[] => {
+    const room = rooms.get(roomId);
+    if (!room || room.gameState.status !== "playing") return [];
+    const player = room.players.find((p) => p.id === playerId);
+    if (!player) return [];
+
+    switch (room.gameMode) {
+      case GameMode.INFECTION_ARENA:
+        return infectionArenaLogic.handleAbility(room, player);
+      default:
+        return [];
+    }
+  },
+
+  submitGuess: (
+    rooms: Map<string, Room>,
+    roomId: string,
+    playerId: string,
+    guess: string
+  ): GameEvent[] => {
+    return spyAndDecodeLogic.handleGuess(rooms, roomId, playerId, guess);
+  },
+
+  submitHeistGuess: (
+    rooms: Map<string, Room>,
+    roomId: string,
+    playerId: string,
+    padId: string
+  ): GameEvent[] => {
+    return heistPanicLogic.handleGuess(rooms, roomId, playerId, padId);
+  },
+};
