@@ -41,7 +41,6 @@ export function calculateTerritoryScores(room: Room): { [id: string]: number } {
   room.gameState.tiles?.flat().forEach((t) => {
     if (t.claimedBy) scores[t.claimedBy] = (scores[t.claimedBy] || 0) + 1;
   });
-  console.log(scores);
   return scores;
 }
 
