@@ -1,10 +1,18 @@
-import type { Room } from "@app-types/index";
+import { Room, MazeRaceDifficulty } from "@app-types/index";
 import { GRID_SIZE } from "@config/constants";
 import { calculateDistances } from "../../common/helpers";
 
 export const mazeRaceHelpers = {
   setupMazeRace: (room: Room) => {
     const maze = room.gameState.maze!;
+    // Set difficulty on the maze object
+    if (room.mazeRaceSettings?.difficulty) {
+      maze.difficulty = room.mazeRaceSettings.difficulty;
+    } else {
+      // Default to easy if no difficulty is set
+      maze.difficulty = MazeRaceDifficulty.EASY;
+    }
+    
     let endX = Math.floor(GRID_SIZE / 2);
     let endY = Math.floor(GRID_SIZE / 2);
     while (maze.grid[endY]?.[endX] !== 0) {
@@ -44,5 +52,18 @@ export const mazeRaceHelpers = {
       p.isEliminated = false;
       p.isIt = false;
     });
+  },
+  
+  setMazeRaceDifficulty: (room: Room, difficulty: MazeRaceDifficulty) => {
+    if (!room.mazeRaceSettings) {
+      room.mazeRaceSettings = { difficulty };
+    } else {
+      room.mazeRaceSettings.difficulty = difficulty;
+    }
+    
+    // If maze is already generated, update its difficulty
+    if (room.gameState.maze) {
+      room.gameState.maze.difficulty = difficulty;
+    }
   },
 };

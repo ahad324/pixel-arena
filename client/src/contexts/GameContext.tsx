@@ -64,7 +64,7 @@ type GameAction =
     payload: { phase: Room["gameState"]["phase"]; timer: number };
   }
   | { type: "PLAYER_GUESSED"; payload: { playerId: string; guess: string } }
-  | { type: "GAME_OVER"; payload: { winner: any; players: Player[] } };
+  | { type: "GAME_OVER"; payload: { winner: Player | { name: string } | null; players: Player[] } };
 
 interface GameState {
   user: Omit<Player, "socketId"> | null;
@@ -152,7 +152,7 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
           }),
         },
       };
-    case "TILE_CLAIMED":
+    case "TILE_CLAIMED": {
       if (!state.room || !state.room.gameState.tiles) return state;
       const newTiles = state.room.gameState.tiles.map((row) => [...row]);
       newTiles[action.payload.y][action.payload.x] = {
@@ -166,6 +166,7 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
           gameState: { ...state.room.gameState, tiles: newTiles },
         },
       };
+    }
     case "TIMER_UPDATE":
       if (!state.room) return state;
       return {
@@ -225,7 +226,7 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
           }),
         },
       };
-    case "TRAP_TRIGGERED":
+    case "TRAP_TRIGGERED": {
       if (!state.room || !state.room.gameState.trapMap) return state;
       const newTrapMap = state.room.gameState.trapMap.map((r) =>
         r.map((c) => (c ? { ...c } : null))
@@ -240,6 +241,7 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
           gameState: { ...state.room.gameState, trapMap: newTrapMap },
         },
       };
+    }
     case "PLAYER_EFFECT":
       if (!state.room) return state;
       return {
@@ -279,10 +281,11 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
           [action.payload.padId]: action.payload.correct ? 'correct' : 'incorrect',
         },
       };
-    case "CLEAR_PAD_FEEDBACK":
+    case "CLEAR_PAD_FEEDBACK": {
       const newFeedback = { ...state.heistPadFeedback };
       delete newFeedback[action.payload.padId];
       return { ...state, heistPadFeedback: newFeedback };
+    }
     case "PHASE_CHANGED":
       if (!state.room) return state;
       return {

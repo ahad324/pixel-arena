@@ -1,6 +1,6 @@
 import { Server, Socket } from "socket.io";
 import { gameService } from "@services/gameService";
-import type { Player, Room, GameMode, GameEvent } from "@app-types/index";
+import type { Player, Room, GameMode, GameEvent, MazeRaceDifficulty } from "@app-types/index";
 
 const TICK_RATE = 20; // Ticks per second
 const TICK_INTERVAL = 1000 / TICK_RATE;
@@ -92,6 +92,14 @@ export const initializeSockets = (io: Server) => {
       "set-game-mode",
       ({ roomId, gameMode }: { roomId: string; gameMode: GameMode }) => {
         const events = gameService.setGameMode(roomId, gameMode);
+        dispatchEvents(roomId, events);
+      }
+    );
+
+    socket.on(
+      "set-maze-difficulty",
+      ({ roomId, playerId, difficulty }: { roomId: string; playerId: string; difficulty: MazeRaceDifficulty }) => {
+        const events = gameService.setMazeRaceDifficulty(roomId, playerId, difficulty);
         dispatchEvents(roomId, events);
       }
     );

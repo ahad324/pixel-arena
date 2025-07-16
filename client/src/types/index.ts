@@ -56,9 +56,17 @@ export interface Spike {
   y: number;
 }
 
+export enum MazeRaceDifficulty {
+  EASY = "easy",
+  MEDIUM = "medium",
+  HARD = "hard",
+  EXPERT = "expert"
+}
+
 export interface Maze {
   grid: number[][]; // 0 for path, 1 for wall
   end: { x: number; y: number };
+  difficulty?: MazeRaceDifficulty;
 }
 
 export type GameStatus = "waiting" | "playing" | "finished";
@@ -94,4 +102,8 @@ export interface Room {
   gameMode: GameMode;
   players: Player[];
   gameState: GameState;
+  // Maze Race specific settings
+  mazeRaceSettings?: {
+    difficulty: MazeRaceDifficulty;
+  };
 }

@@ -1,4 +1,4 @@
-import type { Room, Player, GameEvent } from "@app-types/index";
+import type { Room, Player, GameEvent, MazeRaceDifficulty } from "@app-types/index";
 import { GameMode } from "@app-types/index";
 import { roomManagement } from "./helpers";
 import { playerActions } from "./helpers";
@@ -26,6 +26,8 @@ class GameService {
     roomManagement.joinRoom(this.rooms, roomId, player);
   public setGameMode = (roomId: string, gameMode: GameMode): GameEvent[] =>
     roomManagement.setGameMode(this.rooms, roomId, gameMode);
+  public setMazeRaceDifficulty = (roomId: string, playerId: string, difficulty: MazeRaceDifficulty): GameEvent[] =>
+    mazeRaceLogic.setDifficulty(this.rooms, roomId, playerId, difficulty).events;
   public leaveRoom = (
     roomId: string,
     playerId: string

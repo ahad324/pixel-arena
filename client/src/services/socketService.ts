@@ -1,13 +1,101 @@
 import { io, Socket } from "socket.io-client";
-import type { Room, Player, GameMode, GameState } from "../types";
+import { SocketEmitters } from "@services/socketEmitters";
+import { SocketListeners } from "@services/socketListeners";
 
 class SocketService {
   private socket: Socket | null = null;
+  private emitters: SocketEmitters;
+  private listeners: SocketListeners;
+
+  // Emitter methods
+  public createRoom: typeof SocketEmitters.prototype.createRoom;
+  public joinRoom: typeof SocketEmitters.prototype.joinRoom;
+  public setGameMode: typeof SocketEmitters.prototype.setGameMode;
+  public leaveRoom: typeof SocketEmitters.prototype.leaveRoom;
+  public getAvailableRooms: typeof SocketEmitters.prototype.getAvailableRooms;
+  public updatePlayerPosition: typeof SocketEmitters.prototype.updatePlayerPosition;
+  public activateAbility: typeof SocketEmitters.prototype.activateAbility;
+  public submitHeistGuess: typeof SocketEmitters.prototype.submitHeistGuess;
+  public submitGuess: typeof SocketEmitters.prototype.submitGuess;
+  public startGame: typeof SocketEmitters.prototype.startGame;
+  public setMazeRaceDifficulty: typeof SocketEmitters.prototype.setMazeRaceDifficulty;
+
+  // Listener methods
+  public onAvailableRoomsUpdate: typeof SocketListeners.prototype.onAvailableRoomsUpdate;
+  public offAvailableRoomsUpdate: typeof SocketListeners.prototype.offAvailableRoomsUpdate;
+  public onGameStarted: typeof SocketListeners.prototype.onGameStarted;
+  public onPlayerMoved: typeof SocketListeners.prototype.onPlayerMoved;
+  public onPlayerTagged: typeof SocketListeners.prototype.onPlayerTagged;
+  public onTileClaimed: typeof SocketListeners.prototype.onTileClaimed;
+  public onPlayerInfected: typeof SocketListeners.prototype.onPlayerInfected;
+  public onTrapTriggered: typeof SocketListeners.prototype.onTrapTriggered;
+  public onPlayerEffect: typeof SocketListeners.prototype.onPlayerEffect;
+  public onPadGuessed: typeof SocketListeners.prototype.onPadGuessed;
+  public onTimerUpdate: typeof SocketListeners.prototype.onTimerUpdate;
+  public onScoresUpdate: typeof SocketListeners.prototype.onScoresUpdate;
+  public onPhaseChanged: typeof SocketListeners.prototype.onPhaseChanged;
+  public onPlayerGuessed: typeof SocketListeners.prototype.onPlayerGuessed;
+  public onGameOver: typeof SocketListeners.prototype.onGameOver;
+  public onPlayerJoined: typeof SocketListeners.prototype.onPlayerJoined;
+  public onPlayerLeft: typeof SocketListeners.prototype.onPlayerLeft;
+  public onHostChanged: typeof SocketListeners.prototype.onHostChanged;
+  public onGameModeChanged: typeof SocketListeners.prototype.onGameModeChanged;
+  public onAbilityActivated: typeof SocketListeners.prototype.onAbilityActivated;
+  public onMazeDifficultyChanged: typeof SocketListeners.prototype.onMazeDifficultyChanged;
+  public offMazeDifficultyChanged: typeof SocketListeners.prototype.offMazeDifficultyChanged;
+  public offAll: typeof SocketListeners.prototype.offAll;
+
+  constructor() {
+    this.emitters = new SocketEmitters(this);
+    this.listeners = new SocketListeners(this);
+    
+    // Bind emitter methods
+    this.createRoom = this.emitters.createRoom.bind(this.emitters);
+    this.joinRoom = this.emitters.joinRoom.bind(this.emitters);
+    this.setGameMode = this.emitters.setGameMode.bind(this.emitters);
+    this.leaveRoom = this.emitters.leaveRoom.bind(this.emitters);
+    this.getAvailableRooms = this.emitters.getAvailableRooms.bind(this.emitters);
+    this.updatePlayerPosition = this.emitters.updatePlayerPosition.bind(this.emitters);
+    this.activateAbility = this.emitters.activateAbility.bind(this.emitters);
+    this.submitHeistGuess = this.emitters.submitHeistGuess.bind(this.emitters);
+    this.submitGuess = this.emitters.submitGuess.bind(this.emitters);
+    this.startGame = this.emitters.startGame.bind(this.emitters);
+    this.setMazeRaceDifficulty = this.emitters.setMazeRaceDifficulty.bind(this.emitters);
+    
+    // Bind listener methods
+    this.onAvailableRoomsUpdate = this.listeners.onAvailableRoomsUpdate.bind(this.listeners);
+    this.offAvailableRoomsUpdate = this.listeners.offAvailableRoomsUpdate.bind(this.listeners);
+    this.onGameStarted = this.listeners.onGameStarted.bind(this.listeners);
+    this.onPlayerMoved = this.listeners.onPlayerMoved.bind(this.listeners);
+    this.onPlayerTagged = this.listeners.onPlayerTagged.bind(this.listeners);
+    this.onTileClaimed = this.listeners.onTileClaimed.bind(this.listeners);
+    this.onPlayerInfected = this.listeners.onPlayerInfected.bind(this.listeners);
+    this.onTrapTriggered = this.listeners.onTrapTriggered.bind(this.listeners);
+    this.onPlayerEffect = this.listeners.onPlayerEffect.bind(this.listeners);
+    this.onPadGuessed = this.listeners.onPadGuessed.bind(this.listeners);
+    this.onTimerUpdate = this.listeners.onTimerUpdate.bind(this.listeners);
+    this.onScoresUpdate = this.listeners.onScoresUpdate.bind(this.listeners);
+    this.onPhaseChanged = this.listeners.onPhaseChanged.bind(this.listeners);
+    this.onPlayerGuessed = this.listeners.onPlayerGuessed.bind(this.listeners);
+    this.onGameOver = this.listeners.onGameOver.bind(this.listeners);
+    this.onPlayerJoined = this.listeners.onPlayerJoined.bind(this.listeners);
+    this.onPlayerLeft = this.listeners.onPlayerLeft.bind(this.listeners);
+    this.onHostChanged = this.listeners.onHostChanged.bind(this.listeners);
+    this.onGameModeChanged = this.listeners.onGameModeChanged.bind(this.listeners);
+    this.onAbilityActivated = this.listeners.onAbilityActivated.bind(this.listeners);
+    this.onMazeDifficultyChanged = this.listeners.onMazeDifficultyChanged.bind(this.listeners);
+    this.offMazeDifficultyChanged = this.listeners.offMazeDifficultyChanged.bind(this.listeners);
+    this.offAll = this.listeners.offAll.bind(this.listeners);
+  }
+
+  public getSocket(): Socket | null {
+    return this.socket;
+  }
 
   public connect() {
     if (!this.socket) {
       const backendUrl =
-        (import.meta as any).env.VITE_BACKEND_URL || "http://localhost:3000";
+        import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
       this.socket = io(backendUrl, {
         transports: ["websocket"],
       });
@@ -21,187 +109,6 @@ class SocketService {
     }
   }
 
-  // --- Emitters ---
-  public createRoom(
-    user: Omit<Player, "socketId">,
-    gameMode: GameMode,
-    callback: (room: Room) => void
-  ) {
-    this.socket?.emit("create-room", { user, gameMode }, callback);
-  }
-
-  public joinRoom(
-    roomId: string,
-    user: Omit<Player, "socketId">,
-    callback: (res: { room: Room | null; error?: string }) => void
-  ) {
-    this.socket?.emit("join-room", { roomId, user }, callback);
-  }
-
-  public setGameMode(roomId: string, gameMode: GameMode) {
-    this.socket?.emit("set-game-mode", { roomId, gameMode });
-  }
-
-  public leaveRoom() {
-    this.socket?.emit("leave-room");
-  }
-
-  public getAvailableRooms() {
-    this.socket?.emit("get-available-rooms");
-  }
-
-  public updatePlayerPosition(
-    roomId: string,
-    playerId: string,
-    newPos: { x: number; y: number }
-  ) {
-    this.socket?.emit("player-move", { roomId, playerId, newPos });
-  }
-
-  public activateAbility(roomId: string, playerId: string) {
-    this.socket?.emit("player-ability", { roomId, playerId });
-  }
-
-  public submitHeistGuess(roomId: string, playerId: string, padId: string) {
-    this.socket?.emit("player-heist-guess", { roomId, playerId, padId });
-  }
-
-  public submitGuess(roomId: string, playerId: string, guess: string) {
-    this.socket?.emit("player-guess", { roomId, playerId, guess });
-  }
-
-  public startGame(roomId: string, playerId: string) {
-    this.socket?.emit("start-game", { roomId, playerId });
-  }
-
-  // --- Listeners ---
-  public onAvailableRoomsUpdate(
-    callback: (
-      rooms: { id: string; gameMode: GameMode; playerCount: number }[]
-    ) => void
-  ) {
-    this.socket?.on("available-rooms-update", callback);
-  }
-
-  public offAvailableRoomsUpdate() {
-    this.socket?.off("available-rooms-update");
-  }
-
-  public onGameStarted(callback: (data: { room: Room }) => void) {
-    this.socket?.on("game-started", callback);
-  }
-
-  public onPlayerMoved(
-    callback: (data: { playerId: string; x: number; y: number }) => void
-  ) {
-    this.socket?.on("player-moved", callback);
-  }
-
-  public onPlayerTagged(
-    callback: (data: { oldIt: string; newIt: string }) => void
-  ) {
-    this.socket?.on("player-tagged", callback);
-  }
-
-  public onTileClaimed(
-    callback: (data: {
-      x: number;
-      y: number;
-      playerId: string;
-      color: string;
-    }) => void
-  ) {
-    this.socket?.on("tile-claimed", callback);
-  }
-
-  public onPlayerInfected(callback: (data: { playerId: string }) => void) {
-    this.socket?.on("player-infected", callback);
-  }
-
-  public onTrapTriggered(
-    callback: (data: { x: number; y: number; type: string }) => void
-  ) {
-    this.socket?.on("trap-triggered", callback);
-  }
-
-  public onPlayerEffect(
-    callback: (data: {
-      playerId: string;
-      type: "frozen" | "slow";
-      expires: number;
-    }) => void
-  ) {
-    this.socket?.on("player-effect", callback);
-  }
-
-  public onPadGuessed(
-    callback: (data: { padId: string; correct: boolean }) => void
-  ) {
-    this.socket?.on("pad-guessed", callback);
-  }
-
-  public onTimerUpdate(callback: (data: { time: number }) => void) {
-    this.socket?.on("timer-update", callback);
-  }
-
-  public onScoresUpdate(
-    callback: (data: { scores: { id: string; score: number }[] }) => void
-  ) {
-    this.socket?.on("scores-update", callback);
-  }
-
-  public onPhaseChanged(
-    callback: (data: { phase: GameState["phase"]; timer: number }) => void
-  ) {
-    this.socket?.on("phase-changed", callback);
-  }
-
-  public onPlayerGuessed(
-    callback: (data: { playerId: string; guess: string }) => void
-  ) {
-    this.socket?.on("player-guessed", callback);
-  }
-
-  public onGameOver(
-    callback: (data: {
-      winner: Player | { name: string } | null;
-      players: Player[];
-    }) => void
-  ) {
-    this.socket?.on("game-over", callback);
-  }
-
-  public onPlayerJoined(callback: (data: { player: Player }) => void) {
-    this.socket?.on("player-joined", callback);
-  }
-
-  public onPlayerLeft(callback: (data: { playerId: string }) => void) {
-    this.socket?.on("player-left", callback);
-  }
-
-  public onHostChanged(callback: (data: { newHostId: string }) => void) {
-    this.socket?.on("host-changed", callback);
-  }
-
-  public onGameModeChanged(
-    callback: (data: { gameMode: GameMode; gameState: GameState }) => void
-  ) {
-    this.socket?.on("game-mode-changed", callback);
-  }
-
-  public onAbilityActivated(
-    callback: (data: {
-      playerId: string;
-      ability: "sprint" | "shield";
-      expires: number;
-    }) => void
-  ) {
-    this.socket?.on("ability-activated", callback);
-  }
-
-  public offAll() {
-    this.socket?.off();
-  }
 }
 
 export const socketService = new SocketService();

@@ -23,7 +23,9 @@
       "@hooks/*": ["src/hooks/*"],
       "@services/*": ["src/services/*"],
       "@contexts/*": ["src/contexts/*"],
-      "@constants/*": ["src/constants/*"]
+      "@constants/*": ["src/constants/*"],
+      "@types/*": ["src/types/*"],
+      "@utils/*": ["src/utils/*"]
     }
   },
   "include": ["src"],

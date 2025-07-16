@@ -1,4 +1,4 @@
-import type { Room, Player, GameEvent } from "@app-types/index";
+import { Room, Player, GameEvent, MazeRaceDifficulty } from "@app-types/index";
 import { GameMode } from "@app-types/index";
 import { createInitialGameState, calculateDistances } from "../../common/helpers";
 import { mazeRaceHelpers } from "./helpers";
@@ -22,6 +22,32 @@ export const mazeRaceLogic = {
     mazeRaceHelpers.setupMazeRace(room);
 
     return { room, events: [{ name: "game-started", data: { room } }] };
+  },
+  
+  setDifficulty: (
+    rooms: Map<string, Room>,
+    roomId: string,
+    playerId: string,
+    difficulty: MazeRaceDifficulty
+  ): { room: Room | undefined; events: GameEvent[] } => {
+    const room = rooms.get(roomId);
+    if (
+      !room ||
+      room.hostId !== playerId ||
+      room.gameState.status !== "waiting" ||
+      room.gameMode !== GameMode.MAZE_RACE
+    )
+      return { room: undefined, events: [] };
+
+    mazeRaceHelpers.setMazeRaceDifficulty(room, difficulty);
+    
+    return { 
+      room, 
+      events: [{ 
+        name: "maze-difficulty-changed", 
+        data: { difficulty, room } 
+      }] 
+    };
   },
 
   handleMove: (room: Room, player: Player, newPos: { x: number; y: number }): GameEvent[] => {

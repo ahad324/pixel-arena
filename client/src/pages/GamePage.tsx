@@ -1,220 +1,36 @@
-
 import React, { useState, useEffect, useRef } from "react";
-import type { Player, Room } from "../types";
-import { GameMode } from "../types";
+import { GameMode, MazeRaceDifficulty, Room } from "../types/index";
 import { socketService } from "@services/socketService";
 import { usePlayerMovement } from "@hooks/usePlayerMovement";
 import { useFullscreen } from "@hooks/useFullscreen";
+import { useClipboard } from "@utils/clipboard";
 import GameBoard from "@components/GameBoard";
 import EndScreen from "@components/EndScreen";
 import InstructionsModal from "@components/InstructionsModal";
 import LoadingScreen from "@components/LoadingScreen";
-import {
-  GAME_DESCRIPTIONS,
-  PLAYER_COLORS,
-  GAME_SETTINGS,
-  INFECTED_COLOR,
-} from "@constants/index";
-import {
-  InfoIcon,
-  CheckCircleIcon,
-  EnterFullscreenIcon,
-} from "@components/icons";
+import GameStatus from "@components/GameStatus";
+import PlayerList from "@components/PlayerList";
+import GameControls from "@components/GameControls";
+import { GAME_DESCRIPTIONS } from "@constants/index";
+import { useGame } from "@contexts/GameContext";
 import { useDeviceDetection } from "@hooks/useDeviceDetection";
 import VirtualJoystick from "@components/VirtualJoystick";
-import { useGame } from "@contexts/GameContext";
-
-const SpyDecodeUI: React.FC<{ room: Room; user: Omit<Player, "socketId"> }> = ({
-  room,
-  user,
-}) => {
-  const { gameState } = room;
-  const self = room.players.find((p) => p.id === user.id);
-
-  if (gameState.phase === "reveal") {
-    const spy = room.players.find((p) => p.isSpy);
-    return (
-      <div className="bg-indigo-900/40 text-indigo-200 rounded-md p-3 text-center mb-4">
-        <h4 className="font-bold">Round Over!</h4>
-        <p>
-          The correct code was:{" "}
-          <span className="font-bold">
-            {
-              gameState.codes?.find((c) => c.id === gameState.correctCodeId)
-                ?.value
-            }
-          </span>
-        </p>
-        <p>
-          The spy was: <span className="font-bold">{spy?.name}</span>
-        </p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="bg-indigo-900/40 rounded-md p-3 mb-4">
-      <h4 className="font-bold text-center text-indigo-200 mb-2">
-        {self?.isSpy ? "You are the SPY!" : "Find the correct code!"}
-      </h4>
-      {self?.isSpy && (
-        <p className="text-center text-xs text-yellow-300 mb-2">
-          Secret Code:{" "}
-          <span className="font-bold tracking-widest">
-            {
-              gameState.codes?.find((c) => c.id === gameState.correctCodeId)
-                ?.value
-            }
-          </span>
-        </p>
-      )}
-
-      {gameState.phase === "guessing" && (
-        <div className="grid grid-cols-3 gap-2">
-          {gameState.codes?.map((code) => (
-            <button
-              key={code.id}
-              onClick={() =>
-                socketService.submitGuess(room.id, user.id, code.id)
-              }
-              disabled={!!self?.guess}
-              className={`p-2 rounded font-bold text-white transition-colors ${
-                self?.guess === code.id
-                  ? "bg-green-500"
-                  : "bg-indigo-600 hover:bg-indigo-700"
-              } disabled:opacity-50 disabled:cursor-not-allowed`}
-            >
-              {code.value}
-            </button>
-          ))}
-        </div>
-      )}
-      {gameState.phase === "signaling" && (
-        <p className="text-center text-xs text-indigo-300">
-          Signal the code to your allies...
-        </p>
-      )}
-    </div>
-  );
-};
-
-const InfectionAbilityButton: React.FC<{
-  room: Room;
-  user: Omit<Player, "socketId">;
-}> = ({ room, user }) => {
-  const [cooldown, setCooldown] = useState(0);
-  const self = room.players.find((p) => p.id === user.id);
-  const { isMobile } = useDeviceDetection();
-
-  const { SPRINT_COOLDOWN, SHIELD_COOLDOWN } =
-    GAME_SETTINGS[GameMode.INFECTION_ARENA];
-
-  useEffect(() => {
-    let intervalId: number | undefined;
-    if (
-      self &&
-      room.gameMode === GameMode.INFECTION_ARENA &&
-      room.gameState.status === "playing"
-    ) {
-      intervalId = window.setInterval(() => {
-        const now = Date.now();
-        const lastUsed = self.isInfected
-          ? self.lastSprintTime
-          : self.lastShieldTime;
-        const totalCooldown = self.isInfected
-          ? SPRINT_COOLDOWN
-          : SHIELD_COOLDOWN;
-        if (lastUsed) {
-          const remaining = Math.max(0, totalCooldown - (now - lastUsed));
-          setCooldown(Math.ceil(remaining / 1000));
-        } else {
-          setCooldown(0);
-        }
-      }, 500);
-    }
-    return () => {
-      if (intervalId) clearInterval(intervalId);
-    };
-  }, [
-    self,
-    room.gameMode,
-    room.gameState.status,
-    SPRINT_COOLDOWN,
-    SHIELD_COOLDOWN,
-  ]);
-
-  if (room.gameMode !== GameMode.INFECTION_ARENA) return null;
-
-  const abilityName = self?.isInfected ? "Sprint" : "Shield";
-  const isDisabled = cooldown > 0;
-
-  return (
-    <button
-      onClick={() => socketService.activateAbility(room.id, user.id)}
-      disabled={isDisabled}
-      className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-4 rounded focus:outline-none focus:shadow-outline transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed"
-    >
-      {isDisabled
-        ? `${abilityName} (${cooldown}s)`
-        : `Use ${abilityName}${!isMobile ? " (Space)" : ""}`}
-    </button>
-  );
-};
-
-const HeistPanicUI: React.FC<{ room: Room; user: Omit<Player, "socketId"> }> = ({
-  room,
-  user,
-}) => {
-  const self = room.players.find((p) => p.id === user.id);
-  const { isMobile } = useDeviceDetection();
-  const padUnderPlayer = room.gameState.codePads?.find(
-    (p) => p.x === self?.x && p.y === self?.y
-  );
-  const isStunned = !!self?.effects?.some(
-    (e) => e.type === "frozen" && e.expires > Date.now()
-  );
-
-  if (
-    room.gameMode !== GameMode.HEIST_PANIC ||
-    room.gameState.status !== "playing"
-  ) {
-    return null;
-  }
-
-  const handleGuess = () => {
-    if (padUnderPlayer) {
-      socketService.submitHeistGuess(room.id, user.id, padUnderPlayer.id);
-    }
-  };
-
-  return (
-    <button
-      onClick={handleGuess}
-      disabled={!padUnderPlayer || isStunned}
-      className="w-full bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-3 px-4 rounded focus:outline-none focus:shadow-outline transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed"
-    >
-      {isStunned
-        ? "Stunned!"
-        : padUnderPlayer
-        ? `Attempt Guess${!isMobile ? " (Space)" : ""}`
-        : "Move to a Code Pad"}
-    </button>
-  );
-};
+import SpyDecodeUI from "@components/GameUI/SpyDecodeUI";
+import InfectionAbilityButton from "@components/GameUI/InfectionAbilityButton";
+import HeistPanicUI from "@components/GameUI/HeistPanicUI";
+import { EnterFullscreenIcon, InfoIcon, CheckCircleIcon } from "@components/icons";
 
 const GamePage: React.FC = () => {
   const { user, room, leaveRoom, endGame, heistPadFeedback } = useGame();
   const { isMobile } = useDeviceDetection();
-
-  usePlayerMovement(user!, room!, isMobile);
-
   const [isInstructionsVisible, setIsInstructionsVisible] = useState(false);
-  const [copied, setCopied] = useState(false);
-  const [requestFullscreenOnStart, setRequestFullscreenOnStart] =
-    useState(false);
-
+  const [requestFullscreenOnStart, setRequestFullscreenOnStart] = useState(false);
+  const [selectedDifficulty, setSelectedDifficulty] = useState(MazeRaceDifficulty.EASY);
   const gameAreaRef = useRef<HTMLDivElement>(null);
   const { isFullscreen, enterFullscreen, exitFullscreen } = useFullscreen();
+  const { copied, handleCopy } = useClipboard(room?.id || "");
+
+  usePlayerMovement(user!, room!, isMobile);
 
   useEffect(() => {
     if (
@@ -240,50 +56,29 @@ const GamePage: React.FC = () => {
     }
   }, [room?.gameState.status, isFullscreen, exitFullscreen]);
 
+  // Sync selectedDifficulty with room state
+  useEffect(() => {
+    if (room?.mazeRaceSettings?.difficulty) {
+      setSelectedDifficulty(room.mazeRaceSettings.difficulty);
+    }
+  }, [room?.mazeRaceSettings?.difficulty]);
+
+  // Listen for difficulty changes from other players
+  useEffect(() => {
+    const handleDifficultyChange = (data: { difficulty: MazeRaceDifficulty; room: Room }) => {
+      setSelectedDifficulty(data.difficulty);
+    };
+
+    socketService.onMazeDifficultyChanged(handleDifficultyChange);
+
+    return () => {
+      socketService.offMazeDifficultyChanged();
+    };
+  }, []);
+
   if (!user || !room) {
     return <LoadingScreen />;
   }
-
-  const getStatusMessage = () => {
-    const { status, timer, phase } = room.gameState;
-    const { gameMode } = room;
-    const you = room.players.find((p) => p.id === user.id);
-
-    if (status === "waiting") return "Waiting for host to start...";
-    if (timer > 0)
-      return `${
-        phase
-          ? `${phase.charAt(0).toUpperCase() + phase.slice(1)} Phase: `
-          : "Time Left: "
-      }${timer}s`;
-
-    switch (gameMode) {
-      case GameMode.TAG:
-        return you?.isIt ? "You are It!" : "Don't get tagged!";
-      case GameMode.MAZE_RACE:
-        return "First to the finish wins!";
-      case GameMode.INFECTION_ARENA:
-        return you?.isInfected ? "Infect everyone!" : "Don't get infected!";
-      case GameMode.TRAP_RUSH:
-        return "Get to the finish line!";
-      case GameMode.SPY_AND_DECODE:
-        return "Awaiting next phase...";
-      case GameMode.HEIST_PANIC:
-        return "First to the correct code wins!";
-      default:
-        return "";
-    }
-  };
-
-  const handleCopyCode = () => {
-    navigator.clipboard
-      .writeText(room.id)
-      .then(() => {
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-      })
-      .catch((err) => console.error("Failed to copy text: ", err));
-  };
 
   const handleStartGame = () => {
     socketService.startGame(room.id, user.id);
@@ -300,8 +95,6 @@ const GamePage: React.FC = () => {
   if (room.gameState.status === "finished") {
     return <EndScreen room={room} onBackToLobby={endGame} />;
   }
-
-  const statusMessage = getStatusMessage();
 
   return (
     <>
@@ -320,12 +113,7 @@ const GamePage: React.FC = () => {
               : "flex-grow flex items-center justify-center relative min-h-[300px] lg:min-h-0"
           }
         >
-          {isFullscreen && (
-            <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-black/40 backdrop-blur-sm text-white font-bold text-lg md:text-2xl px-2 py-2 md:px-6 md:py-3 rounded-xl z-10 pointer-events-none shadow-lg">
-              {statusMessage}
-            </div>
-          )}
-          <GameBoard room={room} heistPadFeedback={heistPadFeedback} />
+          <GameBoard room={room} heistPadFeedback={heistPadFeedback} user={user} />
           {isMobile && room.gameState.status === "playing" && (
             <VirtualJoystick room={room} user={user} />
           )}
@@ -360,7 +148,7 @@ const GamePage: React.FC = () => {
                 Room Code:{" "}
                 <span
                   className="font-bold text-yellow-400 tracking-widest cursor-pointer"
-                  onClick={handleCopyCode}
+                  onClick={handleCopy}
                 >
                   {room.id}
                 </span>
@@ -376,58 +164,12 @@ const GamePage: React.FC = () => {
               {GAME_DESCRIPTIONS[room.gameMode]}
             </p>
 
-            <div className="bg-blue-900/40 text-blue-200 rounded-md p-3 text-center mb-4 font-semibold">
-              {statusMessage}
-            </div>
-
             {room.gameMode === GameMode.SPY_AND_DECODE && (
               <SpyDecodeUI room={room} user={user} />
             )}
+            <GameStatus room={room} isFullscreen={isFullscreen} />
 
-            <h3 className="font-bold mb-2 text-lg">
-              Players ({room.players.length}/{PLAYER_COLORS.length})
-            </h3>
-            <div className="space-y-2 flex-grow mb-4">
-              {room.players.map((p) => (
-                <div
-                  key={p.id}
-                  className={`p-2 rounded-md flex items-center justify-between text-sm ${
-                    p.isEliminated
-                      ? "bg-gray-700 text-gray-500 line-through"
-                      : "bg-gray-700"
-                  }`}
-                >
-                  <div className="flex items-center">
-                    <div
-                      className="w-4 h-4 rounded-full mr-3"
-                      style={{
-                        backgroundColor: p.isInfected
-                          ? INFECTED_COLOR
-                          : p.color,
-                      }}
-                    ></div>
-                    <span className="font-bold">
-                      {p.name}
-                      {p.id === user.id ? " (You)" : ""}
-                      {p.id === room.hostId ? " 👑" : ""}
-                    </span>
-                    {p.isIt && (
-                      <span className="ml-2 text-red-400 font-bold animate-pulse">
-                        (It!)
-                      </span>
-                    )}
-                    {p.isInfected && (
-                      <span className="ml-2 text-lime-400 font-bold animate-pulse">
-                        (Infected)
-                      </span>
-                    )}
-                  </div>
-                  <span className="font-mono font-bold text-lg text-blue-300">
-                    {p.score}
-                  </span>
-                </div>
-              ))}
-            </div>
+            <PlayerList room={room} user={user} />
 
             {!isMobile && room.gameState.status === "waiting" && (
               <div className="flex items-center justify-center my-3">
@@ -438,7 +180,7 @@ const GamePage: React.FC = () => {
                   onChange={(e) =>
                     setRequestFullscreenOnStart(e.target.checked)
                   }
-                  className="w-4 h-4 text-blue-600 bg-gray-600 border-gray-500 rounded focus:ring-2"
+                  className="w-4 h-4 text-blue-600 bg-gray-600 derin-gray-500 rounded focus:ring-2"
                 />
                 <label
                   htmlFor="fullscreen-checkbox"
@@ -449,6 +191,29 @@ const GamePage: React.FC = () => {
               </div>
             )}
 
+            {room.gameMode === GameMode.MAZE_RACE &&
+              room.gameState.status === "waiting" &&
+              isHost && (
+                <div className="flex flex-col mb-4">
+                  <label htmlFor="difficulty-select" className="mb-1 text-sm font-medium text-gray-300">
+                    Select Difficulty
+                  </label>
+                  <select
+                    id="difficulty-select"
+                    value={selectedDifficulty}
+                    onChange={(e) => {
+                      const newDifficulty = e.target.value as MazeRaceDifficulty;
+                      setSelectedDifficulty(newDifficulty);
+                      socketService.setMazeRaceDifficulty(room.id, user.id, newDifficulty);
+                    }}
+                    className="p-2 bg-gray-700 border border-gray-600 text-white rounded-md"
+                  >
+                    {Object.values(MazeRaceDifficulty).map((d) => (
+                      <option key={d} value={d}>{d}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
             {room.gameMode === GameMode.INFECTION_ARENA &&
               room.gameState.status === "playing" && (
                 <InfectionAbilityButton room={room} user={user} />
@@ -458,21 +223,12 @@ const GamePage: React.FC = () => {
                 <HeistPanicUI room={room} user={user} />
               )}
 
-            {room.gameState.status === "waiting" && isHost && (
-              <button
-                onClick={handleStartGame}
-                disabled={room.players.length < 1}
-                className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded focus:outline-none focus:shadow-outline transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed mt-2"
-              >
-                Start Game
-              </button>
-            )}
-            <button
-              onClick={leaveRoom}
-              className="w-full mt-2 bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition-colors"
-            >
-              Leave Room
-            </button>
+            <GameControls
+              room={room}
+              isHost={isHost}
+              onStartGame={handleStartGame}
+              onLeaveRoom={leaveRoom}
+            />
           </div>
         )}
       </div>

@@ -1,7 +1,7 @@
 
 import React, { useState, useRef, useEffect, useMemo } from "react";
 import type { Player, Room } from "../types";
-import { GameMode } from "../types";
+import { GameMode, MazeRaceDifficulty } from "../types";
 import { GRID_SIZE } from "@constants/index";
 import PlayerAvatar from "@components/PlayerAvatar";
 import { FreezeIcon, SlowIcon, TeleportIcon } from "@components/icons";
@@ -23,7 +23,7 @@ const GhostAvatar: React.FC<{
   rotation: number;
 }> = ({ x, y, cellSize, rotation }) => (
   <div
-    className="absolute transition-transform duration-1000 ease-in-out pointer-events-none animate-in fade-in animate-out fade-out-50 duration-1000"
+    className="absolute transition-transform duration-1000 ease-in-out pointer-events-none animate-in fade-in animate-out fade-out-50"
     style={{
       left: x * cellSize,
       top: y * cellSize,
@@ -68,9 +68,19 @@ const GameBoard: React.FC<GameBoardProps> = ({
     return () => resizeObserver.disconnect();
   }, []);
 
-  // Effect to make the maze randomly rotate, making it more confusing
+  // Effect to make the maze randomly rotate based on difficulty
   useEffect(() => {
     if (gameMode !== GameMode.MAZE_RACE || gameState.status !== "playing") {
+      if (clientRotation !== 0) {
+        setClientRotation(0);
+      }
+      return;
+    }
+
+    const difficulty = gameState.maze?.difficulty || MazeRaceDifficulty.EASY;
+    const shouldRotate = difficulty === MazeRaceDifficulty.HARD || difficulty === MazeRaceDifficulty.EXPERT;
+    
+    if (!shouldRotate) {
       if (clientRotation !== 0) {
         setClientRotation(0);
       }
@@ -84,15 +94,23 @@ const GameBoard: React.FC<GameBoardProps> = ({
     return () => {
       clearInterval(rotationInterval);
     };
-  }, [gameMode, gameState.status, clientRotation]);
+  }, [gameMode, gameState.status, gameState.maze?.difficulty, clientRotation]);
 
-  // Effect to spawn and despawn ghosts in Maze Race to make it more confusing
+  // Effect to spawn and despawn ghosts in Maze Race based on difficulty
   useEffect(() => {
     if (
       gameMode !== GameMode.MAZE_RACE ||
       gameState.status !== "playing" ||
       !gameState.maze
     ) {
+      setGhosts([]);
+      return;
+    }
+
+    const difficulty = gameState.maze?.difficulty || MazeRaceDifficulty.EASY;
+    const shouldShowGhosts = difficulty === MazeRaceDifficulty.EXPERT;
+    
+    if (!shouldShowGhosts) {
       setGhosts([]);
       return;
     }
@@ -137,6 +155,13 @@ const GameBoard: React.FC<GameBoardProps> = ({
       return null;
     }
 
+    const difficulty = gameState.maze?.difficulty || MazeRaceDifficulty.EASY;
+    const shouldShowFog = difficulty === MazeRaceDifficulty.MEDIUM || difficulty === MazeRaceDifficulty.EXPERT;
+    
+    if (!shouldShowFog) {
+      return null;
+    }
+
     const currentPlayer = players.find((p) => p.id === user.id);
     if (!currentPlayer) {
       return { background: "rgba(17, 24, 39, 0.98)" };
@@ -152,7 +177,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
     return {
       background: gradient,
     };
-  }, [gameMode, gameState.status, players, user, cellSize]);
+  }, [gameMode, gameState.status, gameState.maze?.difficulty, players, user, cellSize]);
 
   const renderGameSpecificElements = () => {
     switch (gameMode) {
@@ -237,7 +262,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
             </div>
           );
         });
-      case GameMode.TRAP_RUSH:
+      case GameMode.TRAP_RUSH: {
         const trapElements = gameState.trapMap?.flatMap((row, y) =>
           row.map((trap, x) => {
             if (!trap || !trap.revealed) return null;
@@ -283,6 +308,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
           ></div>
         );
         return [finishLine, ...(trapElements || [])];
+      }
       default:
         return null;
     }
