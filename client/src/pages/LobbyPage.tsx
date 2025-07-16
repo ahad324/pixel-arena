@@ -1,5 +1,4 @@
 
-
 import React, { useState, useEffect } from "react";
 import { GameMode } from "../types";
 import { socketService } from "@services/socketService";
@@ -19,12 +18,14 @@ import {
 import InstructionsModal from "@components/InstructionsModal";
 import Spinner from "@components/Spinner";
 import { useGame } from "@contexts/GameContext";
+import NewBadge from "@components/NewBadge";
 
 interface GameModeCardProps {
   mode: GameMode;
   icon: React.ReactNode;
   selected: boolean;
   onSelect: () => void;
+  isNew?: boolean;
 }
 
 const GameModeCard: React.FC<GameModeCardProps> = ({
@@ -32,14 +33,16 @@ const GameModeCard: React.FC<GameModeCardProps> = ({
   icon,
   selected,
   onSelect,
+  isNew,
 }) => (
   <button
     onClick={onSelect}
-    className={`p-4 md:p-6 border-2 rounded-lg text-left transition-all duration-200 w-full h-full flex flex-col ${selected
-        ? "border-blue-500 bg-blue-900/50 shadow-lg shadow-blue-500/20"
-        : "border-gray-700 bg-gray-800 hover:bg-gray-700/50 hover:border-blue-700"
+    className={`relative overflow-hidden p-4 md:p-6 border-2 rounded-lg text-left transition-all duration-200 w-full h-full flex flex-col ${selected
+      ? "border-blue-500 bg-blue-900/50 shadow-lg shadow-blue-500/20"
+      : "border-gray-700 bg-gray-800 hover:bg-gray-700/50 hover:border-blue-700"
       }`}
   >
+    {isNew && <NewBadge />}
     <div className="flex items-center mb-2">
       {icon}
       <h3 className="text-xl font-bold ml-3">{mode}</h3>
@@ -137,6 +140,7 @@ const LobbyPage: React.FC = () => {
               icon={gameModeIcons[mode]}
               selected={selectedGameMode === mode}
               onSelect={() => setSelectedGameMode(mode)}
+              isNew={mode === GameMode.HEIST_PANIC}
             />
           ))}
         </div>
