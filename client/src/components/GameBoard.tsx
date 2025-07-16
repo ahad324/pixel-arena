@@ -1,6 +1,6 @@
 
-import React, { useState, useRef, useEffect } from "react";
-import type { Room } from "../types";
+import React, { useState, useRef, useEffect, useMemo } from "react";
+import type { Player, Room } from "../types";
 import { GameMode } from "../types";
 import { GRID_SIZE } from "@constants/index";
 import PlayerAvatar from "@components/PlayerAvatar";
@@ -8,13 +8,48 @@ import { FreezeIcon, SlowIcon, TeleportIcon } from "@components/icons";
 
 interface GameBoardProps {
   room: Room;
+  user: Omit<Player, "socketId"> | null;
   heistPadFeedback?: { [padId: string]: "correct" | "incorrect" };
 }
 
-const GameBoard: React.FC<GameBoardProps> = ({ room, heistPadFeedback }) => {
+/**
+ * A temporary, illusory avatar to confuse players in the Maze Race.
+ * It is counter-rotated to appear upright while the maze spins.
+ */
+const GhostAvatar: React.FC<{
+  x: number;
+  y: number;
+  cellSize: number;
+  rotation: number;
+}> = ({ x, y, cellSize, rotation }) => (
+  <div
+    className="absolute transition-transform duration-1000 ease-in-out pointer-events-none animate-in fade-in animate-out fade-out-50 duration-1000"
+    style={{
+      left: x * cellSize,
+      top: y * cellSize,
+      width: cellSize,
+      height: cellSize,
+      transform: `rotate(${rotation}deg)`,
+    }}
+  >
+    <div className="w-full h-full p-[10%]">
+      <div className="w-full h-full rounded-full bg-slate-500 opacity-40 blur-sm"></div>
+    </div>
+  </div>
+);
+
+const GameBoard: React.FC<GameBoardProps> = ({
+  room,
+  user,
+  heistPadFeedback,
+}) => {
   const { players, gameState, gameMode } = room;
   const containerRef = useRef<HTMLDivElement>(null);
   const [cellSize, setCellSize] = useState(32);
+  const [ghosts, setGhosts] = useState<{ x: number; y: number; id: string }[]>(
+    []
+  );
+  const [clientRotation, setClientRotation] = useState(0);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -29,13 +64,95 @@ const GameBoard: React.FC<GameBoardProps> = ({ room, heistPadFeedback }) => {
 
     const resizeObserver = new ResizeObserver(updateSize);
     resizeObserver.observe(container);
-
     updateSize(); // Initial size check
-
     return () => resizeObserver.disconnect();
   }, []);
 
+  // Effect to make the maze randomly rotate, making it more confusing
+  useEffect(() => {
+    if (gameMode !== GameMode.MAZE_RACE || gameState.status !== "playing") {
+      if (clientRotation !== 0) {
+        setClientRotation(0);
+      }
+      return;
+    }
+
+    const rotationInterval = setInterval(() => {
+      setClientRotation((prev) => (prev + 90) % 360);
+    }, 12000); // Rotate every 12 seconds
+
+    return () => {
+      clearInterval(rotationInterval);
+    };
+  }, [gameMode, gameState.status, clientRotation]);
+
+  // Effect to spawn and despawn ghosts in Maze Race to make it more confusing
+  useEffect(() => {
+    if (
+      gameMode !== GameMode.MAZE_RACE ||
+      gameState.status !== "playing" ||
+      !gameState.maze
+    ) {
+      setGhosts([]);
+      return;
+    }
+
+    const emptyCells: { x: number; y: number }[] = [];
+    gameState.maze.grid.forEach((row, y) => {
+      row.forEach((cell, x) => {
+        if (cell === 0) {
+          emptyCells.push({ x, y });
+        }
+      });
+    });
+
+    const ghostInterval = setInterval(() => {
+      if (emptyCells.length > 0) {
+        const randomIndex = Math.floor(Math.random() * emptyCells.length);
+        const { x, y } = emptyCells[randomIndex];
+        const newGhost = { x, y, id: crypto.randomUUID() };
+
+        setGhosts((prev) => [...prev, newGhost]);
+
+        // Ghosts last for 2-4 seconds
+        setTimeout(() => {
+          setGhosts((prev) => prev.filter((g) => g.id !== newGhost.id));
+        }, 2000 + Math.random() * 2000);
+      }
+    }, 4000 + Math.random() * 3000); // New ghost every 4-7 seconds
+
+    return () => {
+      clearInterval(ghostInterval);
+    };
+  }, [gameMode, gameState.status, gameState.maze]);
+
   const boardSize = GRID_SIZE * cellSize;
+
+  const fogOfWarOverlayStyle = useMemo(() => {
+    if (
+      gameMode !== GameMode.MAZE_RACE ||
+      gameState.status !== "playing" ||
+      !user
+    ) {
+      return null;
+    }
+
+    const currentPlayer = players.find((p) => p.id === user.id);
+    if (!currentPlayer) {
+      return { background: "rgba(17, 24, 39, 0.98)" };
+    }
+
+    const visibilityInCells = 4.5;
+    const visibilityRadiusPx = visibilityInCells * cellSize;
+    const playerCenterX = currentPlayer.x * cellSize + cellSize / 2;
+    const playerCenterY = currentPlayer.y * cellSize + cellSize / 2;
+
+    const gradient = `radial-gradient(circle ${visibilityRadiusPx}px at ${playerCenterX}px ${playerCenterY}px, transparent 0%, transparent 70%, rgba(17, 24, 39, 0.98) 100%)`;
+
+    return {
+      background: gradient,
+    };
+  }, [gameMode, gameState.status, players, user, cellSize]);
 
   const renderGameSpecificElements = () => {
     switch (gameMode) {
@@ -184,12 +301,29 @@ const GameBoard: React.FC<GameBoardProps> = ({ room, heistPadFeedback }) => {
           backgroundImage:
             "linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px)",
           backgroundSize: `${cellSize}px ${cellSize}px`,
+          transform: `rotate(${clientRotation}deg)`,
+          transition: "transform 1s ease-in-out",
         }}
       >
         {renderGameSpecificElements()}
         {players.map((player) => (
           <PlayerAvatar key={player.id} player={player} cellSize={cellSize} />
         ))}
+        {ghosts.map((g) => (
+          <GhostAvatar
+            key={g.id}
+            x={g.x}
+            y={g.y}
+            cellSize={cellSize}
+            rotation={-clientRotation}
+          />
+        ))}
+        {fogOfWarOverlayStyle && (
+          <div
+            className="absolute inset-0 pointer-events-none transition-all duration-300 ease-linear"
+            style={fogOfWarOverlayStyle}
+          ></div>
+        )}
       </div>
     </div>
   );

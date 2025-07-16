@@ -3,7 +3,7 @@ import React from 'react';
 const NewBadge: React.FC = () => {
   return (
     <div
-      className="absolute top-4 right-4"
+      className="absolute top-2 right-2"
       aria-label="New item"
       role="status"
     >
