@@ -16,7 +16,6 @@ Pixel Arena features a growing collection of unique games, each with its own obj
 * **Tag:** The classic playground game. Avoid being 'It' to score points.
 * **Territory Control:** Claim as much of the grid as possible with your color before time runs out.
 * **Maze Race:** Be the first player to navigate a procedurally generated maze and reach the exit.
-* **Dodge the Spikes:** A survival game where you must avoid a constant barrage of falling spikes.
 * **Infection Arena:** One player is the 'Virus'. Evade infection or spread it. Last survivor wins!
 * **Trap Rush:** Race to the finish line across a field of hidden, debilitating traps.
 * **Spy & Decode:** A game of social deduction. A secret spy must signal a code to their allies without getting caught.

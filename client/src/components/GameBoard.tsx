@@ -84,23 +84,6 @@ const GameBoard: React.FC<GameBoardProps> = ({ room }) => {
             ) : null
           )
         );
-      case GameMode.DODGE_THE_SPIKES:
-        return gameState.spikes?.map((spike) => (
-          <div
-            key={spike.id}
-            className="absolute text-red-500 text-center font-black flex items-center justify-center"
-            style={{
-              left: spike.x * cellSize,
-              top: spike.y * cellSize,
-              width: cellSize,
-              height: cellSize,
-              fontSize: `${cellSize * 1.1}px`,
-              lineHeight: 1,
-            }}
-          >
-            ▼
-          </div>
-        ));
       case GameMode.TRAP_RUSH:
         const trapElements = gameState.trapMap?.flatMap((row, y) =>
           row.map((trap, x) => {

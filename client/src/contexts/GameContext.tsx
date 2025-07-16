@@ -51,8 +51,6 @@ type GameAction =
       type: "SCORES_UPDATE";
       payload: { scores: { id: string; score: number }[] };
     }
-  | { type: "SPIKE_SPAWNED"; payload: any }
-  | { type: "SPIKES_MOVED"; payload: { spikes: any[] } }
   | { type: "PLAYERS_ELIMINATED"; payload: { playerIds: string[] } }
   | {
       type: "PHASE_CHANGED";
@@ -105,10 +103,7 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
       };
     case "HOST_CHANGED":
       if (!state.room) return state;
-      return {
-        ...state,
-        room: { ...state.room, hostId: action.payload.newHostId },
-      };
+      return { ...state, room: { ...state.room, hostId: action.payload.newHostId } };
     case "GAME_MODE_CHANGED":
       if (!state.room) return state;
       return {
@@ -265,27 +260,6 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
           }),
         },
       };
-    case "SPIKE_SPAWNED":
-      if (!state.room || !state.room.gameState.spikes) return state;
-      return {
-        ...state,
-        room: {
-          ...state.room,
-          gameState: {
-            ...state.room.gameState,
-            spikes: [...state.room.gameState.spikes, action.payload],
-          },
-        },
-      };
-    case "SPIKES_MOVED":
-      if (!state.room) return state;
-      return {
-        ...state,
-        room: {
-          ...state.room,
-          gameState: { ...state.room.gameState, spikes: action.payload.spikes },
-        },
-      };
     case "PLAYERS_ELIMINATED":
       if (!state.room) return state;
       return {
@@ -400,12 +374,6 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
     );
     socketService.onScoresUpdate((data) =>
       dispatch({ type: "SCORES_UPDATE", payload: data })
-    );
-    socketService.onSpikeSpawned((data) =>
-      dispatch({ type: "SPIKE_SPAWNED", payload: data })
-    );
-    socketService.onSpikesMoved((data) =>
-      dispatch({ type: "SPIKES_MOVED", payload: data })
     );
     socketService.onPlayersEliminated((data) =>
       dispatch({ type: "PLAYERS_ELIMINATED", payload: data })

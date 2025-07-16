@@ -2,7 +2,6 @@ export enum GameMode {
   TAG = "Tag",
   TERRITORY_CONTROL = "Territory Control",
   MAZE_RACE = "Maze Race",
-  DODGE_THE_SPIKES = "Dodge the Spikes",
   INFECTION_ARENA = "Infection Arena",
   TRAP_RUSH = "Trap Rush",
   SPY_AND_DECODE = "Spy & Decode",
@@ -50,12 +49,6 @@ export interface Tile {
   color: string | null;
 }
 
-export interface Spike {
-  id: string;
-  x: number;
-  y: number;
-}
-
 export interface Maze {
   grid: number[][]; // 0 for path, 1 for wall
   end: { x: number; y: number };
@@ -69,10 +62,6 @@ export interface GameState {
   winner: Player | { name: string } | null;
   tiles?: Tile[][];
   maze?: Maze;
-  spikes?: Spike[];
-  // Dodge the Spikes
-  nextSpikeSpawnTime?: number;
-  nextSpikeMoveTime?: number;
   // Trap Rush
   trapMap?: (Trap | null)[][];
   finishLine?: number;

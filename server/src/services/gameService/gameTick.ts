@@ -90,58 +90,6 @@ export const gameTick = {
       switch (gameMode) {
         case GameMode.TAG:
           break;
-        case GameMode.DODGE_THE_SPIKES:
-          if (now >= (gameState.nextSpikeSpawnTime ?? 0)) {
-            const newSpike = {
-              id: crypto.randomUUID(),
-              x: Math.floor(Math.random() * GRID_SIZE),
-              y: 0,
-            };
-            gameState.spikes?.push(newSpike);
-            gameState.nextSpikeSpawnTime =
-              now + GAME_SETTINGS[gameMode].SPIKE_SPAWN_RATE;
-            roomEvents.push({ name: "spike-spawned", data: newSpike });
-          }
-          if (now >= (gameState.nextSpikeMoveTime ?? 0)) {
-            const spikes = gameState.spikes || [];
-            for (let i = spikes.length - 1; i >= 0; i--) {
-              spikes[i].y += 1;
-              if (spikes[i].y >= GRID_SIZE) {
-                spikes.splice(i, 1);
-              }
-            }
-            gameState.nextSpikeMoveTime =
-              now + GAME_SETTINGS[gameMode].SPIKE_MOVE_RATE;
-            roomEvents.push({
-              name: "spikes-moved",
-              data: { spikes: gameState.spikes },
-            });
-
-            const newlyEliminated: string[] = [];
-            room.players.forEach((p) => {
-              if (
-                !p.isEliminated &&
-                spikes.some((s) => s.x === p.x && s.y === p.y)
-              ) {
-                p.isEliminated = true;
-                newlyEliminated.push(p.id);
-              }
-            });
-            if (newlyEliminated.length > 0) {
-              roomEvents.push({
-                name: "players-eliminated",
-                data: { playerIds: newlyEliminated },
-              });
-            }
-
-            const active = room.players.filter((p) => !p.isEliminated);
-            if (active.length <= 1 && room.players.length > 1) {
-              roomEvents.push(...endGame(room, active[0] || null));
-            } else if (active.length === 0 && room.players.length > 0) {
-              roomEvents.push(...endGame(room, null));
-            }
-          }
-          break;
       }
 
       if (roomEvents.length > 0) {

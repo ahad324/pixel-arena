@@ -26,8 +26,6 @@ const getStatusMessage = (room: Room, user: Omit<Player, "socketId">): string =>
         return you?.isIt ? "You are It!" : "Don't get tagged!";
       case GameMode.MAZE_RACE:
         return "First to the finish wins!";
-      case GameMode.DODGE_THE_SPIKES:
-        return you?.isEliminated ? "You were eliminated!" : "Dodge the spikes!";
       case GameMode.INFECTION_ARENA:
         return you?.isInfected ? "Infect everyone!" : "Don't get infected!";
       case GameMode.TRAP_RUSH:

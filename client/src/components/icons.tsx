@@ -49,23 +49,6 @@ export const MazeIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
   </svg>
 );
 
-export const SpikesIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
-  <svg {...props} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M5 15l7-7 7 7"
-    />
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M5 8l7-7 7 7"
-    />
-  </svg>
-);
-
 export const InfectionIcon: React.FC<React.SVGProps<SVGSVGElement>> = (
   props
 ) => (

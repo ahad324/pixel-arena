@@ -130,14 +130,6 @@ class SocketService {
     this.socket?.on("player-effect", callback);
   }
 
-  public onSpikeSpawned(callback: (data: Spike) => void) {
-    this.socket?.on("spike-spawned", callback);
-  }
-
-  public onSpikesMoved(callback: (data: { spikes: Spike[] }) => void) {
-    this.socket?.on("spikes-moved", callback);
-  }
-
   public onPlayersEliminated(
     callback: (data: { playerIds: string[] }) => void
   ) {

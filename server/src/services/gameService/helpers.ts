@@ -15,9 +15,6 @@ export function createInitialGameState(gameMode: GameMode): GameState {
       const mazeData = generateMaze(GRID_SIZE, GRID_SIZE);
       baseState.maze = { grid: mazeData.grid, end: { x: 0, y: 0 } };
       break;
-    case GameMode.DODGE_THE_SPIKES:
-      baseState.spikes = [];
-      break;
     case GameMode.TRAP_RUSH:
       baseState.trapMap = generateTrapMap();
       baseState.finishLine = GRID_SIZE - 1;

@@ -6,7 +6,6 @@ import {
   TagIcon,
   TerritoryIcon,
   MazeIcon,
-  SpikesIcon,
   EnterIcon,
   CreateIcon,
   InfectionIcon,
@@ -100,9 +99,6 @@ const LobbyPage: React.FC = () => {
       <TerritoryIcon className="h-8 w-8 text-green-500" />
     ),
     [GameMode.MAZE_RACE]: <MazeIcon className="h-8 w-8 text-yellow-500" />,
-    [GameMode.DODGE_THE_SPIKES]: (
-      <SpikesIcon className="h-8 w-8 text-blue-500" />
-    ),
     [GameMode.INFECTION_ARENA]: (
       <InfectionIcon className="h-8 w-8 text-lime-500" />
     ),

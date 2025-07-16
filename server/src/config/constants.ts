@@ -23,8 +23,6 @@ export const GAME_DESCRIPTIONS: Record<string, string> = {
     "Claim as many tiles as you can by walking over them. Most tiles in 60 seconds wins!",
   [GameMode.MAZE_RACE]:
     "Be the first to navigate the maze from start to finish. Watch out for dead ends!",
-  [GameMode.DODGE_THE_SPIKES]:
-    "Dodge the falling spikes. The last player standing wins the round.",
   [GameMode.INFECTION_ARENA]:
     "One player is the Virus. Evade infection or spread it. Last clean player standing wins!",
   [GameMode.TRAP_RUSH]:
@@ -43,10 +41,6 @@ export const GAME_SETTINGS = {
   },
   [GameMode.MAZE_RACE]: {
     // No specific settings needed here for now
-  },
-  [GameMode.DODGE_THE_SPIKES]: {
-    SPIKE_SPAWN_RATE: 1000, // ms
-    SPIKE_MOVE_RATE: 200, // ms
   },
   [GameMode.INFECTION_ARENA]: {
     TIME_LIMIT: 60, // seconds

@@ -22,8 +22,6 @@ export const GAME_DESCRIPTIONS: Record<string, string> = {
     "Claim as many tiles as you can by walking over them. Most tiles in 60 seconds wins!",
   [GameMode.MAZE_RACE]:
     "Be the first to navigate the maze from start to finish. Watch out for dead ends!",
-  [GameMode.DODGE_THE_SPIKES]:
-    "Dodge the falling spikes. The last player standing wins the round.",
   [GameMode.INFECTION_ARENA]:
     "One player is the Virus. Evade infection or spread it. Last clean player standing wins!",
   [GameMode.TRAP_RUSH]:
@@ -79,20 +77,6 @@ export const GAME_INSTRUCTIONS: Record<GameMode, GameInstruction> = {
       "Navigate through the passages to find the exit.",
       "You cannot move through the dark gray walls of the maze.",
       "The first player to touch the green exit wins the round.",
-    ],
-    controls: {
-      desktop: ["Use Arrow Keys or WASD to move your character."],
-      mobile: ["Use the on-screen joystick to move your character."],
-    },
-  },
-  [GameMode.DODGE_THE_SPIKES]: {
-    title: "How to Play: Dodge the Spikes",
-    objective: "Be the last player standing by avoiding the falling spikes.",
-    rules: [
-      "Spikes will continuously fall from the top of the screen.",
-      "If a spike lands on your character, you are eliminated for the round.",
-      "The safe zones change constantly, so keep moving!",
-      "The round ends when only one player remains.",
     ],
     controls: {
       desktop: ["Use Arrow Keys or WASD to move your character."],
@@ -168,10 +152,6 @@ export const GAME_SETTINGS = {
   },
   [GameMode.MAZE_RACE]: {
     // No specific settings needed here for now
-  },
-  [GameMode.DODGE_THE_SPIKES]: {
-    SPIKE_SPAWN_RATE: 1000, // ms
-    SPIKE_MOVE_RATE: 200, // ms
   },
   [GameMode.INFECTION_ARENA]: {
     TIME_LIMIT: 60, // seconds

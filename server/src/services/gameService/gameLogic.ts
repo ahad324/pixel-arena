@@ -175,9 +175,6 @@ function initializeGameMode(room: Room) {
     if (room.gameMode === GameMode.TRAP_RUSH) {
       p.x = Math.floor(Math.random() * GRID_SIZE);
       p.y = 0;
-    } else if (room.gameMode === GameMode.DODGE_THE_SPIKES) {
-      p.x = Math.floor(Math.random() * GRID_SIZE);
-      p.y = GRID_SIZE - 1;
     } else if (room.gameMode !== GameMode.MAZE_RACE) {
       p.x = Math.floor(Math.random() * GRID_SIZE);
       p.y = Math.floor(Math.random() * GRID_SIZE);
@@ -210,12 +207,6 @@ function initializeGameMode(room: Room) {
       } else {
         room.players[0].isSpy = true;
       }
-      break;
-    case GameMode.DODGE_THE_SPIKES:
-      const { SPIKE_SPAWN_RATE, SPIKE_MOVE_RATE } =
-        GAME_SETTINGS[GameMode.DODGE_THE_SPIKES];
-      room.gameState.nextSpikeSpawnTime = Date.now() + SPIKE_SPAWN_RATE;
-      room.gameState.nextSpikeMoveTime = Date.now() + SPIKE_MOVE_RATE;
       break;
   }
 }
