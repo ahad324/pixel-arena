@@ -1,6 +1,7 @@
 import { GameMode } from "../types";
 
 export const GRID_SIZE = 20;
+export const CELL_SIZE = 32;
 
 export const PLAYER_COLORS = [
   "#3B82F6", // blue-500
@@ -28,6 +29,8 @@ export const GAME_DESCRIPTIONS: Record<string, string> = {
     "Race to the finish line across a field of hidden traps. Watch your step!",
   [GameMode.SPY_AND_DECODE]:
     "A secret spy knows the code. They must signal it to you. Guess correctly without being caught!",
+  [GameMode.HEIST_PANIC]:
+    "Find the correct code pad to escape the vault. A wrong guess will stun you!",
 };
 
 export interface GameInstruction {
@@ -73,8 +76,8 @@ export const GAME_INSTRUCTIONS: Record<GameMode, GameInstruction> = {
     title: "How to Play: Maze Race",
     objective: "Be the first player to reach the green exit of the maze.",
     rules: [
-      "All players start at the same position in the maze.",
-      "Navigate through the passages to find the exit.",
+      "All players start at a random position in the maze.",
+      "Navigate through the passages to find the exit (green tile).",
       "You cannot move through the dark gray walls of the maze.",
       "The first player to touch the green exit wins the round.",
     ],
@@ -141,6 +144,27 @@ export const GAME_INSTRUCTIONS: Record<GameMode, GameInstruction> = {
       ],
     },
   },
+  [GameMode.HEIST_PANIC]: {
+    title: "How to Play: Heist Panic",
+    objective: "Be the first to guess the correct code and escape the vault.",
+    rules: [
+      "Multiple code pads are scattered around the vault.",
+      "Only one pad has the correct code.",
+      "Move onto a pad and attempt to guess the code.",
+      "If you guess correctly, you win!",
+      "If you guess wrong, you will be stunned and unable to move for 3 seconds.",
+    ],
+    controls: {
+      desktop: [
+        "Use Arrow Keys or WASD to move.",
+        "Press SPACE to guess when on a code pad.",
+      ],
+      mobile: [
+        "Use the on-screen joystick to move.",
+        "Tap the 'Attempt Guess' button when on a code pad.",
+      ],
+    },
+  },
 };
 
 export const GAME_SETTINGS = {
@@ -170,5 +194,10 @@ export const GAME_SETTINGS = {
     SIGNAL_TIME: 20, // seconds
     GUESS_TIME: 10, // seconds
     DECOY_CODES: ["ALPHA", "BRAVO", "CHARLIE", "DELTA", "ECHO"],
+  },
+  [GameMode.HEIST_PANIC]: {
+    TIME_LIMIT: 90, // seconds
+    NUM_PADS: 5,
+    STUN_DURATION: 3000, // ms
   },
 };

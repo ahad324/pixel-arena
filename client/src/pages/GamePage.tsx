@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import type { Player, Room } from "../types";
 import { GameMode } from "../types";
@@ -97,7 +98,7 @@ const SpyDecodeUI: React.FC<{ room: Room; user: Omit<Player, "socketId"> }> = ({
   );
 };
 
-const AbilityButton: React.FC<{
+const InfectionAbilityButton: React.FC<{
   room: Room;
   user: Omit<Player, "socketId">;
 }> = ({ room, user }) => {
@@ -160,8 +161,49 @@ const AbilityButton: React.FC<{
   );
 };
 
+const HeistPanicUI: React.FC<{ room: Room; user: Omit<Player, "socketId"> }> = ({
+  room,
+  user,
+}) => {
+  const self = room.players.find((p) => p.id === user.id);
+  const { isMobile } = useDeviceDetection();
+  const padUnderPlayer = room.gameState.codePads?.find(
+    (p) => p.x === self?.x && p.y === self?.y
+  );
+  const isStunned = !!self?.effects?.some(
+    (e) => e.type === "frozen" && e.expires > Date.now()
+  );
+
+  if (
+    room.gameMode !== GameMode.HEIST_PANIC ||
+    room.gameState.status !== "playing"
+  ) {
+    return null;
+  }
+
+  const handleGuess = () => {
+    if (padUnderPlayer) {
+      socketService.submitHeistGuess(room.id, user.id, padUnderPlayer.id);
+    }
+  };
+
+  return (
+    <button
+      onClick={handleGuess}
+      disabled={!padUnderPlayer || isStunned}
+      className="w-full bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-3 px-4 rounded focus:outline-none focus:shadow-outline transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed"
+    >
+      {isStunned
+        ? "Stunned!"
+        : padUnderPlayer
+        ? `Attempt Guess${!isMobile ? " (Space)" : ""}`
+        : "Move to a Code Pad"}
+    </button>
+  );
+};
+
 const GamePage: React.FC = () => {
-  const { user, room, leaveRoom, endGame } = useGame();
+  const { user, room, leaveRoom, endGame, heistPadFeedback } = useGame();
   const { isMobile } = useDeviceDetection();
 
   usePlayerMovement(user!, room!, isMobile);
@@ -226,6 +268,8 @@ const GamePage: React.FC = () => {
         return "Get to the finish line!";
       case GameMode.SPY_AND_DECODE:
         return "Awaiting next phase...";
+      case GameMode.HEIST_PANIC:
+        return "First to the correct code wins!";
       default:
         return "";
     }
@@ -281,7 +325,7 @@ const GamePage: React.FC = () => {
               {statusMessage}
             </div>
           )}
-          <GameBoard room={room} />
+          <GameBoard room={room} heistPadFeedback={heistPadFeedback} />
           {isMobile && room.gameState.status === "playing" && (
             <VirtualJoystick room={room} user={user} />
           )}
@@ -394,7 +438,7 @@ const GamePage: React.FC = () => {
                   onChange={(e) =>
                     setRequestFullscreenOnStart(e.target.checked)
                   }
-                  className="w-4 h-4 text-blue-600 bg-gray-600 border-gray-500 rounded focus:ring-blue-500 focus:ring-2"
+                  className="w-4 h-4 text-blue-600 bg-gray-600 border-gray-500 rounded focus:ring-2"
                 />
                 <label
                   htmlFor="fullscreen-checkbox"
@@ -405,9 +449,14 @@ const GamePage: React.FC = () => {
               </div>
             )}
 
-            {room.gameState.status === "playing" && (
-              <AbilityButton room={room} user={user} />
-            )}
+            {room.gameMode === GameMode.INFECTION_ARENA &&
+              room.gameState.status === "playing" && (
+                <InfectionAbilityButton room={room} user={user} />
+              )}
+            {room.gameMode === GameMode.HEIST_PANIC &&
+              room.gameState.status === "playing" && (
+                <HeistPanicUI room={room} user={user} />
+              )}
 
             {room.gameState.status === "waiting" && isHost && (
               <button

@@ -86,11 +86,7 @@ export const gameTick = {
         }
       }
 
-      // Game-specific tick logic
-      switch (gameMode) {
-        case GameMode.TAG:
-          break;
-      }
+      // Game-specific tick logic can be added here if needed in the future
 
       if (roomEvents.length > 0) {
         allEvents.set(roomId, roomEvents);

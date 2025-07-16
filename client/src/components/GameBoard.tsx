@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from "react";
 import type { Room } from "../types";
 import { GameMode } from "../types";
@@ -7,9 +8,10 @@ import { FreezeIcon, SlowIcon, TeleportIcon } from "@components/icons";
 
 interface GameBoardProps {
   room: Room;
+  heistPadFeedback?: { [padId: string]: "correct" | "incorrect" };
 }
 
-const GameBoard: React.FC<GameBoardProps> = ({ room }) => {
+const GameBoard: React.FC<GameBoardProps> = ({ room, heistPadFeedback }) => {
   const { players, gameState, gameMode } = room;
   const containerRef = useRef<HTMLDivElement>(null);
   const [cellSize, setCellSize] = useState(32);
@@ -84,6 +86,40 @@ const GameBoard: React.FC<GameBoardProps> = ({ room }) => {
             ) : null
           )
         );
+      case GameMode.HEIST_PANIC:
+        return gameState.codePads?.map((pad) => {
+          const feedback = heistPadFeedback?.[pad.id];
+          let feedbackClass =
+            "bg-yellow-500/20 border-yellow-400 animate-pulse";
+          let feedbackContent = "?";
+
+          if (feedback === "incorrect") {
+            feedbackClass = "bg-red-600/50 border-red-500 animate-pulse";
+            feedbackContent = "X";
+          } else if (feedback === "correct") {
+            feedbackClass = "bg-green-500/50 border-green-400 animate-pulse";
+            feedbackContent = "✓";
+          }
+
+          return (
+            <div
+              key={pad.id}
+              className="absolute"
+              style={{
+                left: pad.x * cellSize,
+                top: pad.y * cellSize,
+                width: cellSize,
+                height: cellSize,
+              }}
+            >
+              <div
+                className={`w-full h-full border-2 rounded-md flex items-center justify-center font-bold transition-colors duration-200 ${feedbackClass}`}
+              >
+                {feedbackContent}
+              </div>
+            </div>
+          );
+        });
       case GameMode.TRAP_RUSH:
         const trapElements = gameState.trapMap?.flatMap((row, y) =>
           row.map((trap, x) => {

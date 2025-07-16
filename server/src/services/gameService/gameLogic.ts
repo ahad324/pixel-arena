@@ -21,7 +21,7 @@ export const gameLogic = {
     )
       return { room: undefined, events: [] };
 
-    room.gameState = createInitialGameState(room.gameMode);
+    room.gameState = createInitialGameState(room.gameMode, room.players.length);
     initializeGameMode(room);
 
     return { room, events: [{ name: "game-started", data: { room } }] };
@@ -208,6 +208,9 @@ function initializeGameMode(room: Room) {
         room.players[0].isSpy = true;
       }
       break;
+    case GameMode.HEIST_PANIC:
+      room.gameState.timer = GAME_SETTINGS[GameMode.HEIST_PANIC].TIME_LIMIT;
+      break;
   }
 }
 
@@ -304,13 +307,29 @@ export function endGame(room: Room, winner: Player | null = null): GameEvent[] {
           room.gameState.winner = spy || { name: "No one found the code!" };
         }
         break;
+      case GameMode.HEIST_PANIC:
+        room.gameState.winner = { name: "The Vault" };
+        break;
     }
   }
 
-  return [
+  const events: GameEvent[] = [
     {
       name: "game-over",
       data: { winner: room.gameState.winner, players: room.players },
     },
   ];
+
+  if (
+    room.gameMode === GameMode.HEIST_PANIC &&
+    winner &&
+    room.gameState.correctPadId
+  ) {
+    events.unshift({
+      name: "pad-guessed",
+      data: { padId: room.gameState.correctPadId, correct: true },
+    });
+  }
+
+  return events;
 }

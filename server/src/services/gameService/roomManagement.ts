@@ -19,7 +19,7 @@ export const roomManagement = {
       hostId: hostPlayer.id,
       gameMode: GameMode.TAG,
       players: [hostWithColor],
-      gameState: createInitialGameState(GameMode.TAG),
+      gameState: createInitialGameState(GameMode.TAG, 1),
     };
 
     rooms.set(roomId, newRoom);
@@ -55,7 +55,7 @@ export const roomManagement = {
     if (!room || room.gameState.status !== "waiting") return [];
     room.gameMode = gameMode;
     // Always create a fresh game state for the new mode
-    room.gameState = createInitialGameState(gameMode);
+    room.gameState = createInitialGameState(gameMode, room.players.length);
     return [
       {
         name: "game-mode-changed",

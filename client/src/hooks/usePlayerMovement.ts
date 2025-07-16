@@ -1,6 +1,7 @@
 import { useEffect, useCallback } from "react";
 import { socketService } from "@services/socketService";
 import type { Player, Room } from "../types";
+import { GameMode } from "../types";
 
 export const usePlayerMovement = (
   user: Omit<Player, "socketId">,
@@ -16,7 +17,16 @@ export const usePlayerMovement = (
 
       if (event.key === " ") {
         event.preventDefault();
-        socketService.activateAbility(room.id, user.id);
+        if (room.gameMode === GameMode.INFECTION_ARENA) {
+          socketService.activateAbility(room.id, user.id);
+        } else if (room.gameMode === GameMode.HEIST_PANIC) {
+          const padUnderPlayer = room.gameState.codePads?.find(
+            (p) => p.x === currentPlayer.x && p.y === currentPlayer.y
+          );
+          if (padUnderPlayer) {
+            socketService.submitHeistGuess(room.id, user.id, padUnderPlayer.id);
+          }
+        }
         return;
       }
 

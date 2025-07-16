@@ -1,7 +1,9 @@
+
+
 import type { Room,  GameEvent } from "@app-types/index";
 import { GameMode } from "@app-types/index";
 import { GRID_SIZE, GAME_SETTINGS } from "@config/constants";
-import { runMoveLogic } from "./gameLogic";
+import { runMoveLogic, endGame } from "./gameLogic";
 
 export const playerActions = {
   updatePlayerPosition: (
@@ -132,5 +134,48 @@ export const playerActions = {
     room.gameState.playerGuesses[playerId] = guess;
     player.guess = guess;
     return [{ name: "player-guessed", data: { playerId, guess } }];
+  },
+  
+  submitHeistGuess: (
+    rooms: Map<string, Room>,
+    roomId: string,
+    playerId: string,
+    padId: string
+  ): GameEvent[] => {
+    const room = rooms.get(roomId);
+    if (
+      !room ||
+      room.gameState.status !== "playing" ||
+      room.gameMode !== GameMode.HEIST_PANIC
+    )
+      return [];
+
+    const player = room.players.find((p) => p.id === playerId);
+    if (!player) return [];
+
+    const pad = room.gameState.codePads?.find((p) => p.id === padId);
+    if (!pad || player.x !== pad.x || player.y !== pad.y) return [];
+    
+    // Check if stunned
+    const now = Date.now();
+    if (player.effects?.some((e) => e.type === "frozen" && e.expires > now)) return [];
+
+    if (pad.id === room.gameState.correctPadId) {
+      // Player wins
+      return endGame(room, player);
+    } else {
+      // Player is stunned
+      const settings = GAME_SETTINGS[GameMode.HEIST_PANIC];
+      if (!player.effects) player.effects = [];
+
+      const expires = now + settings.STUN_DURATION;
+      player.effects.push({ type: "frozen", expires });
+      
+      const events: GameEvent[] = [
+        { name: "player-effect", data: { playerId, type: 'frozen', expires }},
+        { name: "pad-guessed", data: { padId, correct: false }}
+      ];
+      return events;
+    }
   },
 };

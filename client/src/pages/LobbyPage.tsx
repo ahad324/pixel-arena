@@ -1,3 +1,5 @@
+
+
 import React, { useState, useEffect } from "react";
 import { GameMode } from "../types";
 import { socketService } from "@services/socketService";
@@ -12,6 +14,7 @@ import {
   TrapIcon,
   SpyIcon,
   InfoIcon,
+  HeistIcon
 } from "@components/icons";
 import InstructionsModal from "@components/InstructionsModal";
 import Spinner from "@components/Spinner";
@@ -32,11 +35,10 @@ const GameModeCard: React.FC<GameModeCardProps> = ({
 }) => (
   <button
     onClick={onSelect}
-    className={`p-4 md:p-6 border-2 rounded-lg text-left transition-all duration-200 w-full h-full flex flex-col ${
-      selected
+    className={`p-4 md:p-6 border-2 rounded-lg text-left transition-all duration-200 w-full h-full flex flex-col ${selected
         ? "border-blue-500 bg-blue-900/50 shadow-lg shadow-blue-500/20"
         : "border-gray-700 bg-gray-800 hover:bg-gray-700/50 hover:border-blue-700"
-    }`}
+      }`}
   >
     <div className="flex items-center mb-2">
       {icon}
@@ -99,6 +101,9 @@ const LobbyPage: React.FC = () => {
       <TerritoryIcon className="h-8 w-8 text-green-500" />
     ),
     [GameMode.MAZE_RACE]: <MazeIcon className="h-8 w-8 text-yellow-500" />,
+    [GameMode.HEIST_PANIC]: (
+      <HeistIcon className="h-8 w-8 text-blue-500" />
+    ),
     [GameMode.INFECTION_ARENA]: (
       <InfectionIcon className="h-8 w-8 text-lime-500" />
     ),

@@ -1,0 +1,27 @@
+Directory Structure:
+
+├── .env
+├── .gitignore
+├── README.md
+├── package.json
+├── src/
+│   ├── app.ts
+│   ├── config/
+│   │   ├── constants.ts
+│   ├── index.ts
+│   ├── services/
+│   │   ├── gameService/
+│   │   │   ├── gameLogic.ts
+│   │   │   ├── gameService.ts
+│   │   │   ├── gameTick.ts
+│   │   │   ├── helpers.ts
+│   │   │   ├── index.ts
+│   │   │   ├── playerActions.ts
+│   │   │   ├── roomManagement.ts
+│   ├── sockets/
+│   │   ├── index.ts
+│   ├── types/
+│   │   ├── index.ts
+│   ├── utils/
+│   │   ├── mazeGenerator.ts
+├── tsconfig.json

@@ -1,5 +1,5 @@
 import { io, Socket } from "socket.io-client";
-import type { Room, Player, GameMode, GameState, Spike } from "../types";
+import type { Room, Player, GameMode, GameState } from "../types";
 
 class SocketService {
   private socket: Socket | null = null;
@@ -60,6 +60,10 @@ class SocketService {
 
   public activateAbility(roomId: string, playerId: string) {
     this.socket?.emit("player-ability", { roomId, playerId });
+  }
+
+  public submitHeistGuess(roomId: string, playerId: string, padId: string) {
+    this.socket?.emit("player-heist-guess", { roomId, playerId, padId });
   }
 
   public submitGuess(roomId: string, playerId: string, guess: string) {
@@ -130,10 +134,10 @@ class SocketService {
     this.socket?.on("player-effect", callback);
   }
 
-  public onPlayersEliminated(
-    callback: (data: { playerIds: string[] }) => void
+  public onPadGuessed(
+    callback: (data: { padId: string; correct: boolean }) => void
   ) {
-    this.socket?.on("players-eliminated", callback);
+    this.socket?.on("pad-guessed", callback);
   }
 
   public onTimerUpdate(callback: (data: { time: number }) => void) {

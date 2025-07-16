@@ -1,0 +1,50 @@
+Directory Structure:
+
+├── .env
+├── .gitignore
+├── README.md
+├── dist/
+│   ├── assets/
+│   │   ├── index-BH7FfW0b.css
+│   │   ├── index-DUYU-Vgr.js
+│   ├── index.html
+├── index.html
+├── package.json
+├── postcss.config.js
+├── public/
+├── src/
+│   ├── App.tsx
+│   ├── components/
+│   │   ├── EndScreen.tsx
+│   │   ├── GameBoard.tsx
+│   │   ├── GameStatusDisplay.tsx
+│   │   ├── InstructionsModal.tsx
+│   │   ├── LoadingScreen.tsx
+│   │   ├── PlayerAvatar.tsx
+│   │   ├── Spinner.tsx
+│   │   ├── VirtualJoystick.tsx
+│   │   ├── icons.tsx
+│   ├── constants/
+│   │   ├── index.ts
+│   ├── contexts/
+│   │   ├── GameContext.tsx
+│   ├── env.d.ts
+│   ├── hooks/
+│   │   ├── useDeviceDetection.ts
+│   │   ├── useFullscreen.ts
+│   │   ├── usePlayerMovement.ts
+│   ├── index.css
+│   ├── index.tsx
+│   ├── pages/
+│   │   ├── GamePage.tsx
+│   │   ├── LobbyPage.tsx
+│   │   ├── LoginPage.tsx
+│   ├── services/
+│   │   ├── socketService.ts
+│   ├── types/
+│   │   ├── index.ts
+│   ├── vite-env.d.ts
+├── tailwind.config.js
+├── tsconfig.json
+├── tsconfig.node.json
+├── vite.config.ts

@@ -48,6 +48,12 @@ class GameService {
     guess: string
   ): GameEvent[] =>
     playerActions.submitGuess(this.rooms, roomId, playerId, guess);
+  public submitHeistGuess = (
+    roomId: string,
+    playerId: string,
+    padId: string
+  ): GameEvent[] =>
+    playerActions.submitHeistGuess(this.rooms, roomId, playerId, padId);
 
   // Game Logic
   public startGame = (

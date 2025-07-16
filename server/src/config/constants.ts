@@ -29,6 +29,8 @@ export const GAME_DESCRIPTIONS: Record<string, string> = {
     "Race to the finish line across a field of hidden traps. Watch your step!",
   [GameMode.SPY_AND_DECODE]:
     "A secret spy knows the code. They must signal it to you. Guess correctly without being caught!",
+  [GameMode.HEIST_PANIC]:
+    "Find the correct code pad to escape the vault. A wrong guess will stun you!",
 };
 
 export const GAME_SETTINGS = {
@@ -59,5 +61,9 @@ export const GAME_SETTINGS = {
     SIGNAL_TIME: 20, // seconds
     GUESS_TIME: 10, // seconds
     DECOY_CODES: ["ALPHA", "BRAVO", "CHARLIE", "DELTA", "ECHO"],
+  },
+  [GameMode.HEIST_PANIC]: {
+    TIME_LIMIT: 60, // seconds
+    STUN_DURATION: 3000, // ms
   },
 };

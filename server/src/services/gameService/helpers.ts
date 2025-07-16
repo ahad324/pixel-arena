@@ -1,9 +1,18 @@
-import type { GameState, Trap, TrapType, Room } from "@app-types/index";
+import type {
+  GameState,
+  Trap,
+  TrapType,
+  Room,
+  CodePad,
+} from "@app-types/index";
 import { GameMode } from "@app-types/index";
 import { GRID_SIZE, GAME_SETTINGS } from "@config/constants";
 import { generateMaze } from "@utils/mazeGenerator";
 
-export function createInitialGameState(gameMode: GameMode): GameState {
+export function createInitialGameState(
+  gameMode: GameMode,
+  playerCount: number
+): GameState {
   const baseState: GameState = { status: "waiting", timer: 0, winner: null };
   switch (gameMode) {
     case GameMode.TERRITORY_CONTROL:
@@ -32,6 +41,22 @@ export function createInitialGameState(gameMode: GameMode): GameState {
       baseState.phase = "signaling";
       baseState.playerGuesses = {};
       break;
+    case GameMode.HEIST_PANIC:
+      const numPads = Math.max(3, 3 + (playerCount - 1));
+      const pads: CodePad[] = [];
+      const occupiedCoords = new Set<string>();
+      while (pads.length < numPads) {
+        const x = Math.floor(Math.random() * GRID_SIZE);
+        const y = Math.floor(Math.random() * GRID_SIZE);
+        const coordKey = `${x},${y}`;
+        if (!occupiedCoords.has(coordKey)) {
+          pads.push({ id: crypto.randomUUID(), x, y });
+          occupiedCoords.add(coordKey);
+        }
+      }
+      baseState.codePads = pads;
+      baseState.correctPadId = pads[Math.floor(Math.random() * pads.length)].id;
+      break;
   }
   return baseState;
 }
@@ -41,6 +66,7 @@ export function calculateTerritoryScores(room: Room): { [id: string]: number } {
   room.gameState.tiles?.flat().forEach((t) => {
     if (t.claimedBy) scores[t.claimedBy] = (scores[t.claimedBy] || 0) + 1;
   });
+  console.log(scores);
   return scores;
 }
 

@@ -5,6 +5,7 @@ export enum GameMode {
   INFECTION_ARENA = "Infection Arena",
   TRAP_RUSH = "Trap Rush",
   SPY_AND_DECODE = "Spy & Decode",
+  HEIST_PANIC = "Heist Panic",
 }
 
 export type TrapType = "slow" | "teleport" | "freeze";
@@ -36,7 +37,7 @@ export interface Player {
   sprintUntil?: number;
   lastShieldTime?: number;
   lastSprintTime?: number;
-  // Trap Rush
+  // Trap Rush & Heist Panic
   effects?: PlayerEffect[];
   lastMoveTime?: number;
   // Spy & Decode
@@ -49,12 +50,24 @@ export interface Tile {
   color: string | null;
 }
 
+export interface Spike {
+  id: string;
+  x: number;
+  y: number;
+}
+
 export interface Maze {
   grid: number[][]; // 0 for path, 1 for wall
   end: { x: number; y: number };
 }
 
 export type GameStatus = "waiting" | "playing" | "finished";
+
+export interface CodePad {
+  id: string;
+  x: number;
+  y: number;
+}
 
 export interface GameState {
   status: GameStatus;
@@ -70,6 +83,9 @@ export interface GameState {
   codes?: { id: string; value: string }[];
   correctCodeId?: string;
   playerGuesses?: Record<string, string>;
+  // Heist Panic
+  codePads?: CodePad[];
+  correctPadId?: string;
 }
 
 export interface Room {

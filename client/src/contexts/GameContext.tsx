@@ -1,5 +1,7 @@
+
 import React, { createContext, useEffect, useContext, useReducer } from "react";
 import type { Player, Room } from "../types";
+import { GameMode } from "../types";
 import { socketService } from "@services/socketService";
 
 interface GameContextType {
@@ -10,7 +12,11 @@ interface GameContextType {
   joinRoom: (room: Room) => void;
   leaveRoom: () => void;
   endGame: () => void;
+  heistPadFeedback: { [padId: string]: 'correct' | 'incorrect' };
 }
+
+const GameContext = createContext<GameContextType | undefined>(undefined);
+
 type GameAction =
   | { type: "SET_IS_LOADING"; payload: boolean }
   | { type: "SET_USER"; payload: Omit<Player, "socketId"> | null }
@@ -19,58 +25,59 @@ type GameAction =
   | { type: "PLAYER_LEFT"; payload: { playerId: string } }
   | { type: "HOST_CHANGED"; payload: { newHostId: string } }
   | {
-      type: "GAME_MODE_CHANGED";
-      payload: { gameMode: Room["gameMode"]; gameState: Room["gameState"] };
-    }
+    type: "GAME_MODE_CHANGED";
+    payload: { gameMode: Room["gameMode"]; gameState: Room["gameState"] };
+  }
   | { type: "GAME_STARTED"; payload: { room: Room } }
   | {
-      type: "PLAYER_MOVED";
-      payload: { playerId: string; x: number; y: number };
-    }
+    type: "PLAYER_MOVED";
+    payload: { playerId: string; x: number; y: number };
+  }
   | { type: "PLAYER_TAGGED"; payload: { oldIt: string; newIt: string } }
   | {
-      type: "TILE_CLAIMED";
-      payload: { x: number; y: number; playerId: string; color: string };
-    }
+    type: "TILE_CLAIMED";
+    payload: { x: number; y: number; playerId: string; color: string };
+  }
   | { type: "PLAYER_INFECTED"; payload: { playerId: string } }
   | {
-      type: "ABILITY_ACTIVATED";
-      payload: {
-        playerId: string;
-        ability: "sprint" | "shield";
-        expires: number;
-      };
-    }
+    type: "ABILITY_ACTIVATED";
+    payload: {
+      playerId: string;
+      ability: "sprint" | "shield";
+      expires: number;
+    };
+  }
   | { type: "TRAP_TRIGGERED"; payload: { x: number; y: number; type: string } }
   | {
-      type: "PLAYER_EFFECT";
-      payload: { playerId: string; type: "frozen" | "slow"; expires: number };
-    }
+    type: "PLAYER_EFFECT";
+    payload: { playerId: string; type: "frozen" | "slow"; expires: number };
+  }
+  | { type: "PAD_GUESSED"; payload: { padId: string; correct: boolean } }
+  | { type: "CLEAR_PAD_FEEDBACK"; payload: { padId: string } }
   | { type: "TIMER_UPDATE"; payload: { time: number } }
   | {
-      type: "SCORES_UPDATE";
-      payload: { scores: { id: string; score: number }[] };
-    }
-  | { type: "PLAYERS_ELIMINATED"; payload: { playerIds: string[] } }
+    type: "SCORES_UPDATE";
+    payload: { scores: { id: string; score: number }[] };
+  }
   | {
-      type: "PHASE_CHANGED";
-      payload: { phase: Room["gameState"]["phase"]; timer: number };
-    }
+    type: "PHASE_CHANGED";
+    payload: { phase: Room["gameState"]["phase"]; timer: number };
+  }
   | { type: "PLAYER_GUESSED"; payload: { playerId: string; guess: string } }
   | { type: "GAME_OVER"; payload: { winner: any; players: Player[] } };
-
-const GameContext = createContext<GameContextType | undefined>(undefined);
 
 interface GameState {
   user: Omit<Player, "socketId"> | null;
   room: Room | null;
   isLoading: boolean;
+  heistPadFeedback: { [padId: string]: 'correct' | 'incorrect' };
 }
 
 const initialState: GameState = {
   user: null,
   room: null,
   isLoading: true,
+  heistPadFeedback: {},
 };
 
 const gameReducer = (state: GameState, action: GameAction): GameState => {
@@ -103,7 +110,10 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
       };
     case "HOST_CHANGED":
       if (!state.room) return state;
-      return { ...state, room: { ...state.room, hostId: action.payload.newHostId } };
+      return {
+        ...state,
+        room: { ...state.room, hostId: action.payload.newHostId },
+      };
     case "GAME_MODE_CHANGED":
       if (!state.room) return state;
       return {
@@ -260,19 +270,19 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
           }),
         },
       };
-    case "PLAYERS_ELIMINATED":
-      if (!state.room) return state;
+    case "PAD_GUESSED":
+      if (!state.room || state.room.gameMode !== GameMode.HEIST_PANIC) return state;
       return {
         ...state,
-        room: {
-          ...state.room,
-          players: state.room.players.map((p) =>
-            action.payload.playerIds.includes(p.id)
-              ? { ...p, isEliminated: true }
-              : p
-          ),
+        heistPadFeedback: {
+          ...state.heistPadFeedback,
+          [action.payload.padId]: action.payload.correct ? 'correct' : 'incorrect',
         },
       };
+    case "CLEAR_PAD_FEEDBACK":
+      const newFeedback = { ...state.heistPadFeedback };
+      delete newFeedback[action.payload.padId];
+      return { ...state, heistPadFeedback: newFeedback };
     case "PHASE_CHANGED":
       if (!state.room) return state;
       return {
@@ -369,14 +379,20 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
     socketService.onPlayerEffect((data) =>
       dispatch({ type: "PLAYER_EFFECT", payload: data })
     );
+    socketService.onPadGuessed((data) => {
+      dispatch({ type: "PAD_GUESSED", payload: data });
+      // Clear feedback after a short delay for incorrect guesses
+      if (!data.correct) {
+        setTimeout(() => {
+          dispatch({ type: "CLEAR_PAD_FEEDBACK", payload: { padId: data.padId } });
+        }, 1000);
+      }
+    });
     socketService.onTimerUpdate((data) =>
       dispatch({ type: "TIMER_UPDATE", payload: data })
     );
     socketService.onScoresUpdate((data) =>
       dispatch({ type: "SCORES_UPDATE", payload: data })
-    );
-    socketService.onPlayersEliminated((data) =>
-      dispatch({ type: "PLAYERS_ELIMINATED", payload: data })
     );
     socketService.onPhaseChanged((data) =>
       dispatch({ type: "PHASE_CHANGED", payload: data })
@@ -430,6 +446,7 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
     joinRoom,
     leaveRoom,
     endGame,
+    heistPadFeedback: state.heistPadFeedback,
   };
 
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>;

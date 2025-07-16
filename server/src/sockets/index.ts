@@ -77,11 +77,9 @@ export const initializeSockets = (io: Server) => {
             roomId: roomId,
           });
           callback({ room });
-          socket
-            .to(roomId)
-            .emit("player-joined", {
-              player: room.players.find((p:Player) => p.id === player.id),
-            });
+          socket.to(roomId).emit("player-joined", {
+            player: room.players.find((p: Player) => p.id === player.id),
+          });
           notifyAvailableRoomsUpdate();
           console.log(`Player ${player.name} joined room ${roomId}`);
         } else {
@@ -133,6 +131,22 @@ export const initializeSockets = (io: Server) => {
       "player-ability",
       ({ roomId, playerId }: { roomId: string; playerId: string }) => {
         const events = gameService.activateAbility(roomId, playerId);
+        if (events.length > 0) dispatchEvents(roomId, events);
+      }
+    );
+
+    socket.on(
+      "player-heist-guess",
+      ({
+        roomId,
+        playerId,
+        padId,
+      }: {
+        roomId: string;
+        playerId: string;
+        padId: string;
+      }) => {
+        const events = gameService.submitHeistGuess(roomId, playerId, padId);
         if (events.length > 0) dispatchEvents(roomId, events);
       }
     );
