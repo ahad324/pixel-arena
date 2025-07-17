@@ -1,4 +1,9 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  TouchEvent,
+} from "react";
 import { GameMode, MazeRaceDifficulty, Room } from "../types/index";
 import { socketService } from "@services/socketService";
 import { usePlayerMovement } from "@hooks/usePlayerMovement";
@@ -37,7 +42,19 @@ const GamePage: React.FC = () => {
   const { isFullscreen, enterFullscreen, exitFullscreen } = useFullscreen();
   const { copied, handleCopy } = useClipboard(room?.id || "");
 
-  const { handleAction } = usePlayerMovement(user!, room!, isMobile);
+  const { handleAction, handleMove, handleMoveEnd } =
+    usePlayerMovement(user!, room!, isMobile);
+
+  const roomRef = useRef(room);
+  useEffect(() => {
+    roomRef.current = room;
+  }, [room]);
+
+  const [joystickState, setJoystickState] = useState({
+    isActive: false,
+    position: { x: 0, y: 0 },
+    touchId: null as number | null,
+  });
 
   useEffect(() => {
     if (
@@ -61,7 +78,15 @@ const GamePage: React.FC = () => {
     if (room?.gameState.status !== "playing" && isFullscreen) {
       exitFullscreen();
     }
-  }, [room?.gameState.status, isFullscreen, exitFullscreen]);
+    // Spy & Decode: Exit fullscreen during guessing phase
+    if (
+      room?.gameMode === GameMode.SPY_AND_DECODE &&
+      room?.gameState.phase === "guessing" &&
+      isFullscreen
+    ) {
+      exitFullscreen();
+    }
+  }, [room?.gameState, isFullscreen, exitFullscreen, room?.gameMode]);
 
   // Sync selectedDifficulty with room state
   useEffect(() => {
@@ -85,6 +110,56 @@ const GamePage: React.FC = () => {
       socketService.offMazeDifficultyChanged();
     };
   }, []);
+
+  const handleTouchStart = (e: TouchEvent<HTMLDivElement>) => {
+    if (joystickState.isActive) return;
+    const touch = e.changedTouches[0];
+    if (!touch) return;
+    setJoystickState({
+      isActive: true,
+      position: { x: touch.clientX, y: touch.clientY },
+      touchId: touch.identifier,
+    });
+  };
+
+  const handleTouchMove = (e: TouchEvent<HTMLDivElement>) => {
+    if (!joystickState.isActive) return;
+    const touch = Array.from(e.changedTouches).find(
+      (t) => t.identifier === joystickState.touchId
+    );
+    if (!touch) return;
+
+    const { x: centerX, y: centerY } = joystickState.position;
+    let dx = touch.clientX - centerX;
+    let dy = touch.clientY - centerY;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    const radius = 50 / 2; // Half of joystick thumb travel area
+
+    if (distance < radius / 3) {
+      handleMoveEnd();
+      return;
+    }
+
+    const angle = Math.atan2(dy, dx);
+    let direction: string;
+    if (angle > -Math.PI / 4 && angle <= Math.PI / 4) direction = "right";
+    else if (angle > Math.PI / 4 && angle <= (3 * Math.PI) / 4)
+      direction = "down";
+    else if (angle > (3 * Math.PI) / 4 || angle <= (-3 * Math.PI) / 4)
+      direction = "left";
+    else direction = "up";
+
+    handleMove(direction);
+  };
+
+  const handleTouchEnd = (e: TouchEvent<HTMLDivElement>) => {
+    const touch = Array.from(e.changedTouches).find(
+      (t) => t.identifier === joystickState.touchId
+    );
+    if (!touch) return;
+    handleMoveEnd();
+    setJoystickState({ isActive: false, position: { x: 0, y: 0 }, touchId: null });
+  };
 
   if (!user || !room) {
     return <LoadingScreen />;
@@ -122,6 +197,10 @@ const GamePage: React.FC = () => {
               ? "fixed inset-0 bg-gray-900 flex items-center justify-center z-50 p-2"
               : "flex-grow flex items-center justify-center relative min-h-[300px] lg:min-h-0"
           }
+          onTouchStart={isMobile && room.gameState.status === 'playing' ? handleTouchStart : undefined}
+          onTouchMove={isMobile && room.gameState.status === 'playing' ? handleTouchMove : undefined}
+          onTouchEnd={isMobile && room.gameState.status === 'playing' ? handleTouchEnd : undefined}
+          onTouchCancel={isMobile && room.gameState.status === 'playing' ? handleTouchEnd : undefined}
         >
           {isFullscreen && <GameStatus room={room} isFullscreen={isFullscreen} />}
           <GameBoard
@@ -130,7 +209,13 @@ const GamePage: React.FC = () => {
             user={user}
           />
           {isMobile && room.gameState.status === "playing" && (
-            <VirtualJoystick room={room} user={user} />
+            <VirtualJoystick
+              roomRef={roomRef}
+              user={user}
+              onMove={handleMove}
+              onMoveEnd={handleMoveEnd}
+              joystickState={joystickState}
+            />
           )}
           {isMobile &&
             room.gameState.status === "playing" &&

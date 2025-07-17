@@ -1,89 +1,33 @@
-import React, {
-  useState,
-  useRef,
-  TouchEvent,
-  useEffect,
-  useCallback,
-} from "react";
+import React, { useState, useRef, useCallback, CSSProperties } from "react";
 import { socketService } from "@services/socketService";
 import type { Room, Player } from "../types";
 
 interface VirtualJoystickProps {
-  room: Room;
+  roomRef: React.RefObject<Room>;
   user: Omit<Player, "socketId">;
+  onMove: (direction: string) => void;
+  onMoveEnd: () => void;
+  joystickState: {
+    position: { x: number; y: number };
+    isActive: boolean;
+  };
 }
 
-const MOVE_INTERVAL_MS = 120; // ms, similar to holding a key
-const JOYSTICK_SIZE = 120; // px
-const THUMB_SIZE = 60; // px
+const JOYSTICK_SIZE = 100; // px
+const THUMB_SIZE = 50; // px
 
-const VirtualJoystick: React.FC<VirtualJoystickProps> = ({ room, user }) => {
-  const baseRef = useRef<HTMLDivElement>(null);
+const VirtualJoystick: React.FC<VirtualJoystickProps> = ({
+  onMove,
+  onMoveEnd,
+  joystickState,
+}) => {
   const [thumbPos, setThumbPos] = useState({ x: 0, y: 0 });
-  const moveInterval = useRef<number | null>(null);
-  const lastDirection = useRef<string | null>(null);
-  const touchId = useRef<number | null>(null);
-
-  // Use a ref to hold the latest room data to avoid stale closures in setInterval
-  const roomRef = useRef(room);
-  useEffect(() => {
-    roomRef.current = room;
-  }, [room]);
-
-  const stopMovement = useCallback(() => {
-    setThumbPos({ x: 0, y: 0 });
-    if (moveInterval.current) {
-      clearInterval(moveInterval.current);
-      moveInterval.current = null;
-    }
-    lastDirection.current = null;
-    touchId.current = null;
-  }, []);
-
-  const handleMove = useCallback(
-    (direction: string) => {
-      const moveFn = () => {
-        const currentRoom = roomRef.current; // Get latest room from ref
-        const currentPlayer = currentRoom.players.find((p) => p.id === user.id);
-        if (!currentPlayer || currentRoom.gameState.status !== "playing") {
-          stopMovement();
-          return;
-        }
-
-        let { x, y } = currentPlayer;
-        switch (direction) {
-          case "up":
-            y -= 1;
-            break;
-          case "down":
-            y += 1;
-            break;
-          case "left":
-            x -= 1;
-            break;
-          case "right":
-            x += 1;
-            break;
-        }
-        socketService.updatePlayerPosition(currentRoom.id, user.id, { x, y });
-      };
-
-      if (direction !== lastDirection.current) {
-        if (moveInterval.current) clearInterval(moveInterval.current);
-        moveFn(); // Move immediately on direction change
-        moveInterval.current = window.setInterval(moveFn, MOVE_INTERVAL_MS);
-        lastDirection.current = direction;
-      }
-    },
-    [user.id, stopMovement]
-  );
 
   const updateThumb = useCallback(
     (touchX: number, touchY: number) => {
-      if (!baseRef.current) return;
-      const rect = baseRef.current.getBoundingClientRect();
-      const centerX = rect.left + rect.width / 2;
-      const centerY = rect.top + rect.height / 2;
+      if (!joystickState.isActive) return;
+
+      const { x: centerX, y: centerY } = joystickState.position;
 
       let dx = touchX - centerX;
       let dy = touchY - centerY;
@@ -97,8 +41,9 @@ const VirtualJoystick: React.FC<VirtualJoystickProps> = ({ room, user }) => {
 
       setThumbPos({ x: dx, y: dy });
 
-      if (distance < radius / 2) {
-        stopMovement();
+      // Dead zone in the center
+      if (distance < radius / 3) {
+        onMoveEnd();
         return;
       }
 
@@ -114,69 +59,51 @@ const VirtualJoystick: React.FC<VirtualJoystickProps> = ({ room, user }) => {
       } else {
         direction = "up";
       }
-      handleMove(direction);
+      onMove(direction);
     },
-    [handleMove, stopMovement]
+    [joystickState.isActive, joystickState.position, onMove, onMoveEnd]
   );
 
-  const handleTouchStart = (e: TouchEvent<HTMLDivElement>) => {
-    if (touchId.current !== null) return;
-    const touch = e.changedTouches[0];
-    if (!touch) return;
-    touchId.current = touch.identifier;
-    updateThumb(touch.clientX, touch.clientY);
+  // This effect will be triggered from the parent component's touch move
+  // We can't use local touch events anymore as the joystick position is dynamic
+  // The parent will pass the touch coordinates to this function
+  // For now, we assume the parent handles passing the move events.
+  // Let's refine this logic in GamePage.tsx
+
+  if (!joystickState.isActive) {
+    return null;
+  }
+
+  const baseStyle: CSSProperties = {
+    position: "fixed",
+    top: joystickState.position.y - JOYSTICK_SIZE / 2,
+    left: joystickState.position.x - JOYSTICK_SIZE / 2,
+    width: JOYSTICK_SIZE,
+    height: JOYSTICK_SIZE,
+    borderRadius: "50%",
+    backgroundColor: "rgba(0, 0, 0, 0.2)",
+    backdropFilter: "blur(2px)",
+    zIndex: 50,
+    touchAction: "none", // Prevent scrolling
   };
 
-  const handleTouchMove = (e: TouchEvent<HTMLDivElement>) => {
-    for (let i = 0; i < e.changedTouches.length; i++) {
-      const touch = e.changedTouches[i];
-      if (touch && touch.identifier === touchId.current) {
-        updateThumb(touch.clientX, touch.clientY);
-        break;
-      }
-    }
+  const thumbStyle: CSSProperties = {
+    position: "absolute",
+    width: THUMB_SIZE,
+    height: THUMB_SIZE,
+    top: (JOYSTICK_SIZE - THUMB_SIZE) / 2 + thumbPos.y,
+    left: (JOYSTICK_SIZE - THUMB_SIZE) / 2 + thumbPos.x,
+    borderRadius: "50%",
+    backgroundColor: "rgba(255, 255, 255, 0.4)",
+    transition: "top 50ms, left 50ms",
   };
-
-  const handleTouchEnd = (e: TouchEvent<HTMLDivElement>) => {
-    for (let i = 0; i < e.changedTouches.length; i++) {
-      const touch = e.changedTouches[i];
-      if (touch && touch.identifier === touchId.current) {
-        stopMovement();
-        break;
-      }
-    }
-  };
-
-  useEffect(() => {
-    return () => {
-      if (moveInterval.current) {
-        clearInterval(moveInterval.current);
-      }
-    };
-  }, []);
 
   return (
-    <div
-      ref={baseRef}
-      className="fixed bottom-6 left-6 z-50 rounded-full bg-black/20 backdrop-blur-sm"
-      style={{ width: JOYSTICK_SIZE, height: JOYSTICK_SIZE }}
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
-      onTouchCancel={handleTouchEnd}
-    >
-      <div
-        className="absolute rounded-full bg-white/40"
-        style={{
-          width: THUMB_SIZE,
-          height: THUMB_SIZE,
-          top: (JOYSTICK_SIZE - THUMB_SIZE) / 2 + thumbPos.y,
-          left: (JOYSTICK_SIZE - THUMB_SIZE) / 2 + thumbPos.x,
-          transition: "top 50ms, left 50ms",
-        }}
-      ></div>
+    <div style={baseStyle}>
+      <div style={thumbStyle}></div>
     </div>
   );
 };
 
 export default VirtualJoystick;
+
