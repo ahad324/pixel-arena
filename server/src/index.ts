@@ -15,10 +15,6 @@ const io = new Server(server, {
   },
 });
 
-app.get("/health", (req: any, res: any) => {
-  res.status(200).send("OK");
-});
-
 initializeSockets(io);
 
 const PORT = process.env.PORT || 3000;
