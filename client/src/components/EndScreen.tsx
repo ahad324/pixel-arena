@@ -37,7 +37,7 @@ const EndScreen: React.FC<EndScreenProps> = ({ room, onBackToLobby }) => {
                   #{index + 1}
                 </span>
                 <div
-                  className="w-5 h-5 rounded-full mr-3 animate-glow-soft"
+                  className="w-5 h-5 rounded-full mr-3"
                   style={{ backgroundColor: player.color }}
                 ></div>
                 <span className="font-semibold text-lg">{player.name}</span>
