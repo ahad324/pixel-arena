@@ -37,7 +37,8 @@ export interface Player {
   sprintUntil?: number;
   lastShieldTime?: number;
   lastSprintTime?: number;
-  // Trap Rush & Heist Panic
+  // Heist Panic
+  onPadId?: string | null;
   effects?: PlayerEffect[];
   lastMoveTime?: number;
   // Spy & Decode

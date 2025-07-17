@@ -31,6 +31,8 @@ class SocketService {
   public onTrapTriggered: typeof SocketListeners.prototype.onTrapTriggered;
   public onPlayerEffect: typeof SocketListeners.prototype.onPlayerEffect;
   public onPadGuessed: typeof SocketListeners.prototype.onPadGuessed;
+  public onPlayerOnPad: typeof SocketListeners.prototype.onPlayerOnPad;
+  public onPlayerOffPad: typeof SocketListeners.prototype.onPlayerOffPad;
   public onTimerUpdate: typeof SocketListeners.prototype.onTimerUpdate;
   public onScoresUpdate: typeof SocketListeners.prototype.onScoresUpdate;
   public onPhaseChanged: typeof SocketListeners.prototype.onPhaseChanged;
@@ -43,6 +45,8 @@ class SocketService {
   public onAbilityActivated: typeof SocketListeners.prototype.onAbilityActivated;
   public onMazeDifficultyChanged: typeof SocketListeners.prototype.onMazeDifficultyChanged;
   public offMazeDifficultyChanged: typeof SocketListeners.prototype.offMazeDifficultyChanged;
+  public offPlayerOnPad: typeof SocketListeners.prototype.offPlayerOnPad;
+  public offPlayerOffPad: typeof SocketListeners.prototype.offPlayerOffPad;
   public offAll: typeof SocketListeners.prototype.offAll;
 
   constructor() {
@@ -73,6 +77,8 @@ class SocketService {
     this.onTrapTriggered = this.listeners.onTrapTriggered.bind(this.listeners);
     this.onPlayerEffect = this.listeners.onPlayerEffect.bind(this.listeners);
     this.onPadGuessed = this.listeners.onPadGuessed.bind(this.listeners);
+    this.onPlayerOnPad = this.listeners.onPlayerOnPad.bind(this.listeners);
+    this.onPlayerOffPad = this.listeners.onPlayerOffPad.bind(this.listeners);
     this.onTimerUpdate = this.listeners.onTimerUpdate.bind(this.listeners);
     this.onScoresUpdate = this.listeners.onScoresUpdate.bind(this.listeners);
     this.onPhaseChanged = this.listeners.onPhaseChanged.bind(this.listeners);
@@ -85,6 +91,8 @@ class SocketService {
     this.onAbilityActivated = this.listeners.onAbilityActivated.bind(this.listeners);
     this.onMazeDifficultyChanged = this.listeners.onMazeDifficultyChanged.bind(this.listeners);
     this.offMazeDifficultyChanged = this.listeners.offMazeDifficultyChanged.bind(this.listeners);
+    this.offPlayerOnPad = this.listeners.offPlayerOnPad.bind(this.listeners);
+    this.offPlayerOffPad = this.listeners.offPlayerOffPad.bind(this.listeners);
     this.offAll = this.listeners.offAll.bind(this.listeners);
   }
 

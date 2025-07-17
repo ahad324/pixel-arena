@@ -77,6 +77,24 @@ export class SocketListeners {
     this.socketService.getSocket()?.on("pad-guessed", callback);
   }
 
+  public onPlayerOnPad(
+    callback: (data: { playerId: string; padId: string }) => void
+  ) {
+    this.socketService.getSocket()?.on("player-on-pad", callback);
+  }
+
+  public offPlayerOnPad() {
+    this.socketService.getSocket()?.off("player-on-pad");
+  }
+
+  public onPlayerOffPad(callback: (data: { playerId: string }) => void) {
+    this.socketService.getSocket()?.on("player-off-pad", callback);
+  }
+
+  public offPlayerOffPad() {
+    this.socketService.getSocket()?.off("player-off-pad");
+  }
+
   public onTimerUpdate(callback: (data: { time: number }) => void) {
     this.socketService.getSocket()?.on("timer-update", callback);
   }

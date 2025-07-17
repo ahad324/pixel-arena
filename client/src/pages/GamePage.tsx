@@ -42,8 +42,55 @@ const GamePage: React.FC = () => {
   const { isFullscreen, enterFullscreen, exitFullscreen } = useFullscreen();
   const { copied, handleCopy } = useClipboard(room?.id || "");
 
+  const [activePadId, setActivePadId] = useState<string | null>(null);
+
   const { handleAction, handleMove, handleMoveEnd } =
     usePlayerMovement(user!, room!, isMobile);
+
+  const handleHeistGuess = () => {
+    if (user && room && activePadId) {
+      socketService.submitHeistGuess(room.id, user.id, activePadId);
+    }
+  };
+
+  // Listen for server-authoritative pad events
+  useEffect(() => {
+    const handlePlayerOnPad = (data: {
+      playerId: string;
+      padId: string;
+    }) => {
+      if (data.playerId === user?.id) {
+        setActivePadId(data.padId);
+      }
+    };
+
+    const handlePlayerOffPad = (data: { playerId: string }) => {
+      if (data.playerId === user?.id) {
+        setActivePadId(null);
+      }
+    };
+
+    socketService.onPlayerOnPad(handlePlayerOnPad);
+    socketService.onPlayerOffPad(handlePlayerOffPad);
+
+    return () => {
+      socketService.offPlayerOnPad();
+      socketService.offPlayerOffPad();
+    };
+  }, [user?.id]);
+
+  // Keyboard listener for spacebar action
+  useEffect(() => {
+    const handleKeyPress = (event: KeyboardEvent) => {
+      if (event.code === "Space" && !isMobile && activePadId) {
+        event.preventDefault();
+        handleHeistGuess();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyPress);
+    return () => document.removeEventListener("keydown", handleKeyPress);
+  }, [activePadId, isMobile]);
 
   const roomRef = useRef(room);
   useEffect(() => {
@@ -181,12 +228,12 @@ const GamePage: React.FC = () => {
       thumbPosition: { x: 0, y: 0 },
       touchId: null,
     });
-   };
+  };
 
   if (!user || !room) {
     return <LoadingScreen />;
   }
-  
+
   const handleStartGame = () => {
     socketService.startGame(room.id, user.id);
   };
@@ -219,27 +266,43 @@ const GamePage: React.FC = () => {
               ? "fixed inset-0 bg-gray-900 flex items-center justify-center z-50 p-2"
               : "flex-grow flex items-center justify-center relative min-h-[300px] lg:min-h-0"
           }
-          onTouchStart={isMobile && room.gameState.status === 'playing' ? handleTouchStart : undefined}
-          onTouchMove={isMobile && room.gameState.status === 'playing' ? handleTouchMove : undefined}
-          onTouchEnd={isMobile && room.gameState.status === 'playing' ? handleTouchEnd : undefined}
-          onTouchCancel={isMobile && room.gameState.status === 'playing' ? handleTouchEnd : undefined}
+          onTouchStart={
+            isMobile && room.gameState.status === "playing"
+              ? handleTouchStart
+              : undefined
+          }
+          onTouchMove={
+            isMobile && room.gameState.status === "playing"
+              ? handleTouchMove
+              : undefined
+          }
+          onTouchEnd={
+            isMobile && room.gameState.status === "playing"
+              ? handleTouchEnd
+              : undefined
+          }
+          onTouchCancel={
+            isMobile && room.gameState.status === "playing"
+              ? handleTouchEnd
+              : undefined
+          }
         >
-          {isFullscreen && <GameStatus room={room} isFullscreen={isFullscreen} />}
+          {isFullscreen && (
+            <GameStatus room={room} isFullscreen={isFullscreen} />
+          )}
           <GameBoard
             room={room}
             heistPadFeedback={heistPadFeedback}
             user={user}
           />
           {isMobile && room.gameState.status === "playing" && (
-            <VirtualJoystick
-              joystickState={joystickState}
-            />
+            <VirtualJoystick joystickState={joystickState} />
           )}
           {isMobile &&
             room.gameState.status === "playing" &&
             room.gameMode === GameMode.INFECTION_ARENA &&
             isFullscreen && (
-              <div className="absolute bottom-4 right-4 w-24 h-24 z-50">
+              <div className="absolute bottom-4 right-4 w-24 h-24 z-60">
                 <InfectionAbilityButton
                   room={room}
                   user={user}
@@ -250,20 +313,27 @@ const GamePage: React.FC = () => {
           {isMobile &&
             room.gameState.status === "playing" &&
             room.gameMode === GameMode.HEIST_PANIC &&
-            isFullscreen && (
-              <div className="absolute bottom-4 right-4 w-48 z-50">
-                <HeistPanicUI room={room} user={user} />
+            isFullscreen &&
+            activePadId && (
+              <div className="absolute bottom-4 right-4 w-48 z-60">
+                <HeistPanicUI
+                  room={room}
+                  user={user}
+                  onGuessSubmit={handleHeistGuess}
+                />
               </div>
             )}
-          {isMobile && room.gameState.status === "playing" && !isFullscreen && (
-            <button
-              onClick={handleReEnterFullscreen}
-              className="absolute top-4 right-4 z-50 p-2 bg-black/30 rounded-full text-white hover:bg-black/50 transition-colors animate-pulse"
-              aria-label="Enter fullscreen"
-            >
-              <EnterFullscreenIcon className="w-8 h-8" />
-            </button>
-          )}
+          {isMobile &&
+            room.gameState.status === "playing" &&
+            !isFullscreen && (
+              <button
+                onClick={handleReEnterFullscreen}
+                className="absolute top-4 right-4 z-60 p-2 bg-black/30 rounded-full text-white hover:bg-black/50 transition-colors animate-pulse"
+                aria-label="Enter fullscreen"
+              >
+                <EnterFullscreenIcon className="w-8 h-8" />
+              </button>
+            )}
         </div>
 
         {!isFullscreen && (
@@ -371,8 +441,13 @@ const GamePage: React.FC = () => {
                 />
               )}
             {room.gameMode === GameMode.HEIST_PANIC &&
-              room.gameState.status === "playing" && (
-                <HeistPanicUI room={room} user={user} />
+              room.gameState.status === "playing" &&
+              activePadId && (
+                <HeistPanicUI
+                  room={room}
+                  user={user}
+                  onGuessSubmit={handleHeistGuess}
+                />
               )}
 
             <GameControls
