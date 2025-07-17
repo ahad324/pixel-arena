@@ -35,7 +35,7 @@ const GameStatus: React.FC<{ room: Room; isFullscreen: boolean }> = ({ room, isF
   const statusMessage = getStatusMessage();
 
   return isFullscreen ? (
-    <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-black/40 backdrop-blur-sm text-white font-bold text-lg md:text-2xl px-2 py-2 md:px-6 md:py-3 rounded-xl z-10 pointer-events-none shadow-lg">
+    <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-black/40 backdrop-blur-sm text-white font-bold text-lg md:text-2xl px-1 py-2 w-max md:px-6 md:py-3 rounded-xl z-10 pointer-events-none shadow-lg">
       {statusMessage}
     </div>
   ) : (

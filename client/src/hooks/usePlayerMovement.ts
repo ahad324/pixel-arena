@@ -1,4 +1,4 @@
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, useRef } from "react";
 import { socketService } from "@services/socketService";
 import type { Player, Room } from "../types";
 import { GameMode } from "../types";
@@ -8,25 +8,54 @@ export const usePlayerMovement = (
   room: Room | null,
   isMobile: boolean
 ) => {
+  const roomRef = useRef(room);
+  const userRef = useRef(user);
+
+  useEffect(() => {
+    roomRef.current = room;
+    userRef.current = user;
+  }, [room, user]);
+
+  const handleAction = useCallback(() => {
+    const currentRoom = roomRef.current;
+    const currentUser = userRef.current;
+    if (!currentRoom || !currentUser) return;
+
+    const currentPlayer = currentRoom.players.find(
+      (p) => p.id === currentUser.id
+    );
+    if (!currentPlayer || currentRoom.gameState.status !== "playing") return;
+
+    if (currentRoom.gameMode === GameMode.INFECTION_ARENA) {
+      socketService.activateAbility(currentRoom.id, currentUser.id);
+    } else if (currentRoom.gameMode === GameMode.HEIST_PANIC) {
+      const padUnderPlayer = currentRoom.gameState.codePads?.find(
+        (p) => p.x === currentPlayer.x && p.y === currentPlayer.y
+      );
+      if (padUnderPlayer) {
+        socketService.submitHeistGuess(
+          currentRoom.id,
+          currentUser.id,
+          padUnderPlayer.id
+        );
+      }
+    }
+  }, []);
+
   const handleKeyDown = useCallback(
     (event: KeyboardEvent) => {
-      if (!room || !user) return;
+      const currentRoom = roomRef.current;
+      const currentUser = userRef.current;
+      if (!currentRoom || !currentUser) return;
 
-      const currentPlayer = room.players.find((p) => p.id === user.id);
-      if (!currentPlayer || room.gameState.status !== "playing") return;
+      const currentPlayer = currentRoom.players.find(
+        (p) => p.id === currentUser.id
+      );
+      if (!currentPlayer || currentRoom.gameState.status !== "playing") return;
 
       if (event.key === " ") {
         event.preventDefault();
-        if (room.gameMode === GameMode.INFECTION_ARENA) {
-          socketService.activateAbility(room.id, user.id);
-        } else if (room.gameMode === GameMode.HEIST_PANIC) {
-          const padUnderPlayer = room.gameState.codePads?.find(
-            (p) => p.x === currentPlayer.x && p.y === currentPlayer.y
-          );
-          if (padUnderPlayer) {
-            socketService.submitHeistGuess(room.id, user.id, padUnderPlayer.id);
-          }
-        }
+        handleAction();
         return;
       }
 
@@ -54,17 +83,22 @@ export const usePlayerMovement = (
       }
 
       event.preventDefault();
-      socketService.updatePlayerPosition(room.id, user.id, { x, y });
+      socketService.updatePlayerPosition(currentRoom.id, currentUser.id, {
+        x,
+        y,
+      });
     },
-    [user, room]
+    [handleAction]
   );
 
   useEffect(() => {
-    if (isMobile) return; // Do not attach listener on mobile devices
+    if (isMobile) return;
 
     window.addEventListener("keydown", handleKeyDown);
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
   }, [handleKeyDown, isMobile]);
+
+  return { handleAction };
 };
