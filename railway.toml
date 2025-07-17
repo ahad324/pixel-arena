@@ -1,0 +1,8 @@
+[build]
+  rootDirectory = "server"
+  builder = "nixpacks"
+  buildCommand = "npm install"
+  startCommand = "npm start"
+
+[deploy]
+  healthcheckPath = "/health"
