@@ -15,7 +15,7 @@ const io = new Server(server, {
   },
 });
 
-app.get("/health", (req, res) => {
+app.get("/health", (req: any, res: any) => {
   res.status(200).send("OK");
 });
 
