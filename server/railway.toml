@@ -1,11 +1,7 @@
 [build]
 builder = "nixpacks"
-rootDirectory = "server"
 buildCommand = "npm install && npm run build"
 
 [deploy]
 startCommand = "npm start"
 healthcheckPath = "/health"
-
-[services."pixel-arena"]
-port = 3000
