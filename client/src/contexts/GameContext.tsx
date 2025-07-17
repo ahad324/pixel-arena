@@ -12,6 +12,7 @@ interface GameContextType {
   joinRoom: (room: Room) => void;
   leaveRoom: () => void;
   endGame: () => void;
+  logout: () => void;
   heistPadFeedback: { [padId: string]: 'correct' | 'incorrect' };
 }
 
@@ -437,8 +438,14 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
     dispatch({ type: "SET_ROOM", payload: null });
   };
 
-  const endGame = () => {
+const endGame = () => {
     dispatch({ type: "SET_ROOM", payload: null });
+  };
+
+  const logout = () => {
+    dispatch({ type: "SET_USER", payload: null });
+    localStorage.removeItem("pixel-arena-username");
+    leaveRoom();
   };
 
   const value = {
@@ -450,6 +457,7 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
     leaveRoom,
     endGame,
     heistPadFeedback: state.heistPadFeedback,
+    logout,
   };
 
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>;

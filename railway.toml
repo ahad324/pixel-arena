@@ -1,8 +1,8 @@
 [build]
-  rootDirectory = "server"
-  builder = "nixpacks"
-  buildCommand = "npm install"
-  startCommand = "npm start"
+builder = "nixpacks"
+rootDirectory = "server"
+buildCommand = "npm install"
 
 [deploy]
-  healthcheckPath = "/health"
+startCommand = "npm start"
+healthcheckPath = "/health"

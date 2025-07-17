@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from "react";
+import { motion, easeOut } from "framer-motion";
 import { GameMode } from "../types";
 import { socketService } from "@services/socketService";
 import { GAME_DESCRIPTIONS, PLAYER_COLORS, getGameModeStatus, GameStatus } from "@constants/index";
@@ -13,7 +14,8 @@ import {
   TrapIcon,
   SpyIcon,
   InfoIcon,
-  HeistIcon
+  HeistIcon,
+  PowerIcon
 } from "@components/icons";
 import InstructionsModal from "@components/InstructionsModal";
 import Spinner from "@components/Spinner";
@@ -57,8 +59,20 @@ const GameModeCard: React.FC<GameModeCardProps> = ({
   );
 };
 
+const containerVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.6,
+      ease: easeOut
+    }
+  }
+};
+
 const LobbyPage: React.FC = () => {
-  const { user, joinRoom: onJoinRoom } = useGame();
+  const { user, joinRoom: onJoinRoom, logout } = useGame();
   const [selectedGameMode, setSelectedGameMode] = useState<GameMode>(
     GameMode.TAG
   );
@@ -128,17 +142,32 @@ const LobbyPage: React.FC = () => {
           onClose={() => setIsInstructionsVisible(false)}
         />
       )}
-      <div className="w-full max-w-6xl mx-auto animate-in fade-in duration-500">
-        <div className="text-center mb-8">
+      <motion.div className="w-full max-w-6xl mx-auto animate-in fade-in duration-500">
+        <div className="text-center mb-8 relative pt-10 sm:pt-10">
           <h1 className="text-4xl font-bold tracking-wider">GAME LOBBY</h1>
           <p className="text-gray-400 mt-2">
             Welcome,{" "}
             <span className="text-blue-400 font-bold">{user?.name}</span>!
             Choose your game.
           </p>
-        </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          {/* Logout Button */}
+          <button
+            onClick={logout}
+            className="absolute top-0 right-0 w-6 h-6 sm:h-10 sm:w-10 bg-red-600 hover:bg-red-700 rounded-full flex items-center justify-center transition-all duration-300 hover:shadow-lg hover:shadow-red-500/30 group"
+            aria-label="Logout"
+          >
+            <PowerIcon className="w-4 h-4 sm:w-5 sm:h-5 text-white group-hover:scale-110 transition-transform" />
+          </button>
+        </div>
+        </motion.div>
+
+        <motion.div
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8"
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+        >
           {(Object.values(GameMode) as GameMode[]).map((mode) => {
             const status = getGameModeStatus(mode);
             return (
@@ -152,9 +181,14 @@ const LobbyPage: React.FC = () => {
               />
             );
           })}
-        </div>
+        </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <motion.div
+          className="grid grid-cols-1 md:grid-cols-2 gap-6"
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+        >
           <div className="bg-gray-800 border border-gray-700 rounded-lg p-6 flex flex-col">
             <h2 className="text-2xl font-bold mb-4 flex items-center">
               <CreateIcon className="w-8 h-8 mr-2 text-green-400" /> Create a
@@ -210,51 +244,50 @@ const LobbyPage: React.FC = () => {
             </div>
             <p className={`text-red-500 text-sm mt-2 h-5 transition-all duration-300 ${error ? 'animate-shake' : ''}`}>{error}</p>
           </div>
-        </div>
+      </motion.div>
 
-        <div className="mt-8">
-          <h2 className="text-2xl font-bold mb-4">Available Rooms</h2>
-          <div className="space-y-3 max-h-60 overflow-y-auto pr-2">
-            {isLoadingRooms ? (
-              <div className="flex justify-center items-center py-8">
-                <Spinner />
-              </div>
-            ) : availableRooms.length > 0 ? (
-              availableRooms.map((room) => (
-                <div
-                  key={room.id}
-                  className="bg-gray-800/80 border border-gray-700 rounded-lg p-4 flex items-center justify-between hover:bg-gray-700/60 transition-colors"
-                >
-                  <div>
-                    <p className="font-bold text-lg">{room.gameMode}</p>
-                    <p className="text-sm text-gray-400">
-                      Room Code:{" "}
-                      <span className="font-mono text-yellow-400">
-                        {room.id}
-                      </span>
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <p className="text-gray-300">
-                      {room.playerCount} / {PLAYER_COLORS.length}
-                    </p>
-                    <button
-                      onClick={() => handleJoinWithCode(room.id)}
-                      disabled={isProcessing}
-                      className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-colors disabled:opacity-50"
-                    >
-                      Join
-                    </button>
-                  </div>
+      <div className="mt-8">
+        <h2 className="text-2xl font-bold mb-4">Available Rooms</h2>
+        <div className="space-y-3 max-h-60 overflow-y-auto pr-2">
+          {isLoadingRooms ? (
+            <div className="flex justify-center items-center py-8">
+              <Spinner />
+            </div>
+          ) : availableRooms.length > 0 ? (
+            availableRooms.map((room) => (
+              <div
+                key={room.id}
+                className="bg-gray-800/80 border border-gray-700 rounded-lg p-4 flex items-center justify-between hover:bg-gray-700/60 transition-colors"
+              >
+                <div>
+                  <p className="font-bold text-lg">{room.gameMode}</p>
+                  <p className="text-sm text-gray-400">
+                    Room Code:{" "}
+                    <span className="font-mono text-yellow-400">
+                      {room.id}
+                    </span>
+                  </p>
                 </div>
-              ))
-            ) : (
-              <div className="text-gray-500 text-center py-8 bg-gray-800/50 rounded-lg">
-                <p>No public rooms available.</p>
-                <p>Why not create one?</p>
+                <div className="flex items-center gap-4">
+                  <p className="text-gray-300">
+                    {room.playerCount} / {PLAYER_COLORS.length}
+                  </p>
+                  <button
+                    onClick={() => handleJoinWithCode(room.id)}
+                    disabled={isProcessing}
+                    className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-colors disabled:opacity-50"
+                  >
+                    Join
+                  </button>
+                </div>
               </div>
-            )}
-          </div>
+            ))
+          ) : (
+            <div className="text-gray-500 text-center py-8 bg-gray-800/50 rounded-lg">
+              <p>No public rooms available.</p>
+              <p>Why not create one?</p>
+            </div>
+          )}
         </div>
       </div>
     </>
