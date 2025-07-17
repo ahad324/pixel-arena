@@ -255,7 +255,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
               }}
             >
               <div
-                className={`w-full h-full border-2 rounded-md flex items-center justify-center font-bold transition-colors duration-200 ${feedbackClass}`}
+                className={`w-full h-full border-2 rounded-md flex items-center justify-center font-bold transition-all duration-300 ${feedbackClass}`}
               >
                 {feedbackContent}
               </div>

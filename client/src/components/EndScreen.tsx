@@ -19,24 +19,25 @@ const EndScreen: React.FC<EndScreenProps> = ({ room, onBackToLobby }) => {
     room.gameMode === GameMode.SPY_AND_DECODE;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 animate-in fade-in">
-      <div className="bg-gray-800 border border-gray-700 rounded-lg p-8 shadow-2xl shadow-blue-500/20 max-w-lg w-full text-center transform animate-in fade-in zoom-in-95 duration-300">
-        <TrophyIcon className="h-20 w-20 text-yellow-400 mx-auto mb-4" />
-        <h1 className="text-4xl font-bold mb-2">{winnerName}</h1>
-        <p className="text-gray-400 mb-6">Results for {room.gameMode}</p>
+    <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 animate-fade-in">
+      <div className="bg-gray-800 border border-gray-700 rounded-lg p-8 shadow-2xl shadow-blue-500/20 max-w-lg w-full text-center transform animate-scale-in">
+        <TrophyIcon className="h-20 w-20 text-yellow-400 mx-auto mb-4 animate-bounce-subtle" />
+        <h1 className="text-4xl font-bold mb-2 animate-slide-up">{winnerName}</h1>
+        <p className="text-gray-400 mb-6 animate-fade-in">Results for {room.gameMode}</p>
 
         <div className="space-y-3 text-left max-h-60 overflow-y-auto pr-2">
           {sortedPlayers.map((player, index) => (
             <div
               key={player.id}
-              className="bg-gray-700 p-3 rounded-lg flex justify-between items-center"
+              className="bg-gray-700 p-3 rounded-lg flex justify-between items-center transition-all duration-200 hover:bg-gray-600 animate-slide-up"
+              style={{ animationDelay: `${index * 0.1}s` }}
             >
               <div className="flex items-center">
                 <span className="font-bold text-lg mr-4 text-gray-400">
                   #{index + 1}
                 </span>
                 <div
-                  className="w-5 h-5 rounded-full mr-3"
+                  className="w-5 h-5 rounded-full mr-3 animate-glow-soft"
                   style={{ backgroundColor: player.color }}
                 ></div>
                 <span className="font-semibold text-lg">{player.name}</span>
@@ -52,7 +53,7 @@ const EndScreen: React.FC<EndScreenProps> = ({ room, onBackToLobby }) => {
 
         <button
           onClick={onBackToLobby}
-          className="mt-8 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded focus:outline-none focus:shadow-outline transform hover:scale-105 transition-transform duration-200"
+          className="mt-8 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded focus:outline-none focus:shadow-outline transform hover:scale-105 transition-all duration-200 animate-slide-up"
         >
           Back to Lobby
         </button>

@@ -44,7 +44,7 @@ const PlayerAvatar: React.FC<PlayerAvatarProps> = ({ player, cellSize }) => {
       }}
     >
       <div
-        className={`w-full h-full rounded-md flex items-center justify-center transition-colors ${itClass} ${shieldClass}`}
+        className={`w-full h-full rounded-md flex items-center justify-center transition-all duration-300 ${itClass} ${shieldClass}`}
         style={{
           backgroundColor: player.isInfected ? INFECTED_COLOR : player.color,
           opacity: isSlowed ? 0.7 : 1.0,
@@ -55,7 +55,7 @@ const PlayerAvatar: React.FC<PlayerAvatarProps> = ({ player, cellSize }) => {
         )}
       </div>
       <div
-        className="absolute -top-5 w-full text-center text-xs font-bold whitespace-nowrap"
+        className="absolute -top-5 w-full text-center text-xs font-bold whitespace-nowrap transition-all duration-200"
         style={{ color: player.isInfected ? INFECTED_COLOR : player.color }}
       >
         {player.name}

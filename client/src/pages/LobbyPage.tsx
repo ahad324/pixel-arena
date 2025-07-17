@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { GameMode } from "../types";
 import { socketService } from "@services/socketService";
-import { GAME_DESCRIPTIONS, PLAYER_COLORS } from "@constants/index";
+import { GAME_DESCRIPTIONS, PLAYER_COLORS, getGameModeStatus, GameStatus } from "@constants/index";
 import {
   TagIcon,
   TerritoryIcon,
@@ -18,14 +18,14 @@ import {
 import InstructionsModal from "@components/InstructionsModal";
 import Spinner from "@components/Spinner";
 import { useGame } from "@contexts/GameContext";
-import NewBadge from "@components/NewBadge";
+import { StatusBadge } from "@components/StatusBadge";
 
 interface GameModeCardProps {
   mode: GameMode;
   icon: React.ReactNode;
   selected: boolean;
   onSelect: () => void;
-  isNew?: boolean;
+  status?: GameStatus | null;
 }
 
 const GameModeCard: React.FC<GameModeCardProps> = ({
@@ -33,23 +33,29 @@ const GameModeCard: React.FC<GameModeCardProps> = ({
   icon,
   selected,
   onSelect,
-  isNew,
-}) => (
-  <button
-    onClick={onSelect}
-    className={`relative overflow-hidden p-4 md:p-6 border-2 rounded-lg text-left transition-all duration-200 w-full h-full flex flex-col ${selected
-      ? "border-blue-500 bg-blue-900/50 shadow-lg shadow-blue-500/20"
-      : "border-gray-700 bg-gray-800 hover:bg-gray-700/50 hover:border-blue-700"
-      }`}
-  >
-    {isNew && <NewBadge />}
-    <div className="flex items-center mb-2">
-      {icon}
-      <h3 className="text-xl font-bold ml-3">{mode}</h3>
+  status,
+}) => {
+  return (
+    <div className="relative">
+      <button
+        onClick={onSelect}
+        className={`relative overflow-hidden p-4 md:p-6 border-2 rounded-lg text-left transition-all duration-300 w-full h-full flex flex-col transform hover:scale-105 ${selected
+          ? "border-blue-500 bg-blue-900/50 shadow-lg shadow-blue-500/20 animate-bounce-subtle"
+          : "border-gray-700 bg-gray-800 hover:bg-gray-700/50 hover:border-blue-700 hover:shadow-lg"
+          }`}
+      >
+        <div className="flex items-center mb-2">
+          <div className="transform transition-transform duration-300 group-hover:scale-110">
+            {icon}
+          </div>
+          <h3 className="text-xl font-bold ml-3">{mode}</h3>
+        </div>
+        <p className="text-sm text-gray-400 flex-grow">{GAME_DESCRIPTIONS[mode]}</p>
+      </button>
+      {status && <StatusBadge status={status} />}
     </div>
-    <p className="text-sm text-gray-400 flex-grow">{GAME_DESCRIPTIONS[mode]}</p>
-  </button>
-);
+  );
+};
 
 const LobbyPage: React.FC = () => {
   const { user, joinRoom: onJoinRoom } = useGame();
@@ -133,16 +139,19 @@ const LobbyPage: React.FC = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          {(Object.values(GameMode) as GameMode[]).map((mode) => (
-            <GameModeCard
-              key={mode}
-              mode={mode}
-              icon={gameModeIcons[mode]}
-              selected={selectedGameMode === mode}
-              onSelect={() => setSelectedGameMode(mode)}
-              isNew={mode === GameMode.HEIST_PANIC}
-            />
-          ))}
+          {(Object.values(GameMode) as GameMode[]).map((mode) => {
+            const status = getGameModeStatus(mode);
+            return (
+              <GameModeCard
+                key={mode}
+                mode={mode}
+                icon={gameModeIcons[mode]}
+                selected={selectedGameMode === mode}
+                onSelect={() => setSelectedGameMode(mode)}
+                status={status}
+              />
+            );
+          })}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -199,7 +208,7 @@ const LobbyPage: React.FC = () => {
                 {isProcessing ? <Spinner className="w-6 h-6" /> : "Join"}
               </button>
             </div>
-            <p className="text-red-500 text-sm mt-2 h-5">{error}</p>
+            <p className={`text-red-500 text-sm mt-2 h-5 transition-all duration-300 ${error ? 'animate-shake' : ''}`}>{error}</p>
           </div>
         </div>
 

@@ -201,3 +201,114 @@ export const GAME_SETTINGS = {
     STUN_DURATION: 3000, // ms
   },
 };
+
+// Game Status Types
+export enum GameStatus {
+  NEW = "NEW",
+  BETA = "BETA",
+  POPULAR = "POPULAR",
+  UPDATED = "UPDATED",
+  FEATURED = "FEATURED",
+  EXPERIMENTAL = "EXPERIMENTAL",
+  COMING_SOON = "COMING_SOON",
+  LIMITED_TIME = "LIMITED_TIME",
+}
+
+// Status Configuration
+export interface StatusConfig {
+  label: string;
+  iconName: string;
+  color: string;
+  bgColor: string;
+  animation: string;
+  priority: number; // Higher number = higher priority if multiple statuses
+}
+
+export const STATUS_CONFIG: Record<GameStatus, StatusConfig> = {
+  [GameStatus.NEW]: {
+    label: "New",
+    iconName: "StatusNewIcon",
+    color: "text-amber-100",
+    bgColor: "bg-amber-500",
+    animation: "animate-pulse",
+    priority: 8,
+  },
+  [GameStatus.BETA]: {
+    label: "Beta",
+    iconName: "StatusBetaIcon",
+    color: "text-blue-100",
+    bgColor: "bg-blue-500",
+    animation: "animate-bounce-subtle",
+    priority: 6,
+  },
+  [GameStatus.POPULAR]: {
+    label: "Popular",
+    iconName: "StatusPopularIcon",
+    color: "text-green-100",
+    bgColor: "bg-green-500",
+    animation: "animate-glow-soft",
+    priority: 4,
+  },
+  [GameStatus.UPDATED]: {
+    label: "Updated",
+    iconName: "StatusUpdatedIcon",
+    color: "text-purple-100",
+    bgColor: "bg-purple-500",
+    animation: "animate-fade-in",
+    priority: 3,
+  },
+  [GameStatus.FEATURED]: {
+    label: "Featured",
+    iconName: "StatusFeaturedIcon",
+    color: "text-pink-100",
+    bgColor: "bg-pink-500",
+    animation: "animate-shimmer",
+    priority: 7,
+  },
+  [GameStatus.EXPERIMENTAL]: {
+    label: "Experimental",
+    iconName: "StatusExperimentalIcon",
+    color: "text-orange-100",
+    bgColor: "bg-orange-500",
+    animation: "animate-pulse",
+    priority: 5,
+  },
+  [GameStatus.COMING_SOON]: {
+    label: "Coming Soon",
+    iconName: "StatusComingSoonIcon",
+    color: "text-gray-100",
+    bgColor: "bg-gray-500",
+    animation: "animate-fade-in",
+    priority: 2,
+  },
+  [GameStatus.LIMITED_TIME]: {
+    label: "Limited Time",
+    iconName: "StatusLimitedTimeIcon",
+    color: "text-red-100",
+    bgColor: "bg-red-500",
+    animation: "animate-pulse",
+    priority: 9,
+  },
+};
+
+// Game Mode Status Configuration - Only define games that have special status
+// If a game is not in this list, it will have no badge (default/normal)
+export const GAME_MODE_STATUS: Partial<Record<GameMode, GameStatus[]>> = {
+  [GameMode.MAZE_RACE]: [GameStatus.UPDATED],
+
+  [GameMode.HEIST_PANIC]: [GameStatus.NEW],
+  // Add new games here only if they need a special status
+  // Example: [GameMode.NEW_GAME]: [GameStatus.NEW],
+  // Example: [GameMode.SOME_GAME]: [GameStatus.UPDATED, GameStatus.POPULAR], // Will show highest priority
+};
+
+// Helper function to get the highest priority status
+export const getGameModeStatus = (mode: GameMode): GameStatus | null => {
+  const statuses = GAME_MODE_STATUS[mode];
+  if (!statuses || statuses.length === 0) return null;
+  
+  // Return the status with highest priority
+  return statuses.reduce((highest, current) => {
+    return STATUS_CONFIG[current].priority > STATUS_CONFIG[highest].priority ? current : highest;
+  });
+};

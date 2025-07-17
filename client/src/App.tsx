@@ -10,15 +10,31 @@ const AppContent: React.FC = () => {
 
   const renderContent = () => {
     if (isLoading) {
-      return <LoadingScreen />;
+      return (
+        <div className="animate-fade-in">
+          <LoadingScreen />
+        </div>
+      );
     }
     if (!user) {
-      return <LoginPage />;
+      return (
+        <div className="animate-fade-in">
+          <LoginPage />
+        </div>
+      );
     }
     if (!room) {
-      return <LobbyPage />;
+      return (
+        <div className="animate-fade-in">
+          <LobbyPage />
+        </div>
+      );
     }
-    return <GamePage />;
+    return (
+      <div className="animate-fade-in">
+        <GamePage />
+      </div>
+    );
   };
 
   return (
