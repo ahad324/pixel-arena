@@ -53,6 +53,7 @@ const GamePage: React.FC = () => {
   const [joystickState, setJoystickState] = useState({
     isActive: false,
     position: { x: 0, y: 0 },
+    thumbPosition: { x: 0, y: 0 },
     touchId: null as number | null,
   });
 
@@ -118,6 +119,7 @@ const GamePage: React.FC = () => {
     setJoystickState({
       isActive: true,
       position: { x: touch.clientX, y: touch.clientY },
+      thumbPosition: { x: 0, y: 0 },
       touchId: touch.identifier,
     });
   };
@@ -133,7 +135,22 @@ const GamePage: React.FC = () => {
     let dx = touch.clientX - centerX;
     let dy = touch.clientY - centerY;
     const distance = Math.sqrt(dx * dx + dy * dy);
-    const radius = 50 / 2; // Half of joystick thumb travel area
+    const JOYSTICK_SIZE = 80;
+    const THUMB_SIZE = 40;
+    const radius = (JOYSTICK_SIZE - THUMB_SIZE) / 2;
+
+    let thumbX = dx;
+    let thumbY = dy;
+
+    if (distance > radius) {
+      thumbX = (dx / distance) * radius;
+      thumbY = (dy / distance) * radius;
+    }
+
+    setJoystickState((prev) => ({
+      ...prev,
+      thumbPosition: { x: thumbX, y: thumbY },
+    }));
 
     if (distance < radius / 3) {
       handleMoveEnd();
@@ -158,13 +175,18 @@ const GamePage: React.FC = () => {
     );
     if (!touch) return;
     handleMoveEnd();
-    setJoystickState({ isActive: false, position: { x: 0, y: 0 }, touchId: null });
-  };
+    setJoystickState({
+      isActive: false,
+      position: { x: 0, y: 0 },
+      thumbPosition: { x: 0, y: 0 },
+      touchId: null,
+    });
+   };
 
   if (!user || !room) {
     return <LoadingScreen />;
   }
-
+  
   const handleStartGame = () => {
     socketService.startGame(room.id, user.id);
   };
@@ -210,10 +232,6 @@ const GamePage: React.FC = () => {
           />
           {isMobile && room.gameState.status === "playing" && (
             <VirtualJoystick
-              roomRef={roomRef}
-              user={user}
-              onMove={handleMove}
-              onMoveEnd={handleMoveEnd}
               joystickState={joystickState}
             />
           )}
