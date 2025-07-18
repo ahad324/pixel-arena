@@ -1,3 +1,4 @@
+
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import GameProvider, { useGame } from "@contexts/GameContext";
@@ -55,7 +56,7 @@ const AppContent: React.FC = () => {
   };
 
   return (
-    <main className="bg-gray-900 flex flex-col items-center justify-center p-4 font-mono w-full min-h-screen">
+    <main className="bg-background flex flex-col items-center justify-center p-4 font-mono w-full min-h-screen">
       <div className="w-full max-w-7xl mx-auto">
         <AnimatePresence mode="wait">
           <motion.div

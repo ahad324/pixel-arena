@@ -1,5 +1,4 @@
 
-
 /** @type {import('tailwindcss').Config} */
 export default {
   content: [
@@ -8,6 +7,32 @@ export default {
   ],
   theme: {
     extend: {
+      colors: {
+        background: '#0D1117',
+        surface: {
+          100: '#161B22',
+          200: '#21262D',
+        },
+        primary: {
+          DEFAULT: '#58A6FF',
+          hover: '#80B9FF',
+        },
+        accent: {
+          DEFAULT: '#3FB950',
+          hover: '#51C663',
+          secondary: '#F778BA',
+        },
+        error: {
+          DEFAULT: '#F85149',
+          hover: '#FF6A62',
+        },
+        text: {
+          primary: '#C9D1D9',
+          secondary: '#8B949E',
+        },
+        border: '#30363D',
+        warning: '#F0A500',
+      },
       animation: {
         'fade-in': 'fadeIn 0.3s ease-out',
         'fade-out': 'fadeOut 0.2s ease-in',

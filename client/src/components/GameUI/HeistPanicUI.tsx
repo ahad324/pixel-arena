@@ -1,3 +1,4 @@
+
 import React from "react";
 import type { Player, Room } from "../../types/index";
 import { GameMode } from "../../types/index";
@@ -31,7 +32,7 @@ const HeistPanicUI: React.FC<{
       <button
         onClick={handleGuessSubmit}
         disabled={!!isFrozen}
-        className="w-full bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-3 px-4 rounded focus:outline-none focus:shadow-outline transition-colors disabled:bg-gray-500 disabled:cursor-not-allowed"
+        className="w-full bg-warning hover:bg-yellow-600 text-white font-bold py-3 px-4 rounded-md focus:outline-none focus:shadow-outline transition-colors disabled:bg-surface-200 disabled:text-text-secondary disabled:cursor-not-allowed"
       >
         {isFrozen
           ? "Frozen!"
@@ -42,4 +43,3 @@ const HeistPanicUI: React.FC<{
 };
 
 export default HeistPanicUI;
-

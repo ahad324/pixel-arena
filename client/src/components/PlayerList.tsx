@@ -1,3 +1,4 @@
+
 import React from "react";
 import type { Player, Room } from "../types/index";
 import { PLAYER_COLORS, INFECTED_COLOR } from "@constants/index";
@@ -5,15 +6,15 @@ import { PLAYER_COLORS, INFECTED_COLOR } from "@constants/index";
 const PlayerList: React.FC<{ room: Room; user: Omit<Player, "socketId"> }> = ({ room, user }) => {
   return (
     <div className="space-y-2 flex-grow mb-4">
-      <h3 className="font-bold mb-2 text-lg">
+      <h3 className="font-bold mb-2 text-lg text-text-primary">
         Players ({room.players.length}/{PLAYER_COLORS.length})
       </h3>
       {room.players.map((p) => (
         <div
           key={p.id}
           className={`p-2 rounded-md flex items-center justify-between text-sm ${p.isEliminated
-              ? "bg-gray-700 text-gray-500 line-through"
-              : "bg-gray-700"
+              ? "bg-surface-200/50 text-text-secondary/50 line-through"
+              : "bg-surface-200"
             }`}
         >
           <div className="flex items-center">
@@ -23,23 +24,23 @@ const PlayerList: React.FC<{ room: Room; user: Omit<Player, "socketId"> }> = ({ 
                 backgroundColor: p.isInfected ? INFECTED_COLOR : p.color,
               }}
             ></div>
-            <span className="font-bold">
+            <span className="font-bold text-text-primary">
               {p.name}
               {p.id === user.id ? " (You)" : ""}
               {p.id === room.hostId ? " 👑" : ""}
             </span>
             {p.isIt && (
-              <span className="ml-2 text-red-400 font-bold animate-pulse">
+              <span className="ml-2 text-error font-bold animate-pulse">
                 (It!)
               </span>
             )}
             {p.isInfected && (
-              <span className="ml-2 text-lime-400 font-bold animate-pulse">
+              <span className="ml-2 font-bold animate-pulse" style={{color: INFECTED_COLOR}}>
                 (Infected)
               </span>
             )}
           </div>
-          <span className="font-mono font-bold text-lg text-blue-300">
+          <span className="font-mono font-bold text-lg text-primary">
             {p.score}
           </span>
         </div>

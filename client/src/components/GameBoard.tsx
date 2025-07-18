@@ -164,7 +164,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
 
     const currentPlayer = players.find((p) => p.id === user.id);
     if (!currentPlayer) {
-      return { background: "rgba(17, 24, 39, 0.98)" };
+      return { background: "rgba(13, 17, 23, 0.98)" }; // background color
     }
 
     const visibilityInCells = 4.5;
@@ -172,7 +172,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
     const playerCenterX = currentPlayer.x * cellSize + cellSize / 2;
     const playerCenterY = currentPlayer.y * cellSize + cellSize / 2;
 
-    const gradient = `radial-gradient(circle ${visibilityRadiusPx}px at ${playerCenterX}px ${playerCenterY}px, transparent 0%, transparent 70%, rgba(17, 24, 39, 0.98) 100%)`;
+    const gradient = `radial-gradient(circle ${visibilityRadiusPx}px at ${playerCenterX}px ${playerCenterY}px, transparent 0%, transparent 70%, rgba(13, 17, 23, 0.98) 100%)`;
 
     return {
       background: gradient,
@@ -204,7 +204,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
             cell === 1 ? (
               <div
                 key={`${x}-${y}`}
-                className="absolute bg-gray-600 border border-gray-500"
+                className="absolute bg-surface-200 border border-border"
                 style={{
                   left: x * cellSize,
                   top: y * cellSize,
@@ -217,7 +217,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
               x === gameState.maze.end.x ? (
               <div
                 key="end-point"
-                className="absolute bg-green-500/50 rounded-full animate-pulse"
+                className="absolute bg-accent/50 rounded-full animate-pulse"
                 style={{
                   left: x * cellSize + cellSize / 4,
                   top: y * cellSize + cellSize / 4,
@@ -232,14 +232,14 @@ const GameBoard: React.FC<GameBoardProps> = ({
         return gameState.codePads?.map((pad) => {
           const feedback = heistPadFeedback?.[pad.id];
           let feedbackClass =
-            "bg-yellow-500/20 border-yellow-400 animate-pulse";
+            "bg-warning/20 border-warning animate-pulse";
           let feedbackContent = "?";
 
           if (feedback === "incorrect") {
-            feedbackClass = "bg-red-600/50 border-red-500 animate-pulse";
+            feedbackClass = "bg-error/50 border-error animate-pulse";
             feedbackContent = "X";
           } else if (feedback === "correct") {
-            feedbackClass = "bg-green-500/50 border-green-400 animate-pulse";
+            feedbackClass = "bg-accent/50 border-accent animate-pulse";
             feedbackContent = "✓";
           }
 
@@ -284,7 +284,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
                   height: cellSize,
                 }}
               >
-                <div className="w-full h-full bg-gray-900/50 rounded-full animate-in fade-in">
+                <div className="w-full h-full bg-surface-100/50 rounded-full animate-in fade-in">
                   {trapIcons[trap.type]}
                 </div>
               </div>
@@ -301,7 +301,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
               width: "100%",
               height: cellSize,
               backgroundImage:
-                "repeating-conic-gradient(#1F2937 0% 25%, #4B5563 0% 50%)",
+                "repeating-conic-gradient(#161B22 0% 25%, #30363D 0% 50%)",
               backgroundSize: `${cellSize}px ${cellSize}px`,
               opacity: 0.8,
             }}
@@ -320,12 +320,12 @@ const GameBoard: React.FC<GameBoardProps> = ({
       className="w-full h-full flex items-center justify-center"
     >
       <div
-        className="relative bg-gray-900 border-2 border-gray-700 rounded-lg overflow-hidden flex-shrink-0"
+        className="relative bg-background border-2 border-border rounded-lg overflow-hidden flex-shrink-0"
         style={{
           width: boardSize,
           height: boardSize,
           backgroundImage:
-            "linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px)",
+            "linear-gradient(rgba(201, 209, 217, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(201, 209, 217, 0.05) 1px, transparent 1px)",
           backgroundSize: `${cellSize}px ${cellSize}px`,
           transform: `rotate(${clientRotation}deg)`,
           transition: "transform 1s ease-in-out",

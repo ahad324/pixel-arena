@@ -41,18 +41,18 @@ const GameModeCard: React.FC<GameModeCardProps> = ({
     <div className="relative">
       <button
         onClick={onSelect}
-        className={`relative overflow-hidden p-4 md:p-6 border-2 rounded-lg text-left transition-all duration-300 w-full h-full flex flex-col transform hover:scale-105 ${selected
-          ? "border-blue-500 bg-blue-900/50 shadow-lg shadow-blue-500/20 animate-bounce-subtle"
-          : "border-gray-700 bg-gray-800 hover:bg-gray-700/50 hover:border-blue-700 hover:shadow-lg"
+        className={`relative overflow-hidden p-4 md:p-6 border-2 rounded-lg text-left transition-all duration-300 w-full h-full flex flex-col transform hover:scale-105 group ${selected
+          ? "border-primary bg-primary/20 shadow-lg shadow-primary/20 animate-bounce-subtle"
+          : "border-border bg-surface-100 hover:bg-surface-200 hover:border-primary/50 hover:shadow-lg"
           }`}
       >
         <div className="flex items-center mb-2">
           <div className="transform transition-transform duration-300 group-hover:scale-110">
             {icon}
           </div>
-          <h3 className="text-xl font-bold ml-3">{mode}</h3>
+          <h3 className="text-xl font-bold ml-3 text-text-primary">{mode}</h3>
         </div>
-        <p className="text-sm text-gray-400 flex-grow">{GAME_DESCRIPTIONS[mode]}</p>
+        <p className="text-sm text-text-secondary flex-grow">{GAME_DESCRIPTIONS[mode]}</p>
       </button>
       {status && <StatusBadge status={status} />}
     </div>
@@ -128,7 +128,7 @@ const LobbyPage: React.FC = () => {
       <HeistIcon className="h-8 w-8 text-blue-500" />
     ),
     [GameMode.INFECTION_ARENA]: (
-      <InfectionIcon className="h-8 w-8 text-lime-500" />
+      <InfectionIcon className="h-8 w-8 text-lime-400" />
     ),
     [GameMode.TRAP_RUSH]: <TrapIcon className="h-8 w-8 text-orange-500" />,
     [GameMode.SPY_AND_DECODE]: <SpyIcon className="h-8 w-8 text-indigo-500" />,
@@ -144,20 +144,19 @@ const LobbyPage: React.FC = () => {
       )}
       <motion.div className="w-full max-w-6xl mx-auto animate-in fade-in duration-500">
         <div className="text-center mb-8 relative pt-10 sm:pt-10">
-          <h1 className="text-4xl font-bold tracking-wider">GAME LOBBY</h1>
-          <p className="text-gray-400 mt-2">
+          <h1 className="text-4xl font-bold tracking-wider text-text-primary">GAME LOBBY</h1>
+          <p className="text-text-secondary mt-2">
             Welcome,{" "}
-            <span className="text-blue-400 font-bold">{user?.name}</span>!
+            <span className="text-primary font-bold">{user?.name}</span>!
             Choose your game.
           </p>
 
-          {/* Logout Button */}
           <button
             onClick={logout}
-            className="absolute top-0 right-0 w-6 h-6 sm:h-10 sm:w-10 bg-red-600 hover:bg-red-700 rounded-full flex items-center justify-center transition-all duration-300 hover:shadow-lg hover:shadow-red-500/30 group"
+            className="absolute top-0 right-0 w-10 h-10 bg-error/20 hover:bg-error/40 border border-error/50 rounded-full flex items-center justify-center transition-all duration-300 hover:shadow-lg hover:shadow-error/30 group"
             aria-label="Logout"
           >
-            <PowerIcon className="w-4 h-4 sm:w-5 sm:h-5 text-white group-hover:scale-110 transition-transform" />
+            <PowerIcon className="w-5 h-5 text-error group-hover:scale-110 transition-transform" />
           </button>
         </div>
         </motion.div>
@@ -189,27 +188,27 @@ const LobbyPage: React.FC = () => {
           initial="hidden"
           animate="visible"
         >
-          <div className="bg-gray-800 border border-gray-700 rounded-lg p-6 flex flex-col">
-            <h2 className="text-2xl font-bold mb-4 flex items-center">
-              <CreateIcon className="w-8 h-8 mr-2 text-green-400" /> Create a
+          <div className="bg-surface-100 border border-border rounded-lg p-6 flex flex-col">
+            <h2 className="text-2xl font-bold mb-4 flex items-center text-text-primary">
+              <CreateIcon className="w-8 h-8 mr-2 text-accent" /> Create a
               Room
             </h2>
-            <p className="text-gray-400 mb-4 flex-grow">
+            <p className="text-text-secondary mb-4 flex-grow">
               Start a new game of{" "}
-              <span className="font-bold text-white">{selectedGameMode}</span>{" "}
+              <span className="font-bold text-text-primary">{selectedGameMode}</span>{" "}
               and invite friends.
             </p>
             <div className="flex gap-2">
               <button
                 onClick={handleCreateRoom}
                 disabled={isProcessing}
-                className="h-12 flex-grow bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded focus:outline-none focus:shadow-outline transform hover:scale-105 transition-transform duration-200 flex items-center justify-center disabled:opacity-70 disabled:cursor-not-allowed"
+                className="h-12 flex-grow bg-accent hover:bg-accent-hover text-white font-bold py-3 px-4 rounded-md focus:outline-none focus:shadow-outline transform hover:scale-105 transition-transform duration-200 flex items-center justify-center disabled:opacity-70 disabled:cursor-not-allowed"
               >
                 {isProcessing ? <Spinner className="w-6 h-6" /> : "Create Room"}
               </button>
               <button
                 onClick={() => setIsInstructionsVisible(true)}
-                className="flex-shrink-0 bg-gray-600 hover:bg-gray-700 text-white font-bold p-3 rounded focus:outline-none focus:shadow-outline transform hover:scale-105 transition-transform duration-200"
+                className="flex-shrink-0 bg-surface-200 hover:bg-border text-text-secondary hover:text-text-primary font-bold p-3 rounded-md focus:outline-none focus:shadow-outline transform hover:scale-105 transition-transform duration-200"
                 aria-label="How to Play"
               >
                 <InfoIcon className="w-6 h-6" />
@@ -217,9 +216,9 @@ const LobbyPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-gray-800 border border-gray-700 rounded-lg p-6 flex flex-col">
-            <h2 className="text-2xl font-bold mb-4 flex items-center">
-              <EnterIcon className="w-8 h-8 mr-2 text-blue-400" /> Join with
+          <div className="bg-surface-100 border border-border rounded-lg p-6 flex flex-col">
+            <h2 className="text-2xl font-bold mb-4 flex items-center text-text-primary">
+              <EnterIcon className="w-8 h-8 mr-2 text-primary" /> Join with
               Code
             </h2>
             <div className="flex gap-2 flex-grow items-center">
@@ -230,24 +229,24 @@ const LobbyPage: React.FC = () => {
                 onKeyDown={(e) =>
                   e.key === "Enter" && handleJoinWithCode(joinCode)
                 }
-                className="flex-grow shadow appearance-none border border-gray-600 rounded w-full py-3 px-4 bg-gray-700 text-white leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all uppercase placeholder-gray-500"
+                className="flex-grow shadow appearance-none border border-border rounded-md w-full py-3 px-4 bg-surface-200 text-text-primary leading-tight focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all uppercase placeholder-text-secondary"
                 placeholder="ROOM CODE"
                 maxLength={6}
               />
               <button
                 onClick={() => handleJoinWithCode(joinCode)}
                 disabled={!joinCode || isProcessing}
-                className="h-12 w-20 flex-shrink-0 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded focus:outline-none focus:shadow-outline transform hover:scale-105 transition-transform duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                className="h-12 w-20 flex-shrink-0 bg-primary hover:bg-primary-hover text-white font-bold py-3 px-4 rounded-md focus:outline-none focus:shadow-outline transform hover:scale-105 transition-transform duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
               >
                 {isProcessing ? <Spinner className="w-6 h-6" /> : "Join"}
               </button>
             </div>
-            <p className={`text-red-500 text-sm mt-2 h-5 transition-all duration-300 ${error ? 'animate-shake' : ''}`}>{error}</p>
+            <p className={`text-error text-sm mt-2 h-5 transition-all duration-300 ${error ? 'animate-shake' : ''}`}>{error}</p>
           </div>
       </motion.div>
 
       <div className="mt-8">
-        <h2 className="text-2xl font-bold mb-4">Available Rooms</h2>
+        <h2 className="text-2xl font-bold mb-4 text-text-primary">Available Rooms</h2>
         <div className="space-y-3 max-h-60 overflow-y-auto pr-2">
           {isLoadingRooms ? (
             <div className="flex justify-center items-center py-8">
@@ -257,25 +256,25 @@ const LobbyPage: React.FC = () => {
             availableRooms.map((room) => (
               <div
                 key={room.id}
-                className="bg-gray-800/80 border border-gray-700 rounded-lg p-4 flex items-center justify-between hover:bg-gray-700/60 transition-colors"
+                className="bg-surface-100/80 border border-border rounded-lg p-4 flex items-center justify-between hover:bg-surface-200/60 transition-colors"
               >
                 <div>
-                  <p className="font-bold text-lg">{room.gameMode}</p>
-                  <p className="text-sm text-gray-400">
+                  <p className="font-bold text-lg text-text-primary">{room.gameMode}</p>
+                  <p className="text-sm text-text-secondary">
                     Room Code:{" "}
-                    <span className="font-mono text-yellow-400">
+                    <span className="font-mono text-warning">
                       {room.id}
                     </span>
                   </p>
                 </div>
                 <div className="flex items-center gap-4">
-                  <p className="text-gray-300">
+                  <p className="text-text-secondary">
                     {room.playerCount} / {PLAYER_COLORS.length}
                   </p>
                   <button
                     onClick={() => handleJoinWithCode(room.id)}
                     disabled={isProcessing}
-                    className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-colors disabled:opacity-50"
+                    className="bg-primary hover:bg-primary-hover text-white font-bold py-2 px-4 rounded-md transition-colors disabled:opacity-50"
                   >
                     Join
                   </button>
@@ -283,7 +282,7 @@ const LobbyPage: React.FC = () => {
               </div>
             ))
           ) : (
-            <div className="text-gray-500 text-center py-8 bg-gray-800/50 rounded-lg">
+            <div className="text-text-secondary text-center py-8 bg-surface-100/50 rounded-lg">
               <p>No public rooms available.</p>
               <p>Why not create one?</p>
             </div>

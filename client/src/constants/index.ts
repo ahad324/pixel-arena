@@ -4,17 +4,17 @@ export const GRID_SIZE = 20;
 export const CELL_SIZE = 32;
 
 export const PLAYER_COLORS = [
-  "#3B82F6", // blue-500
-  "#22C55E", // green-500
-  "#EC4899", // pink-500
-  "#F97316", // orange-500
-  "#8B5CF6", // violet-500
-  "#FBBF24", // amber-400
-  "#14B8A6", // teal-500
-  "#EF4444", // red-500
+  "#58A6FF", // primary
+  "#3FB950", // accent
+  "#F778BA", // accent-secondary
+  "#F0A500", // warning
+  "#A371F7", // violet
+  "#FBBF24", // amber
+  "#22D3EE", // cyan
+  "#F85149", // error
 ];
 
-export const INFECTED_COLOR = "#84CC16"; // lime-500
+export const INFECTED_COLOR = "#7EE787"; // A bright, sickly green
 
 export const GAME_DESCRIPTIONS: Record<string, string> = {
   [GameMode.TAG]:
@@ -306,9 +306,11 @@ export const GAME_MODE_STATUS: Partial<Record<GameMode, GameStatus[]>> = {
 export const getGameModeStatus = (mode: GameMode): GameStatus | null => {
   const statuses = GAME_MODE_STATUS[mode];
   if (!statuses || statuses.length === 0) return null;
-  
+
   // Return the status with highest priority
   return statuses.reduce((highest, current) => {
-    return STATUS_CONFIG[current].priority > STATUS_CONFIG[highest].priority ? current : highest;
+    return STATUS_CONFIG[current].priority > STATUS_CONFIG[highest].priority
+      ? current
+      : highest;
   });
 };

@@ -1,3 +1,4 @@
+
 import React from "react";
 import type { Player } from "../types";
 import { INFECTED_COLOR } from "@constants/index";
@@ -19,7 +20,7 @@ const PlayerAvatar: React.FC<PlayerAvatarProps> = ({ player, cellSize }) => {
     ? "shadow-lg shadow-red-500/80 ring-2 ring-red-400 animate-pulse"
     : "";
   const shieldClass = isShielded
-    ? "ring-4 ring-cyan-400 ring-offset-2 ring-offset-gray-900 animate-pulse"
+    ? "ring-4 ring-cyan-400 ring-offset-2 ring-offset-background animate-pulse"
     : "";
 
   const isFrozen = player.effects?.some(

@@ -1,3 +1,4 @@
+
 import React, {
   useState,
   useEffect,
@@ -263,7 +264,7 @@ const GamePage: React.FC = () => {
           ref={gameAreaRef}
           className={
             isFullscreen
-              ? "fixed inset-0 bg-gray-900 flex items-center justify-center z-50 p-2"
+              ? "fixed inset-0 bg-background flex items-center justify-center z-50 p-2"
               : "flex-grow flex items-center justify-center relative min-h-[300px] lg:min-h-0"
           }
           onTouchStart={
@@ -328,7 +329,7 @@ const GamePage: React.FC = () => {
             !isFullscreen && (
               <button
                 onClick={handleReEnterFullscreen}
-                className="absolute top-4 right-4 z-60 p-2 bg-black/30 rounded-full text-white hover:bg-black/50 transition-colors animate-pulse"
+                className="absolute top-4 right-4 z-60 p-2 bg-black/30 rounded-full text-text-primary hover:bg-black/50 transition-colors animate-pulse"
                 aria-label="Enter fullscreen"
               >
                 <EnterFullscreenIcon className="w-8 h-8" />
@@ -337,12 +338,12 @@ const GamePage: React.FC = () => {
         </div>
 
         {!isFullscreen && (
-          <div className="lg:w-80 flex-shrink-0 bg-gray-800 border border-gray-700 rounded-lg p-4 flex flex-col">
+          <div className="lg:w-80 flex-shrink-0 bg-surface-100 border border-border rounded-lg p-4 flex flex-col">
             <div className="flex justify-between items-center mb-1">
-              <h2 className="text-2xl font-bold">{room.gameMode}</h2>
+              <h2 className="text-2xl font-bold text-text-primary">{room.gameMode}</h2>
               <button
                 onClick={() => setIsInstructionsVisible(true)}
-                className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
+                className="flex items-center gap-2 text-text-secondary hover:text-text-primary transition-colors"
                 aria-label="How to Play"
               >
                 {room.gameState.status === "waiting" && (
@@ -352,23 +353,23 @@ const GamePage: React.FC = () => {
               </button>
             </div>
             <div className="flex items-center mb-2">
-              <p className="text-sm text-gray-400">
+              <p className="text-sm text-text-secondary">
                 Room Code:{" "}
                 <span
-                  className="font-bold text-yellow-400 tracking-widest cursor-pointer"
+                  className="font-bold text-warning tracking-widest cursor-pointer"
                   onClick={handleCopy}
                 >
                   {room.id}
                 </span>
               </p>
               {copied && (
-                <div className="ml-2 flex items-center text-green-400 text-xs animate-in fade-in">
+                <div className="ml-2 flex items-center text-accent text-xs animate-in fade-in">
                   <CheckCircleIcon className="w-4 h-4 mr-1" />
                   <span>Copied!</span>
                 </div>
               )}
             </div>
-            <p className="text-sm text-gray-500 mb-4">
+            <p className="text-sm text-text-secondary mb-4">
               {GAME_DESCRIPTIONS[room.gameMode]}
             </p>
 
@@ -388,11 +389,11 @@ const GamePage: React.FC = () => {
                   onChange={(e) =>
                     setRequestFullscreenOnStart(e.target.checked)
                   }
-                  className="w-4 h-4 text-blue-600 bg-gray-600 derin-gray-500 rounded focus:ring-2"
+                  className="w-4 h-4 text-primary bg-surface-200 border-border rounded focus:ring-primary focus:ring-2"
                 />
                 <label
                   htmlFor="fullscreen-checkbox"
-                  className="ml-2 text-sm font-medium text-gray-300"
+                  className="ml-2 text-sm font-medium text-text-primary"
                 >
                   Play in Fullscreen
                 </label>
@@ -405,7 +406,7 @@ const GamePage: React.FC = () => {
                 <div className="flex flex-col mb-4">
                   <label
                     htmlFor="difficulty-select"
-                    className="mb-1 text-sm font-medium text-gray-300"
+                    className="mb-1 text-sm font-medium text-text-primary"
                   >
                     Select Difficulty
                   </label>
@@ -422,11 +423,11 @@ const GamePage: React.FC = () => {
                         newDifficulty
                       );
                     }}
-                    className="p-2 bg-gray-700 border border-gray-600 text-white rounded-md"
+                    className="p-2 bg-surface-200 border border-border text-text-primary rounded-md focus:ring-2 focus:ring-primary focus:border-primary"
                   >
                     {Object.values(MazeRaceDifficulty).map((d) => (
                       <option key={d} value={d}>
-                        {d}
+                        {d.charAt(0).toUpperCase() + d.slice(1)}
                       </option>
                     ))}
                   </select>

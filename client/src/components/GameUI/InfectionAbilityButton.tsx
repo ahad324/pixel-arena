@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import type { Player, Room } from "../../types/index";
 import { GameMode } from "../../types/index";
@@ -58,7 +59,7 @@ const InfectionAbilityButton: React.FC<{
     <button
       onClick={onAction}
       disabled={isDisabled}
-      className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-4 rounded focus:outline-none focus:shadow-outline transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed"
+      className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-4 rounded-md focus:outline-none focus:shadow-outline transition-colors disabled:bg-surface-200 disabled:text-text-secondary disabled:cursor-not-allowed"
     >
       {isDisabled
         ? `${abilityName} (${cooldown}s)`

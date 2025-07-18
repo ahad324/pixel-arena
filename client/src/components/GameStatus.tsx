@@ -1,3 +1,4 @@
+
 import React from "react";
 import type { Room } from "../types";
 import { GameMode } from "../types";
@@ -35,11 +36,11 @@ const GameStatus: React.FC<{ room: Room; isFullscreen: boolean }> = ({ room, isF
   const statusMessage = getStatusMessage();
 
   return isFullscreen ? (
-    <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-black/40 backdrop-blur-sm text-white font-bold text-lg md:text-2xl px-1 py-2 w-max md:px-6 md:py-3 rounded-xl z-10 pointer-events-none shadow-lg">
+    <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-black/50 backdrop-blur-sm text-text-primary font-bold text-lg md:text-2xl px-4 py-2 md:px-6 md:py-3 rounded-xl z-10 pointer-events-none shadow-lg border border-border">
       {statusMessage}
     </div>
   ) : (
-    <div className="bg-blue-900/40 text-blue-200 rounded-md p-3 text-center mb-4 font-semibold">
+    <div className="bg-primary/10 text-primary rounded-md p-3 text-center mb-4 font-semibold border border-primary/20">
       {statusMessage}
     </div>
   );

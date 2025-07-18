@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { GameStatus, STATUS_CONFIG } from '@constants/index';
 import {
@@ -59,10 +60,10 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({ status, className = '' }) => 
 
         {/* Modern tooltip */}
         <div className="absolute top-8 right-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-50">
-          <div className="bg-gray-900 text-white text-xs px-2 py-1 rounded-md shadow-lg whitespace-nowrap border border-gray-700">
+          <div className="bg-surface-200 text-text-primary text-xs px-2 py-1 rounded-md shadow-lg whitespace-nowrap border border-border">
             {config.label}
             {/* Tooltip arrow */}
-            <div className="absolute -top-1 right-2 w-2 h-2 bg-gray-900 border-l border-t border-gray-700 transform rotate-45"></div>
+            <div className="absolute -top-1 right-2 w-2 h-2 bg-surface-200 border-l border-t border-border transform rotate-45"></div>
           </div>
         </div>
       </div>
