@@ -1,4 +1,3 @@
-
 import React from "react";
 import type { Room } from "../types";
 import { GameMode } from "../types";
@@ -11,13 +10,24 @@ interface EndScreenProps {
 
 const EndScreen: React.FC<EndScreenProps> = ({ room, onBackToLobby }) => {
   const { winner } = room.gameState;
-  const sortedPlayers = [...room.players].sort((a, b) => b.score - a.score);
-
-  const winnerName = winner && "name" in winner ? winner.name : "Game Over!";
   const showScores =
     room.gameMode === GameMode.TAG ||
     room.gameMode === GameMode.TERRITORY_CONTROL ||
     room.gameMode === GameMode.SPY_AND_DECODE;
+
+  let sortedPlayers = [...room.players];
+  if (room.gameMode === GameMode.TRAP_RUSH && winner && "id" in winner) {
+    sortedPlayers = [
+      room.players.find((p) => p.id === winner.id)!,
+      ...room.players
+        .filter((p) => p.id !== winner.id)
+        .sort((a, b) => a.id.localeCompare(b.id)),
+    ];
+  } else {
+    sortedPlayers = [...room.players].sort((a, b) => b.score - a.score);
+  }
+
+  const winnerName = winner && "name" in winner ? winner.name : "Game Over!";
 
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in">
@@ -25,7 +35,6 @@ const EndScreen: React.FC<EndScreenProps> = ({ room, onBackToLobby }) => {
         <TrophyIcon className="h-20 w-20 text-yellow-400 mx-auto mb-4 animate-bounce-subtle" />
         <h1 className="text-4xl font-bold mb-2 animate-slide-up text-text-primary">{winnerName}</h1>
         <p className="text-text-secondary mb-6 animate-fade-in">Results for {room.gameMode}</p>
-
         <div className="space-y-3 text-left max-h-60 overflow-y-auto pr-2">
           {sortedPlayers.map((player, index) => (
             <div
@@ -51,7 +60,6 @@ const EndScreen: React.FC<EndScreenProps> = ({ room, onBackToLobby }) => {
             </div>
           ))}
         </div>
-
         <button
           onClick={onBackToLobby}
           className="mt-8 w-full bg-primary hover:bg-primary-hover text-white font-bold py-3 px-4 rounded-md focus:outline-none focus:shadow-outline transform hover:scale-105 transition-all duration-200 animate-slide-up"

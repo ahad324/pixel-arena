@@ -1,10 +1,4 @@
-
-import React, {
-  useState,
-  useEffect,
-  useRef,
-  TouchEvent,
-} from "react";
+import React, { useState, useEffect, useRef, TouchEvent } from "react";
 import { GameMode, MazeRaceDifficulty, Room } from "../types/index";
 import { socketService } from "@services/socketService";
 import { usePlayerMovement } from "@hooks/usePlayerMovement";
@@ -24,29 +18,19 @@ import VirtualJoystick from "@components/VirtualJoystick";
 import SpyDecodeUI from "@components/GameUI/SpyDecodeUI";
 import InfectionAbilityButton from "@components/GameUI/InfectionAbilityButton";
 import HeistPanicUI from "@components/GameUI/HeistPanicUI";
-import {
-  EnterFullscreenIcon,
-  InfoIcon,
-  CheckCircleIcon,
-} from "@components/icons";
+import { EnterFullscreenIcon, InfoIcon, CheckCircleIcon } from "@components/icons";
 
 const GamePage: React.FC = () => {
   const { user, room, leaveRoom, endGame, heistPadFeedback } = useGame();
   const { isMobile } = useDeviceDetection();
   const [isInstructionsVisible, setIsInstructionsVisible] = useState(false);
-  const [requestFullscreenOnStart, setRequestFullscreenOnStart] =
-    useState(false);
-  const [selectedDifficulty, setSelectedDifficulty] = useState(
-    MazeRaceDifficulty.EASY
-  );
+  const [requestFullscreenOnStart, setRequestFullscreenOnStart] = useState(false);
+  const [selectedDifficulty, setSelectedDifficulty] = useState(MazeRaceDifficulty.EASY);
   const gameAreaRef = useRef<HTMLDivElement>(null);
   const { isFullscreen, enterFullscreen, exitFullscreen } = useFullscreen();
   const { copied, handleCopy } = useClipboard(room?.id || "");
-
   const [activePadId, setActivePadId] = useState<string | null>(null);
-
-  const { handleAction, handleMove, handleMoveEnd } =
-    usePlayerMovement(user!, room!, isMobile);
+  const { handleAction, handleMove, handleMoveEnd } = usePlayerMovement(user!, room!, isMobile);
 
   const handleHeistGuess = () => {
     if (user && room && activePadId) {
@@ -54,12 +38,14 @@ const GamePage: React.FC = () => {
     }
   };
 
-  // Listen for server-authoritative pad events
+  const handleInfectionAction = () => {
+    if (user && room && room.gameMode === GameMode.INFECTION_ARENA) {
+      handleAction(); // Use handleAction from usePlayerMovement
+    }
+  };
+
   useEffect(() => {
-    const handlePlayerOnPad = (data: {
-      playerId: string;
-      padId: string;
-    }) => {
+    const handlePlayerOnPad = (data: { playerId: string; padId: string }) => {
       if (data.playerId === user?.id) {
         setActivePadId(data.padId);
       }
@@ -80,18 +66,25 @@ const GamePage: React.FC = () => {
     };
   }, [user?.id]);
 
-  // Keyboard listener for spacebar action
   useEffect(() => {
     const handleKeyPress = (event: KeyboardEvent) => {
-      if (event.code === "Space" && !isMobile && activePadId) {
+      if (event.code === "Space" && !isMobile) {
+        const activeElement = document.activeElement as HTMLElement;
+        if (activeElement.tagName === 'BUTTON' || activeElement.closest('button')) {
+          return; // Let button handle its own event
+        }
         event.preventDefault();
-        handleHeistGuess();
+        if (room?.gameMode === GameMode.HEIST_PANIC && activePadId) {
+          handleHeistGuess();
+        } else if (room?.gameMode === GameMode.INFECTION_ARENA) {
+          handleInfectionAction();
+        }
       }
     };
 
     document.addEventListener("keydown", handleKeyPress);
     return () => document.removeEventListener("keydown", handleKeyPress);
-  }, [activePadId, isMobile]);
+  }, [activePadId, isMobile, room?.gameMode]);
 
   const roomRef = useRef(room);
   useEffect(() => {
@@ -127,7 +120,6 @@ const GamePage: React.FC = () => {
     if (room?.gameState.status !== "playing" && isFullscreen) {
       exitFullscreen();
     }
-    // Spy & Decode: Exit fullscreen during guessing phase
     if (
       room?.gameMode === GameMode.SPY_AND_DECODE &&
       room?.gameState.phase === "guessing" &&
@@ -137,14 +129,12 @@ const GamePage: React.FC = () => {
     }
   }, [room?.gameState, isFullscreen, exitFullscreen, room?.gameMode]);
 
-  // Sync selectedDifficulty with room state
   useEffect(() => {
     if (room?.mazeRaceSettings?.difficulty) {
       setSelectedDifficulty(room.mazeRaceSettings.difficulty);
     }
   }, [room?.mazeRaceSettings?.difficulty]);
 
-  // Listen for difficulty changes from other players
   useEffect(() => {
     const handleDifficultyChange = (data: {
       difficulty: MazeRaceDifficulty;
@@ -154,16 +144,16 @@ const GamePage: React.FC = () => {
     };
 
     socketService.onMazeDifficultyChanged(handleDifficultyChange);
-
-    return () => {
-      socketService.offMazeDifficultyChanged();
-    };
+    return () => socketService.offMazeDifficultyChanged();
   }, []);
 
   const handleTouchStart = (e: TouchEvent<HTMLDivElement>) => {
     if (joystickState.isActive) return;
     const touch = e.changedTouches[0];
     if (!touch) return;
+    const target = e.target as HTMLElement;
+    if (target.closest('button, input, select')) return;
+    e.preventDefault(); // Prevent window scrolling
     setJoystickState({
       isActive: true,
       position: { x: touch.clientX, y: touch.clientY },
@@ -178,7 +168,7 @@ const GamePage: React.FC = () => {
       (t) => t.identifier === joystickState.touchId
     );
     if (!touch) return;
-
+    e.preventDefault(); // Prevent window scrolling
     const { x: centerX, y: centerY } = joystickState.position;
     let dx = touch.clientX - centerX;
     let dy = touch.clientY - centerY;
@@ -222,6 +212,22 @@ const GamePage: React.FC = () => {
       (t) => t.identifier === joystickState.touchId
     );
     if (!touch) return;
+    e.preventDefault(); // Prevent window scrolling
+    handleMoveEnd();
+    setJoystickState({
+      isActive: false,
+      position: { x: 0, y: 0 },
+      thumbPosition: { x: 0, y: 0 },
+      touchId: null,
+    });
+  };
+
+  const handleTouchCancel = (e: TouchEvent<HTMLDivElement>) => {
+    const touch = Array.from(e.changedTouches).find(
+      (t) => t.identifier === joystickState.touchId
+    );
+    if (!touch) return;
+    e.preventDefault(); // Prevent window scrolling
     handleMoveEnd();
     setJoystickState({
       isActive: false,
@@ -284,7 +290,7 @@ const GamePage: React.FC = () => {
           }
           onTouchCancel={
             isMobile && room.gameState.status === "playing"
-              ? handleTouchEnd
+              ? handleTouchCancel
               : undefined
           }
         >
@@ -307,7 +313,7 @@ const GamePage: React.FC = () => {
                 <InfectionAbilityButton
                   room={room}
                   user={user}
-                  onAction={handleAction}
+                  onAction={handleInfectionAction}
                 />
               </div>
             )}
@@ -336,7 +342,6 @@ const GamePage: React.FC = () => {
               </button>
             )}
         </div>
-
         {!isFullscreen && (
           <div className="lg:w-80 flex-shrink-0 bg-surface-100 border border-border rounded-lg p-4 flex flex-col">
             <div className="flex justify-between items-center mb-1">
@@ -372,23 +377,18 @@ const GamePage: React.FC = () => {
             <p className="text-sm text-text-secondary mb-4">
               {GAME_DESCRIPTIONS[room.gameMode]}
             </p>
-
             {room.gameMode === GameMode.SPY_AND_DECODE && (
               <SpyDecodeUI room={room} user={user} />
             )}
             <GameStatus room={room} isFullscreen={isFullscreen} />
-
             <PlayerList room={room} user={user} />
-
             {!isMobile && room.gameState.status === "waiting" && (
               <div className="flex items-center justify-center my-3">
                 <input
                   id="fullscreen-checkbox"
                   type="checkbox"
                   checked={requestFullscreenOnStart}
-                  onChange={(e) =>
-                    setRequestFullscreenOnStart(e.target.checked)
-                  }
+                  onChange={(e) => setRequestFullscreenOnStart(e.target.checked)}
                   className="w-4 h-4 text-primary bg-surface-200 border-border rounded focus:ring-primary focus:ring-2"
                 />
                 <label
@@ -399,7 +399,6 @@ const GamePage: React.FC = () => {
                 </label>
               </div>
             )}
-
             {room.gameMode === GameMode.MAZE_RACE &&
               room.gameState.status === "waiting" &&
               isHost && (
@@ -414,14 +413,9 @@ const GamePage: React.FC = () => {
                     id="difficulty-select"
                     value={selectedDifficulty}
                     onChange={(e) => {
-                      const newDifficulty = e.target
-                        .value as MazeRaceDifficulty;
+                      const newDifficulty = e.target.value as MazeRaceDifficulty;
                       setSelectedDifficulty(newDifficulty);
-                      socketService.setMazeRaceDifficulty(
-                        room.id,
-                        user.id,
-                        newDifficulty
-                      );
+                      socketService.setMazeRaceDifficulty(room.id, user.id, newDifficulty);
                     }}
                     className="p-2 bg-surface-200 border border-border text-text-primary rounded-md focus:ring-2 focus:ring-primary focus:border-primary"
                   >
@@ -438,7 +432,7 @@ const GamePage: React.FC = () => {
                 <InfectionAbilityButton
                   room={room}
                   user={user}
-                  onAction={handleAction}
+                  onAction={handleInfectionAction}
                 />
               )}
             {room.gameMode === GameMode.HEIST_PANIC &&
@@ -450,7 +444,6 @@ const GamePage: React.FC = () => {
                   onGuessSubmit={handleHeistGuess}
                 />
               )}
-
             <GameControls
               room={room}
               isHost={isHost}
