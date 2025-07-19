@@ -3,6 +3,7 @@ import { GameMode } from "@app-types/index";
 import { GRID_SIZE } from "@config/constants";
 import { GAME_SETTINGS } from "@config/constants";
 import { createInitialGameState } from "../../common/helpers";
+import { gameService } from "@services/gameService/gameService";
 
 export const heistPanicLogic = {
   startGame: (
@@ -113,9 +114,7 @@ export const heistPanicLogic = {
     if (distance >= 1.0) {
       // This is a safeguard. If this happens, it means client and server state are out of sync.
       // Reject the guess and force the client to update.
-      return [
-        { name: "player-off-pad", data: { playerId: player.id } },
-      ];
+      return [{ name: "player-off-pad", data: { playerId: player.id } }];
     }
 
     const now = Date.now();
@@ -140,6 +139,7 @@ export const heistPanicLogic = {
   },
 
   endGame: (room: Room, winner: Player | null = null): GameEvent[] => {
+    gameService.deactivateRoom(room.id);
     room.gameState.status = "finished";
     if (winner) {
       room.gameState.winner = winner;

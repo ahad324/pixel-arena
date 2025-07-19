@@ -3,6 +3,7 @@ import { GameMode } from "@app-types/index";
 import { GRID_SIZE } from "@config/constants";
 import { GAME_SETTINGS } from "@config/constants";
 import { createInitialGameState } from "../../common/helpers";
+import { gameService } from "@services/gameService/gameService";
 
 export const infectionArenaLogic = {
   startGame: (
@@ -114,6 +115,8 @@ export const infectionArenaLogic = {
   },
 
   endGame: (room: Room, winner: Player | null = null): GameEvent[] => {
+    gameService.deactivateRoom(room.id);
+
     room.gameState.status = "finished";
     room.gameState.winner = winner ?? evaluateResult(room);
 

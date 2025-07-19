@@ -4,6 +4,7 @@ import { GRID_SIZE } from "@config/constants";
 import { GAME_SETTINGS } from "@config/constants";
 import { createInitialGameState } from "../../common/helpers";
 import { trapRushHelpers } from "./helpers";
+import { gameService } from "@services/gameService/gameService";
 
 export const trapRushLogic = {
   startGame: (
@@ -97,6 +98,8 @@ export const trapRushLogic = {
   },
 
   endGame: (room: Room, winner: Player | null = null): GameEvent[] => {
+    gameService.deactivateRoom(room.id);
+
     room.gameState.status = "finished";
     if (winner) {
       room.gameState.winner = winner;

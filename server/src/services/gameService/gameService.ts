@@ -1,4 +1,9 @@
-import type { Room, Player, GameEvent, MazeRaceDifficulty } from "@app-types/index";
+import type {
+  Room,
+  Player,
+  GameEvent,
+  MazeRaceDifficulty,
+} from "@app-types/index";
 import { GameMode } from "@app-types/index";
 import { roomManagement } from "./helpers";
 import { playerActions } from "./helpers";
@@ -18,16 +23,34 @@ import { heistPanicLogic, heistPanicTick } from "./modes/heistPanic";
 
 class GameService {
   private rooms: Map<string, Room> = new Map();
+  private active = new Set<string>();
 
   // Room Management
+  private registerRoomAndReturn = (
+    result: { room: Room | undefined; events: GameEvent[] },
+    roomId: string
+  ) => {
+    if (result.room) this.active.add(roomId);
+    return result;
+  };
+  public deactivateRoom(roomId: string) {
+  this.active.delete(roomId);
+}
+
+
   public createRoom = (hostPlayer: Player): Room =>
     roomManagement.createRoom(this.rooms, hostPlayer);
   public joinRoom = (roomId: string, player: Player): Room | null =>
     roomManagement.joinRoom(this.rooms, roomId, player);
   public setGameMode = (roomId: string, gameMode: GameMode): GameEvent[] =>
     roomManagement.setGameMode(this.rooms, roomId, gameMode);
-  public setMazeRaceDifficulty = (roomId: string, playerId: string, difficulty: MazeRaceDifficulty): GameEvent[] =>
-    mazeRaceLogic.setDifficulty(this.rooms, roomId, playerId, difficulty).events;
+  public setMazeRaceDifficulty = (
+    roomId: string,
+    playerId: string,
+    difficulty: MazeRaceDifficulty
+  ): GameEvent[] =>
+    mazeRaceLogic.setDifficulty(this.rooms, roomId, playerId, difficulty)
+      .events;
   public leaveRoom = (
     roomId: string,
     playerId: string
@@ -64,10 +87,10 @@ class GameService {
     playerActions.submitHeistGuess(this.rooms, roomId, playerId, padId);
 
   // Game Logic
-  public startGame = (
+  public startGame = async (
     roomId: string,
     playerId: string
-  ): { room: Room | undefined; events: GameEvent[] } => {
+  ): Promise<{ room: Room | undefined; events: GameEvent[] }> => {
     const room = this.rooms.get(roomId);
     if (
       !room ||
@@ -78,19 +101,46 @@ class GameService {
 
     switch (room.gameMode) {
       case GameMode.TAG:
-        return tagLogic.startGame(this.rooms, roomId, playerId);
+        return this.registerRoomAndReturn(
+          tagLogic.startGame(this.rooms, roomId, playerId),
+          roomId
+        );
       case GameMode.TERRITORY_CONTROL:
-        return territoryControlLogic.startGame(this.rooms, roomId, playerId);
+        return this.registerRoomAndReturn(
+          territoryControlLogic.startGame(this.rooms, roomId, playerId),
+          roomId
+        );
+
       case GameMode.MAZE_RACE:
-        return mazeRaceLogic.startGame(this.rooms, roomId, playerId);
+        return this.registerRoomAndReturn(
+          await mazeRaceLogic.startGame(this.rooms, roomId, playerId),
+          roomId
+        );
+
       case GameMode.INFECTION_ARENA:
-        return infectionArenaLogic.startGame(this.rooms, roomId, playerId);
+        return this.registerRoomAndReturn(
+          infectionArenaLogic.startGame(this.rooms, roomId, playerId),
+          roomId
+        );
+
       case GameMode.TRAP_RUSH:
-        return trapRushLogic.startGame(this.rooms, roomId, playerId);
+        return this.registerRoomAndReturn(
+          trapRushLogic.startGame(this.rooms, roomId, playerId),
+          roomId
+        );
+
       case GameMode.SPY_AND_DECODE:
-        return spyAndDecodeLogic.startGame(this.rooms, roomId, playerId);
+        return this.registerRoomAndReturn(
+          spyAndDecodeLogic.startGame(this.rooms, roomId, playerId),
+          roomId
+        );
+
       case GameMode.HEIST_PANIC:
-        return heistPanicLogic.startGame(this.rooms, roomId, playerId);
+        return this.registerRoomAndReturn(
+          heistPanicLogic.startGame(this.rooms, roomId, playerId),
+          roomId
+        );
+
       default:
         return { room: undefined, events: [] };
     }
@@ -131,6 +181,37 @@ class GameService {
     });
     return allEvents;
   };
+
+  public tickActive(): Map<string, GameEvent[]> {
+    const all = new Map<string, GameEvent[]>();
+    for (const roomId of this.active) {
+      const room = this.rooms.get(roomId)!;
+      let events: GameEvent[] = [];
+      switch (room.gameMode) {
+        case GameMode.TAG:
+          events = tagTick.tick(room);
+          break;
+        case GameMode.TERRITORY_CONTROL:
+          events = territoryControlTick.tick(room);
+          break;
+        case GameMode.INFECTION_ARENA:
+          events = infectionArenaTick.tick(room);
+          break;
+        case GameMode.TRAP_RUSH:
+          events = trapRushTick.tick(room);
+          break;
+        case GameMode.SPY_AND_DECODE:
+          events = spyAndDecodeTick.tick(room);
+          break;
+        case GameMode.HEIST_PANIC:
+          events = heistPanicTick.tick(room);
+          break;
+        // Maze‑Race has no per‑tick logic
+      }
+      if (events.length) all.set(roomId, events);
+    }
+    return all;
+  }
 }
 
 export const gameService = new GameService();

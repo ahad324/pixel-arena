@@ -12,8 +12,11 @@ const io = new Server(server, {
   cors: {
     origin: process.env.FRONTEND_URL || "http://localhost:5173",
     methods: ["GET", "POST"],
-    maxAge: 86400,
   },
+  pingInterval: 25_000,
+  pingTimeout: 60_000,
+  perMessageDeflate: false,
+  transports: ["websocket", "polling"],
 });
 
 initializeSockets(io);

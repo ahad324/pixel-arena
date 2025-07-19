@@ -5,13 +5,15 @@ import {
   calculateDistances,
 } from "../../common/helpers";
 import { mazeRaceHelpers } from "./helpers";
+import { gameService } from "@services/gameService/gameService";
+import { getMaze } from "@utils/mazePool";
 
 export const mazeRaceLogic = {
-  startGame: (
+  startGame: async (
     rooms: Map<string, Room>,
     roomId: string,
     playerId: string
-  ): { room: Room | undefined; events: GameEvent[] } => {
+  ): Promise<{ room: Room | undefined; events: GameEvent[] }> => {
     const room = rooms.get(roomId);
     if (
       !room ||
@@ -22,6 +24,9 @@ export const mazeRaceLogic = {
 
     room.gameState = createInitialGameState(room.gameMode, room.players.length);
     room.gameState.status = "playing";
+    // grab a full grid (sync in dev, worker in prod)
+    room.gameState.maze!.grid = await getMaze();
+    // now carve start/end, place players
     mazeRaceHelpers.setupMazeRace(room);
 
     return { room, events: [{ name: "game-started", data: { room } }] };
@@ -82,6 +87,8 @@ export const mazeRaceLogic = {
   },
 
   endGame: (room: Room, winner: Player | null = null): GameEvent[] => {
+    gameService.deactivateRoom(room.id);
+
     room.gameState.status = "finished";
 
     if (winner) {

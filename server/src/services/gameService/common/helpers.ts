@@ -1,7 +1,6 @@
 import type { GameState, CodePad } from "@app-types/index";
 import { GameMode } from "@app-types/index";
 import { GRID_SIZE, GAME_SETTINGS } from "@config/constants";
-import { generateMaze } from "@utils/mazeGenerator";
 
 export function createInitialGameState(
   gameMode: GameMode,
@@ -15,8 +14,7 @@ export function createInitialGameState(
         .map(() => Array(GRID_SIZE).fill({ claimedBy: null, color: null }));
       break;
     case GameMode.MAZE_RACE:
-      const mazeData = generateMaze(GRID_SIZE, GRID_SIZE);
-      baseState.maze = { grid: mazeData.grid, end: { x: 0, y: 0 } };
+      baseState.maze = { grid: [], end: { x: 0, y: 0 } };
       break;
     case GameMode.TRAP_RUSH:
       baseState.trapMap = Array(GRID_SIZE)

@@ -26,7 +26,7 @@ export const initializeSockets = (io: Server) => {
   };
 
   const gameLoop = () => {
-    const eventsByRoom = gameService.tick();
+    const eventsByRoom = gameService.tickActive();
     eventsByRoom.forEach((events: GameEvent[], roomId: string) => {
       if (events.length > 0) {
         dispatchEvents(roomId, events);
@@ -134,8 +134,8 @@ export const initializeSockets = (io: Server) => {
 
     socket.on(
       "start-game",
-      ({ roomId, playerId }: { roomId: string; playerId: string }) => {
-        const { room, events } = gameService.startGame(roomId, playerId);
+      async ({ roomId, playerId }: { roomId: string; playerId: string }) => {
+        const { room, events } = await gameService.startGame(roomId, playerId);
         if (room) {
           dispatchEvents(roomId, events);
           notifyAvailableRoomsUpdate();
