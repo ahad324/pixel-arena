@@ -8,7 +8,7 @@
   },
   "scripts": {
     "build": "tsc",
-    "start": "ts-node --transpile-only --require tsconfig-paths/register src/index.ts",
+    "start": "ts-node --transpile-only --require tsconfig-paths/register dist/index.js",
     "dev": "ts-node-dev --respawn --transpile-only --require tsconfig-paths/register src/index.ts"
   },
   "dependencies": {
