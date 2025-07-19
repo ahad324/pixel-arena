@@ -19,6 +19,7 @@ import SpyDecodeUI from "@components/GameUI/SpyDecodeUI";
 import InfectionAbilityButton from "@components/GameUI/InfectionAbilityButton";
 import HeistPanicUI from "@components/GameUI/HeistPanicUI";
 import { EnterFullscreenIcon, InfoIcon, CheckCircleIcon } from "@components/icons";
+import ReactionsComponent from "@components/ReactionsComponent";
 
 const GamePage: React.FC = () => {
   const { user, room, leaveRoom, endGame, heistPadFeedback } = useGame();
@@ -427,6 +428,7 @@ const GamePage: React.FC = () => {
                   </select>
                 </div>
               )}
+              <ReactionsComponent buttonClassName="block sm:hidden mt-2"/>
             {room.gameMode === GameMode.INFECTION_ARENA &&
               room.gameState.status === "playing" && (
                 <InfectionAbilityButton
@@ -453,6 +455,7 @@ const GamePage: React.FC = () => {
           </div>
         )}
       </div>
+      <ReactionsComponent buttonClassName="hidden sm:block fixed bottom-6 left-6 z-50" />
     </>
   );
 };

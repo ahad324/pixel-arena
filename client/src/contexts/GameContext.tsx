@@ -438,7 +438,7 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
     dispatch({ type: "SET_ROOM", payload: null });
   };
 
-const endGame = () => {
+  const endGame = () => {
     dispatch({ type: "SET_ROOM", payload: null });
   };
 

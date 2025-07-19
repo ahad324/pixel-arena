@@ -61,7 +61,7 @@ export enum MazeRaceDifficulty {
   EASY = "easy",
   MEDIUM = "medium",
   HARD = "hard",
-  EXPERT = "expert"
+  EXPERT = "expert",
 }
 
 export interface Maze {
@@ -113,4 +113,12 @@ export interface GameEvent {
   name: string;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data?: any;
+}
+
+export interface SendReactionPayload {
+  emoji: string;
+}
+
+export interface ReceiveReactionPayload {
+  emoji: string;
 }

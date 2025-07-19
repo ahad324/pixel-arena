@@ -107,3 +107,11 @@ export interface Room {
     difficulty: MazeRaceDifficulty;
   };
 }
+
+export interface SendReactionPayload {
+  emoji: string;
+}
+
+export interface ReceiveReactionPayload {
+  emoji: string;
+}

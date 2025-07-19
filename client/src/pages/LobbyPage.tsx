@@ -159,90 +159,90 @@ const LobbyPage: React.FC = () => {
             <PowerIcon className="w-5 h-5 text-error group-hover:scale-110 transition-transform" />
           </button>
         </div>
-        </motion.div>
+      </motion.div>
 
-        <motion.div
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8"
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-        >
-          {(Object.values(GameMode) as GameMode[]).map((mode) => {
-            const status = getGameModeStatus(mode);
-            return (
-              <GameModeCard
-                key={mode}
-                mode={mode}
-                icon={gameModeIcons[mode]}
-                selected={selectedGameMode === mode}
-                onSelect={() => setSelectedGameMode(mode)}
-                status={status}
-              />
-            );
-          })}
-        </motion.div>
+      <motion.div
+        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8"
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+      >
+        {(Object.values(GameMode) as GameMode[]).map((mode) => {
+          const status = getGameModeStatus(mode);
+          return (
+            <GameModeCard
+              key={mode}
+              mode={mode}
+              icon={gameModeIcons[mode]}
+              selected={selectedGameMode === mode}
+              onSelect={() => setSelectedGameMode(mode)}
+              status={status}
+            />
+          );
+        })}
+      </motion.div>
 
-        <motion.div
-          className="grid grid-cols-1 md:grid-cols-2 gap-6"
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-        >
-          <div className="bg-surface-100 border border-border rounded-lg p-6 flex flex-col">
-            <h2 className="text-2xl font-bold mb-4 flex items-center text-text-primary">
-              <CreateIcon className="w-8 h-8 mr-2 text-accent" /> Create a
-              Room
-            </h2>
-            <p className="text-text-secondary mb-4 flex-grow">
-              Start a new game of{" "}
-              <span className="font-bold text-text-primary">{selectedGameMode}</span>{" "}
-              and invite friends.
-            </p>
-            <div className="flex gap-2">
-              <button
-                onClick={handleCreateRoom}
-                disabled={isProcessing}
-                className="h-12 flex-grow bg-accent hover:bg-accent-hover text-white font-bold py-3 px-4 rounded-md focus:outline-none focus:shadow-outline transform hover:scale-105 transition-transform duration-200 flex items-center justify-center disabled:opacity-70 disabled:cursor-not-allowed"
-              >
-                {isProcessing ? <Spinner className="w-6 h-6" /> : "Create Room"}
-              </button>
-              <button
-                onClick={() => setIsInstructionsVisible(true)}
-                className="flex-shrink-0 bg-surface-200 hover:bg-border text-text-secondary hover:text-text-primary font-bold p-3 rounded-md focus:outline-none focus:shadow-outline transform hover:scale-105 transition-transform duration-200"
-                aria-label="How to Play"
-              >
-                <InfoIcon className="w-6 h-6" />
-              </button>
-            </div>
+      <motion.div
+        className="grid grid-cols-1 md:grid-cols-2 gap-6"
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+      >
+        <div className="bg-surface-100 border border-border rounded-lg p-6 flex flex-col">
+          <h2 className="text-2xl font-bold mb-4 flex items-center text-text-primary">
+            <CreateIcon className="w-8 h-8 mr-2 text-accent" /> Create a
+            Room
+          </h2>
+          <p className="text-text-secondary mb-4 flex-grow">
+            Start a new game of{" "}
+            <span className="font-bold text-text-primary">{selectedGameMode}</span>{" "}
+            and invite friends.
+          </p>
+          <div className="flex gap-2">
+            <button
+              onClick={handleCreateRoom}
+              disabled={isProcessing}
+              className="h-12 flex-grow bg-accent hover:bg-accent-hover text-white font-bold py-3 px-4 rounded-md focus:outline-none focus:shadow-outline transform hover:scale-105 transition-transform duration-200 flex items-center justify-center disabled:opacity-70 disabled:cursor-not-allowed"
+            >
+              {isProcessing ? <Spinner className="w-6 h-6" /> : "Create Room"}
+            </button>
+            <button
+              onClick={() => setIsInstructionsVisible(true)}
+              className="flex-shrink-0 bg-surface-200 hover:bg-border text-text-secondary hover:text-text-primary font-bold p-3 rounded-md focus:outline-none focus:shadow-outline transform hover:scale-105 transition-transform duration-200"
+              aria-label="How to Play"
+            >
+              <InfoIcon className="w-6 h-6" />
+            </button>
           </div>
+        </div>
 
-          <div className="bg-surface-100 border border-border rounded-lg p-6 flex flex-col">
-            <h2 className="text-2xl font-bold mb-4 flex items-center text-text-primary">
-              <EnterIcon className="w-8 h-8 mr-2 text-primary" /> Join with
-              Code
-            </h2>
-            <div className="flex gap-2 flex-grow items-center">
-              <input
-                type="text"
-                value={joinCode}
-                onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
-                onKeyDown={(e) =>
-                  e.key === "Enter" && handleJoinWithCode(joinCode)
-                }
-                className="flex-grow shadow appearance-none border border-border rounded-md w-full py-3 px-4 bg-surface-200 text-text-primary leading-tight focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all uppercase placeholder-text-secondary"
-                placeholder="ROOM CODE"
-                maxLength={6}
-              />
-              <button
-                onClick={() => handleJoinWithCode(joinCode)}
-                disabled={!joinCode || isProcessing}
-                className="h-12 w-20 flex-shrink-0 bg-primary hover:bg-primary-hover text-white font-bold py-3 px-4 rounded-md focus:outline-none focus:shadow-outline transform hover:scale-105 transition-transform duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
-              >
-                {isProcessing ? <Spinner className="w-6 h-6" /> : "Join"}
-              </button>
-            </div>
-            <p className={`text-error text-sm mt-2 h-5 transition-all duration-300 ${error ? 'animate-shake' : ''}`}>{error}</p>
+        <div className="bg-surface-100 border border-border rounded-lg p-6 flex flex-col">
+          <h2 className="text-2xl font-bold mb-4 flex items-center text-text-primary">
+            <EnterIcon className="w-8 h-8 mr-2 text-primary" /> Join with
+            Code
+          </h2>
+          <div className="flex gap-2 flex-grow items-center">
+            <input
+              type="text"
+              value={joinCode}
+              onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
+              onKeyDown={(e) =>
+                e.key === "Enter" && handleJoinWithCode(joinCode)
+              }
+              className="flex-grow shadow appearance-none border border-border rounded-md w-full py-3 px-4 bg-surface-200 text-text-primary leading-tight focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all uppercase placeholder-text-secondary"
+              placeholder="ROOM CODE"
+              maxLength={6}
+            />
+            <button
+              onClick={() => handleJoinWithCode(joinCode)}
+              disabled={!joinCode || isProcessing}
+              className="h-12 w-20 flex-shrink-0 bg-primary hover:bg-primary-hover text-white font-bold py-3 px-4 rounded-md focus:outline-none focus:shadow-outline transform hover:scale-105 transition-transform duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+            >
+              {isProcessing ? <Spinner className="w-6 h-6" /> : "Join"}
+            </button>
           </div>
+          <p className={`text-error text-sm mt-2 h-5 transition-all duration-300 ${error ? 'animate-shake' : ''}`}>{error}</p>
+        </div>
       </motion.div>
 
       <div className="mt-8">

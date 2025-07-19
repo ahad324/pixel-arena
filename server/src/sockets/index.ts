@@ -1,6 +1,14 @@
 import { Server, Socket } from "socket.io";
 import { gameService } from "@services/gameService";
-import type { Player, Room, GameMode, GameEvent, MazeRaceDifficulty } from "@app-types/index";
+import type {
+  Player,
+  Room,
+  GameMode,
+  GameEvent,
+  MazeRaceDifficulty,
+  SendReactionPayload,
+  ReceiveReactionPayload,
+} from "@app-types/index";
 
 const TICK_RATE = 20; // Ticks per second
 const TICK_INTERVAL = 1000 / TICK_RATE;
@@ -37,6 +45,14 @@ export const initializeSockets = (io: Server) => {
 
     socket.on("get-available-rooms", () => {
       socket.emit("available-rooms-update", gameService.getAvailableRooms());
+    });
+
+    socket.on("send-reaction", (data: { emoji: string }) => {
+      const playerInfo = socketPlayerMap.get(socket.id);
+      if (!playerInfo) return;
+
+      const { roomId } = playerInfo;
+      io.to(roomId).emit("receive-reaction", { emoji: data.emoji });
     });
 
     socket.on(
@@ -98,8 +114,20 @@ export const initializeSockets = (io: Server) => {
 
     socket.on(
       "set-maze-difficulty",
-      ({ roomId, playerId, difficulty }: { roomId: string; playerId: string; difficulty: MazeRaceDifficulty }) => {
-        const events = gameService.setMazeRaceDifficulty(roomId, playerId, difficulty);
+      ({
+        roomId,
+        playerId,
+        difficulty,
+      }: {
+        roomId: string;
+        playerId: string;
+        difficulty: MazeRaceDifficulty;
+      }) => {
+        const events = gameService.setMazeRaceDifficulty(
+          roomId,
+          playerId,
+          difficulty
+        );
         dispatchEvents(roomId, events);
       }
     );
