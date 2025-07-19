@@ -1,0 +1,65 @@
+Directory Structure:
+
+├── .DS_Store
+├── .env
+├── .gitignore
+├── README.md
+├── dist/
+│   ├── index.html
+├── eslint.config.js
+├── index.html
+├── package.json
+├── postcss.config.js
+├── public/
+├── src/
+│   ├── App.tsx
+│   ├── components/
+│   │   ├── EndScreen.tsx
+│   │   ├── GameBoard.tsx
+│   │   ├── GameControls.tsx
+│   │   ├── GameStatus.tsx
+│   │   ├── GameStatusDisplay.tsx
+│   │   ├── GameUI/
+│   │   │   ├── HeistPanicUI.tsx
+│   │   │   ├── InfectionAbilityButton.tsx
+│   │   │   ├── SpyDecodeUI.tsx
+│   │   ├── InstructionsModal.tsx
+│   │   ├── LoadingScreen.tsx
+│   │   ├── PlayerAvatar.tsx
+│   │   ├── PlayerList.tsx
+│   │   ├── ReactionsComponent.tsx
+│   │   ├── Spinner.tsx
+│   │   ├── StatusBadge.tsx
+│   │   ├── VirtualJoystick.tsx
+│   │   ├── icons.tsx
+│   │   ├── shared/
+│   │   │   ├── Reactions.tsx
+│   ├── constants/
+│   │   ├── index.ts
+│   ├── contexts/
+│   │   ├── GameContext.tsx
+│   ├── env.d.ts
+│   ├── hooks/
+│   │   ├── useDeviceDetection.ts
+│   │   ├── useFullscreen.ts
+│   │   ├── usePlayerMovement.ts
+│   ├── index.css
+│   ├── index.tsx
+│   ├── pages/
+│   │   ├── GamePage.tsx
+│   │   ├── LobbyPage.tsx
+│   │   ├── LoginPage.tsx
+│   ├── services/
+│   │   ├── socketEmitters.ts
+│   │   ├── socketListeners.ts
+│   │   ├── socketService.ts
+│   ├── types/
+│   │   ├── index.ts
+│   ├── utils/
+│   │   ├── ReactionManager.ts
+│   │   ├── clipboard.ts
+│   ├── vite-env.d.ts
+├── tailwind.config.js
+├── tsconfig.json
+├── tsconfig.node.json
+├── vite.config.ts

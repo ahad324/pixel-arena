@@ -1,6 +1,6 @@
 import type { Room, Player, GameEvent } from "@app-types/index";
 import { GameMode } from "@app-types/index";
-import { GAME_SETTINGS,GRID_SIZE } from "@config/constants";
+import { GAME_SETTINGS, GRID_SIZE } from "@config/constants";
 import { createInitialGameState } from "../../common/helpers";
 
 export const tagLogic = {
@@ -32,7 +32,11 @@ export const tagLogic = {
     return { room, events: [{ name: "game-started", data: { room } }] };
   },
 
-  handleMove: (room: Room, player: Player, newPos: { x: number; y: number }): GameEvent[] => {
+  handleMove: (
+    room: Room,
+    player: Player,
+    newPos: { x: number; y: number }
+  ): GameEvent[] => {
     const events: GameEvent[] = [];
     player.x = newPos.x;
     player.y = newPos.y;
@@ -59,14 +63,8 @@ export const tagLogic = {
 
   endGame: (room: Room, winner: Player | null = null): GameEvent[] => {
     room.gameState.status = "finished";
-    if (winner) {
-      room.gameState.winner = winner;
-    } else if (room.players.length > 0) {
-      const tagWinner = room.players.reduce((prev, current) =>
-        prev.score > current.score ? prev : current
-      );
-      room.gameState.winner = tagWinner;
-    }
+    room.gameState.winner = winner ?? evaluateResult(room);
+
     return [
       {
         name: "game-over",
@@ -74,4 +72,11 @@ export const tagLogic = {
       },
     ];
   },
+};
+
+export const evaluateResult = (room: Room): Player | null => {
+  if (!room.players.length) return null;
+  return room.players.reduce((prev, curr) =>
+    prev.score > curr.score ? prev : curr
+  );
 };

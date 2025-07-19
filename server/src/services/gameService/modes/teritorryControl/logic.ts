@@ -31,7 +31,11 @@ export const territoryControlLogic = {
     return { room, events: [{ name: "game-started", data: { room } }] };
   },
 
-  handleMove: (room: Room, player: Player, newPos: { x: number; y: number }): GameEvent[] => {
+  handleMove: (
+    room: Room,
+    player: Player,
+    newPos: { x: number; y: number }
+  ): GameEvent[] => {
     const events: GameEvent[] = [];
     player.x = newPos.x;
     player.y = newPos.y;
@@ -72,17 +76,8 @@ export const territoryControlLogic = {
 
   endGame: (room: Room, winner: Player | null = null): GameEvent[] => {
     room.gameState.status = "finished";
-    if (winner) {
-      room.gameState.winner = winner;
-    } else {
-      const scores = calculateTerritoryScores(room);
-      room.players.forEach((p) => (p.score = scores[p.id] || 0));
-      const winnerId = Object.keys(scores).reduce((a, b) =>
-        scores[a] > scores[b] ? a : b
-      );
-      room.gameState.winner =
-        room.players.find((p) => p.id === winnerId) || null;
-    }
+    room.gameState.winner = winner ?? evaluateResult(room);
+
     return [
       {
         name: "game-over",
@@ -99,3 +94,15 @@ function calculateTerritoryScores(room: Room): { [id: string]: number } {
   });
   return scores;
 }
+
+export const evaluateResult = (room: Room): Player | null => {
+  const scores = calculateTerritoryScores(room);
+  room.players.forEach((p) => (p.score = scores[p.id] || 0));
+
+  const winnerId = Object.keys(scores).reduce(
+    (a, b) => (scores[a] > scores[b] ? a : b),
+    ""
+  );
+
+  return room.players.find((p) => p.id === winnerId) || null;
+};

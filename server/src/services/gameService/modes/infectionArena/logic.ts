@@ -115,16 +115,8 @@ export const infectionArenaLogic = {
 
   endGame: (room: Room, winner: Player | null = null): GameEvent[] => {
     room.gameState.status = "finished";
-    if (winner) {
-      room.gameState.winner = winner;
-    } else {
-      const survivors = room.players.filter((p) => !p.isInfected);
-      if (survivors.length === 0) {
-        room.gameState.winner = { name: "The Virus" };
-      } else {
-        room.gameState.winner = { name: "Survivors" };
-      }
-    }
+    room.gameState.winner = winner ?? evaluateResult(room);
+
     return [
       {
         name: "game-over",
@@ -132,4 +124,15 @@ export const infectionArenaLogic = {
       },
     ];
   },
+};
+
+export const evaluateResult = (
+  room: Room
+): { name: string } | Player | null => {
+  const survivors = room.players.filter((p) => !p.isInfected);
+  if (survivors.length === 0) {
+    return { name: "The Virus" };
+  } else {
+    return { name: "Survivors" };
+  }
 };

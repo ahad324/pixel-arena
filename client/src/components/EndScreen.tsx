@@ -1,5 +1,5 @@
 import React from "react";
-import type { Room } from "../types";
+import type { Room, Player } from "../types";
 import { GameMode } from "../types";
 import { TrophyIcon } from "./icons";
 
@@ -10,24 +10,51 @@ interface EndScreenProps {
 
 const EndScreen: React.FC<EndScreenProps> = ({ room, onBackToLobby }) => {
   const { winner } = room.gameState;
+
   const showScores =
     room.gameMode === GameMode.TAG ||
     room.gameMode === GameMode.TERRITORY_CONTROL ||
     room.gameMode === GameMode.SPY_AND_DECODE;
 
-  let sortedPlayers = [...room.players];
-  if (room.gameMode === GameMode.TRAP_RUSH && winner && "id" in winner) {
-    sortedPlayers = [
-      room.players.find((p) => p.id === winner.id)!,
-      ...room.players
-        .filter((p) => p.id !== winner.id)
-        .sort((a, b) => a.id.localeCompare(b.id)),
-    ];
-  } else {
-    sortedPlayers = [...room.players].sort((a, b) => b.score - a.score);
+  const isWinnerPlayer = (player: Player): boolean =>
+    winner !== null &&
+    typeof winner === "object" &&
+    "id" in winner &&
+    winner.id === player.id;
+
+  const shouldPromoteWinner =
+    winner !== null &&
+    typeof winner === "object" &&
+    "id" in winner &&
+    [GameMode.TRAP_RUSH, GameMode.HEIST_PANIC].includes(room.gameMode);
+
+  let sortedPlayers: Player[] = [...room.players];
+
+  // Infection Arena: show relevant players based on winner
+  if (room.gameMode === GameMode.INFECTION_ARENA) {
+    if (winner?.name === "Survivors") {
+      sortedPlayers = sortedPlayers.filter((p) => !p.isInfected);
+    } else {
+      // Virus won
+      sortedPlayers = sortedPlayers
+        .filter((p) => p.isInfected)
+        .sort((a, b) => a.name.localeCompare(b.name));
+    }
   }
 
-  const winnerName = winner && "name" in winner ? winner.name : "Game Over!";
+  // Promote winner to top if needed
+  if (shouldPromoteWinner) {
+    const winnerPlayer = sortedPlayers.find(isWinnerPlayer);
+    const otherPlayers = sortedPlayers.filter((p) => !isWinnerPlayer(p));
+
+    if (winnerPlayer) {
+      sortedPlayers = [winnerPlayer, ...otherPlayers.sort((a, b) => a.name.localeCompare(b.name))];
+    }
+  } else {
+    sortedPlayers.sort((a, b) => b.score - a.score);
+  }
+
+  const winnerName = winner && typeof winner === "object" && "name" in winner ? winner.name : "Game Over!";
 
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in">
@@ -43,19 +70,15 @@ const EndScreen: React.FC<EndScreenProps> = ({ room, onBackToLobby }) => {
               style={{ animationDelay: `${index * 0.1}s` }}
             >
               <div className="flex items-center">
-                <span className="font-bold text-lg mr-4 text-text-secondary">
-                  #{index + 1}
-                </span>
+                <span className="font-bold text-lg mr-4 text-text-secondary">#{index + 1}</span>
                 <div
                   className="w-5 h-5 rounded-full mr-3"
                   style={{ backgroundColor: player.color }}
-                ></div>
+                />
                 <span className="font-semibold text-lg text-text-primary">{player.name}</span>
               </div>
               {showScores && (
-                <div className="font-bold text-xl text-primary">
-                  {player.score} pts
-                </div>
+                <div className="font-bold text-xl text-primary">{player.score} pts</div>
               )}
             </div>
           ))}
