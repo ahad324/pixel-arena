@@ -31,6 +31,8 @@ export const GAME_DESCRIPTIONS: Record<string, string> = {
     "A secret spy knows the code. They must signal it to you. Guess correctly without being caught!",
   [GameMode.HEIST_PANIC]:
     "Find the correct code pad to escape the vault. A wrong guess will stun you!",
+  [GameMode.HIDE_AND_SEEK]:
+    "One Seeker hunts the Hiders in a maze. Caught Hiders join the Seekers. Survive to win!",
 };
 
 export const GAME_SETTINGS = {
@@ -65,5 +67,13 @@ export const GAME_SETTINGS = {
   [GameMode.HEIST_PANIC]: {
     TIME_LIMIT: 60, // seconds
     STUN_DURATION: 3000, // ms
+  },
+  [GameMode.HIDE_AND_SEEK]: {
+    TIME_LIMIT: 90, // seconds
+    SEEKER_START_DELAY: 10000, // ms
+    REVEAL_DURATION: 2000, // ms
+    REVEAL_COOLDOWN: 10000, // ms
+    CONVERSION_DELAY: 1000, // ms
+    FOOTPRINT_FADE_DURATION: 2000, // ms
   },
 };

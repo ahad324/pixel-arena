@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect } from "react";
 import { motion, easeOut } from "framer-motion";
 import { GameMode } from "../types";
@@ -15,7 +16,8 @@ import {
   SpyIcon,
   InfoIcon,
   HeistIcon,
-  PowerIcon
+  HideAndSeekIcon,
+  LogoutIcon
 } from "@components/icons";
 import InstructionsModal from "@components/InstructionsModal";
 import Spinner from "@components/Spinner";
@@ -132,6 +134,7 @@ const LobbyPage: React.FC = () => {
     ),
     [GameMode.TRAP_RUSH]: <TrapIcon className="h-8 w-8 text-orange-500" />,
     [GameMode.SPY_AND_DECODE]: <SpyIcon className="h-8 w-8 text-indigo-500" />,
+    [GameMode.HIDE_AND_SEEK]: <HideAndSeekIcon className="h-8 w-8 text-teal-400" />,
   };
 
   return (
@@ -156,7 +159,7 @@ const LobbyPage: React.FC = () => {
             className="absolute top-0 right-0 w-10 h-10 bg-error/20 hover:bg-error/40 border border-error/50 rounded-full flex items-center justify-center transition-all duration-300 hover:shadow-lg hover:shadow-error/30 group"
             aria-label="Logout"
           >
-            <PowerIcon className="w-5 h-5 text-error group-hover:scale-110 transition-transform" />
+            <LogoutIcon className="w-5 h-5 text-error group-hover:scale-110 transition-transform" />
           </button>
         </div>
       </motion.div>

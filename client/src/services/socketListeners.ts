@@ -1,4 +1,11 @@
-import type { Room, Player, GameMode, GameState, MazeRaceDifficulty } from "../types/index";
+import type {
+  Room,
+  Player,
+  GameMode,
+  GameState,
+  MazeRaceDifficulty,
+  Footprint,
+} from "../types/index";
 
 // Forward declaration to avoid circular imports
 interface SocketService {
@@ -147,7 +154,7 @@ export class SocketListeners {
   public onAbilityActivated(
     callback: (data: {
       playerId: string;
-      ability: "sprint" | "shield";
+      ability: "sprint" | "shield" | "reveal";
       expires: number;
     }) => void
   ) {
@@ -163,7 +170,23 @@ export class SocketListeners {
   public offMazeDifficultyChanged() {
     this.socketService.getSocket()?.off("maze-difficulty-changed");
   }
-  
+
+  // Hide and Seek Listeners
+  public onPlayerCaught(callback: (data: { playerId: string }) => void) {
+    this.socketService.getSocket()?.on("player-caught", callback);
+  }
+  public onPlayerConverted(callback: (data: { playerId: string }) => void) {
+    this.socketService.getSocket()?.on("player-converted", callback);
+  }
+  public onFootprintsUpdate(
+    callback: (data: { footprints: Footprint[] }) => void
+  ) {
+    this.socketService.getSocket()?.on("footprints-update", callback);
+  }
+  public onHidersRevealed(callback: (data: { duration: number }) => void) {
+    this.socketService.getSocket()?.on("hiders-revealed", callback);
+  }
+
   public offAll() {
     this.socketService.getSocket()?.off();
   }

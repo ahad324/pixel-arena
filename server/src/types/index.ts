@@ -6,6 +6,7 @@ export enum GameMode {
   TRAP_RUSH = "Trap Rush",
   SPY_AND_DECODE = "Spy & Decode",
   HEIST_PANIC = "Heist Panic",
+  HIDE_AND_SEEK = "Hide and Seek",
 }
 
 export type TrapType = "slow" | "teleport" | "freeze";
@@ -44,17 +45,16 @@ export interface Player {
   // Spy & Decode
   isSpy?: boolean;
   guess?: string | null;
+  // Hide and Seek
+  isSeeker?: boolean;
+  isCaught?: boolean;
+  lastRevealTime?: number;
+  conversionTime?: number;
 }
 
 export interface Tile {
   claimedBy: string | null;
   color: string | null;
-}
-
-export interface Spike {
-  id: string;
-  x: number;
-  y: number;
 }
 
 export enum MazeRaceDifficulty {
@@ -78,6 +78,13 @@ export interface CodePad {
   y: number;
 }
 
+export interface Footprint {
+  x: number;
+  y: number;
+  timestamp: number;
+  playerId: string;
+}
+
 export interface GameState {
   status: GameStatus;
   timer: number;
@@ -95,6 +102,9 @@ export interface GameState {
   // Heist Panic
   codePads?: CodePad[];
   correctPadId?: string;
+  // Hide and Seek
+  seekerFreezeUntil?: number;
+  footprints?: Footprint[];
 }
 
 export interface Room {

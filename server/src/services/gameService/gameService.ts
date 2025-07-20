@@ -20,6 +20,7 @@ import {
 import { trapRushLogic, trapRushTick } from "./modes/trapRush";
 import { spyAndDecodeLogic, spyAndDecodeTick } from "./modes/spyAndDecode";
 import { heistPanicLogic, heistPanicTick } from "./modes/heistPanic";
+import { hideAndSeekLogic, hideAndSeekTick } from "./modes/hideAndSeek";
 
 class GameService {
   private rooms: Map<string, Room> = new Map();
@@ -34,9 +35,8 @@ class GameService {
     return result;
   };
   public deactivateRoom(roomId: string) {
-  this.active.delete(roomId);
-}
-
+    this.active.delete(roomId);
+  }
 
   public createRoom = (hostPlayer: Player): Room =>
     roomManagement.createRoom(this.rooms, hostPlayer);
@@ -54,8 +54,13 @@ class GameService {
   public leaveRoom = (
     roomId: string,
     playerId: string
-  ): { events: GameEvent[]; roomWasDeleted: boolean; updatedRoom?: Room } =>
-    roomManagement.leaveRoom(this.rooms, roomId, playerId);
+  ): { events: GameEvent[]; roomWasDeleted: boolean; updatedRoom?: Room } => {
+    const result = roomManagement.leaveRoom(this.rooms, roomId, playerId);
+    if (result.roomWasDeleted) {
+      this.deactivateRoom(roomId);
+    }
+    return result;
+  };
   public getRoom = (roomId: string): Room | undefined =>
     roomManagement.getRoom(this.rooms, roomId);
   public getAvailableRooms = (): {
@@ -141,51 +146,25 @@ class GameService {
           roomId
         );
 
+      case GameMode.HIDE_AND_SEEK:
+        return this.registerRoomAndReturn(
+          await hideAndSeekLogic.startGame(this.rooms, roomId, playerId),
+          roomId
+        );
+
       default:
         return { room: undefined, events: [] };
     }
   };
 
-  // Game Tick
-  public tick = (): Map<string, GameEvent[]> => {
-    const allEvents = new Map<string, GameEvent[]>();
-    this.rooms.forEach((room, roomId) => {
-      if (room.gameState.status !== "playing") return;
-      let events: GameEvent[] = [];
-      switch (room.gameMode) {
-        case GameMode.TAG:
-          events = tagTick.tick(room);
-          break;
-        case GameMode.TERRITORY_CONTROL:
-          events = territoryControlTick.tick(room);
-          break;
-        case GameMode.MAZE_RACE:
-          events = []; // Maze Race has no tick logic
-          break;
-        case GameMode.INFECTION_ARENA:
-          events = infectionArenaTick.tick(room);
-          break;
-        case GameMode.TRAP_RUSH:
-          events = trapRushTick.tick(room);
-          break;
-        case GameMode.SPY_AND_DECODE:
-          events = spyAndDecodeTick.tick(room);
-          break;
-        case GameMode.HEIST_PANIC:
-          events = heistPanicTick.tick(room);
-          break;
-      }
-      if (events.length > 0) {
-        allEvents.set(roomId, events);
-      }
-    });
-    return allEvents;
-  };
-
   public tickActive(): Map<string, GameEvent[]> {
     const all = new Map<string, GameEvent[]>();
     for (const roomId of this.active) {
-      const room = this.rooms.get(roomId)!;
+      const room = this.rooms.get(roomId);
+      if (!room) {
+        this.active.delete(roomId);
+        continue;
+      }
       let events: GameEvent[] = [];
       switch (room.gameMode) {
         case GameMode.TAG:
@@ -205,6 +184,9 @@ class GameService {
           break;
         case GameMode.HEIST_PANIC:
           events = heistPanicTick.tick(room);
+          break;
+        case GameMode.HIDE_AND_SEEK:
+          events = hideAndSeekTick.tick(room);
           break;
         // Maze‑Race has no per‑tick logic
       }

@@ -44,10 +44,30 @@ export const MazeIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
       strokeLinecap="round"
       strokeLinejoin="round"
       strokeWidth={2}
-      d="M9 3v4m6 0V3m-6 4h6M9 7v4m6-4v4m-6 4h6M9 11v4m6-4v4m-6 4h6M9 15v4m6-4v4M4 7h2m-2 4h2m-2 4h2m12-8h2m-2 4h2m-2 4h2M4 3h16"
+      d="M9 3v4m6 0V3m-6 4h6M9 7v4m6-4v4m-6 4h6M9 11v4m6-4v4m-6 4h6M9 15v4m6-4v4M4 3h16"
     />
   </svg>
 );
+
+export const HideAndSeekIcon: React.FC<React.SVGProps<SVGSVGElement>> = (
+  props
+) => (
+  <svg {...props} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M3.982 10.435A9.004 9.004 0 0112 5c4.477 0 8.268 2.943 9.542 7-1.071 3.32-3.83 5.8-7.23 6.645M4 18a4 4 0 014-4h4a4 4 0 010 8H8a4 4 0 01-4-4z"
+    />
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+    />
+  </svg>
+);
+
 
 export const HeistIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
   <svg {...props} fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -267,61 +287,6 @@ export const EnterFullscreenIcon: React.FC<React.SVGProps<SVGSVGElement>> = (
     />
   </svg>
 );
-
-export const ShareIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
-  <svg
-    {...props}
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <circle cx="18" cy="5" r="3"></circle>
-    <circle cx="6" cy="12" r="3"></circle>
-    <circle cx="18" cy="19" r="3"></circle>
-    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
-    <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
-  </svg>
-);
-
-export const AddToHomeScreenIcon: React.FC<React.SVGProps<SVGSVGElement>> = (
-  props
-) => (
-  <svg {...props} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M12 9v3m0 0v3m0-3h3m-3 0H9"
-    />
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M5 3a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2H5z"
-    />
-  </svg>
-);
-
-export const PowerIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
-  <svg {...props} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M12 3v9"
-    />
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M17.66 6.34a8 8 0 11-11.31 0"
-    />
-  </svg>
-);
-
 
 export const LogoutIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
   <svg {...props} fill="none" viewBox="0 0 24 24" stroke="currentColor">

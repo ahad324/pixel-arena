@@ -31,6 +31,8 @@ export const GAME_DESCRIPTIONS: Record<string, string> = {
     "A secret spy knows the code. They must signal it to you. Guess correctly without being caught!",
   [GameMode.HEIST_PANIC]:
     "Find the correct code pad to escape the vault. A wrong guess will stun you!",
+  [GameMode.HIDE_AND_SEEK]:
+    "One Seeker hunts the Hiders in a maze. Caught Hiders join the Seekers. Survive to win!",
 };
 
 export interface GameInstruction {
@@ -165,6 +167,29 @@ export const GAME_INSTRUCTIONS: Record<GameMode, GameInstruction> = {
       ],
     },
   },
+  [GameMode.HIDE_AND_SEEK]: {
+    title: "How to Play: Hide and Seek",
+    objective:
+      "As a Hider, survive until the time runs out. As a Seeker, catch all Hiders.",
+    rules: [
+      "One player starts as the Seeker in a maze. All others are Hiders.",
+      "Seekers have a 10-second head start for Hiders to hide.",
+      "Hiders leave temporary footprints that only Seekers can see.",
+      "When a Seeker catches a Hider, the Hider joins the Seeker team after a short delay.",
+      "Hider Team wins if at least one Hider is not caught when time expires.",
+      "Seeker Team wins if all Hiders are caught.",
+    ],
+    controls: {
+      desktop: [
+        "All players: Use Arrow Keys or WASD to move.",
+        "Seekers: Press SPACE to briefly reveal all Hiders' locations. This has a cooldown.",
+      ],
+      mobile: [
+        "All players: Use the on-screen joystick to move.",
+        "Seekers: Tap the 'Reveal' button to find Hiders. This has a cooldown.",
+      ],
+    },
+  },
 };
 
 export const GAME_SETTINGS = {
@@ -199,6 +224,10 @@ export const GAME_SETTINGS = {
     TIME_LIMIT: 90, // seconds
     NUM_PADS: 5,
     STUN_DURATION: 3000, // ms
+  },
+  [GameMode.HIDE_AND_SEEK]: {
+    TIME_LIMIT: 90, // seconds
+    REVEAL_COOLDOWN: 10000, // ms
   },
 };
 
@@ -295,8 +324,8 @@ export const STATUS_CONFIG: Record<GameStatus, StatusConfig> = {
 // If a game is not in this list, it will have no badge (default/normal)
 export const GAME_MODE_STATUS: Partial<Record<GameMode, GameStatus[]>> = {
   [GameMode.MAZE_RACE]: [GameStatus.UPDATED],
-
   [GameMode.HEIST_PANIC]: [GameStatus.NEW],
+  [GameMode.HIDE_AND_SEEK]: [GameStatus.NEW],
   // Add new games here only if they need a special status
   // Example: [GameMode.NEW_GAME]: [GameStatus.NEW],
   // Example: [GameMode.SOME_GAME]: [GameStatus.UPDATED, GameStatus.POPULAR], // Will show highest priority

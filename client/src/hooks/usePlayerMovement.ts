@@ -28,6 +28,37 @@ export const usePlayerMovement = (
     lastDirection.current = null;
   }, []);
 
+  const handleAction = useCallback(() => {
+    const currentRoom = roomRef.current;
+    const currentUser = userRef.current;
+    if (!currentRoom || !currentUser) return;
+
+    const currentPlayer = currentRoom.players.find(
+      (p) => p.id === currentUser.id
+    );
+    if (!currentPlayer || currentRoom.gameState.status !== "playing") return;
+
+    if (currentRoom.gameMode === GameMode.INFECTION_ARENA) {
+      socketService.activateAbility(currentRoom.id, currentUser.id);
+    } else if (
+      currentRoom.gameMode === GameMode.HIDE_AND_SEEK &&
+      currentPlayer.isSeeker
+    ) {
+      socketService.activateAbility(currentRoom.id, currentUser.id);
+    } else if (currentRoom.gameMode === GameMode.HEIST_PANIC) {
+      const padUnderPlayer = currentRoom.gameState.codePads?.find(
+        (p) => p.x === currentPlayer.x && p.y === currentPlayer.y
+      );
+      if (padUnderPlayer) {
+        socketService.submitHeistGuess(
+          currentRoom.id,
+          currentUser.id,
+          padUnderPlayer.id
+        );
+      }
+    }
+  }, []);
+
   const handleMove = useCallback(
     (direction: string) => {
       const moveFn = () => {
@@ -80,49 +111,13 @@ export const usePlayerMovement = (
     stopMovement();
   }, [stopMovement]);
 
-  const handleAction = useCallback(() => {
-    const currentRoom = roomRef.current;
-    const currentUser = userRef.current;
-    if (!currentRoom || !currentUser) return;
-
-    const currentPlayer = currentRoom.players.find(
-      (p) => p.id === currentUser.id
-    );
-    if (!currentPlayer || currentRoom.gameState.status !== "playing") return;
-
-    if (currentRoom.gameMode === GameMode.INFECTION_ARENA) {
-      socketService.activateAbility(currentRoom.id, currentUser.id);
-    } else if (currentRoom.gameMode === GameMode.HEIST_PANIC) {
-      const padUnderPlayer = currentRoom.gameState.codePads?.find(
-        (p) =>
-          Math.abs(p.x - currentPlayer.x) < 50 &&
-          Math.abs(p.y - currentPlayer.y) < 50
-      );
-      if (padUnderPlayer) {
-        socketService.submitHeistGuess(
-          currentRoom.id,
-          currentUser.id,
-          padUnderPlayer.id
-        );
-      }
-    }
-  }, []);
-
   const handleKeyDown = useCallback(
     (event: KeyboardEvent) => {
       if (event.repeat) return;
-      const currentRoom = roomRef.current;
-      const currentUser = userRef.current;
-      if (!currentRoom || !currentUser) return;
 
-      const currentPlayer = currentRoom.players.find(
-        (p) => p.id === currentUser.id
-      );
-      if (!currentPlayer || currentRoom.gameState.status !== "playing") return;
-
-      if (event.key === " ") {
-        event.preventDefault();
-        handleAction();
+      const activeElement = document.activeElement as HTMLElement;
+      // Ignore inputs when user is typing in a text field
+      if (["INPUT", "TEXTAREA", "SELECT"].includes(activeElement?.tagName)) {
         return;
       }
 
@@ -144,6 +139,17 @@ export const usePlayerMovement = (
         case "d":
           direction = "right";
           break;
+        case " ":
+          // If a button is focused, let the default space action (click) happen
+          if (
+            activeElement?.tagName === "BUTTON" ||
+            activeElement?.closest("button")
+          ) {
+            return;
+          }
+          event.preventDefault();
+          handleAction();
+          return;
         default:
           return;
       }
@@ -153,7 +159,7 @@ export const usePlayerMovement = (
         handleMove(direction);
       }
     },
-    [handleAction, handleMove]
+    [handleMove, handleAction]
   );
 
   const handleKeyUp = useCallback(
@@ -190,4 +196,3 @@ export const usePlayerMovement = (
 
   return { handleAction, handleMove, handleMoveEnd };
 };
-

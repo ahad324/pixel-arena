@@ -1,6 +1,6 @@
 
 import React, { createContext, useEffect, useContext, useReducer } from "react";
-import type { Player, Room } from "../types";
+import type { Player, Room, Footprint } from "../types";
 import { GameMode } from "../types";
 import { socketService } from "@services/socketService";
 
@@ -14,6 +14,7 @@ interface GameContextType {
   endGame: () => void;
   logout: () => void;
   heistPadFeedback: { [padId: string]: 'correct' | 'incorrect' };
+  revealedHidersUntil: number | null;
 }
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -44,7 +45,7 @@ type GameAction =
     type: "ABILITY_ACTIVATED";
     payload: {
       playerId: string;
-      ability: "sprint" | "shield";
+      ability: "sprint" | "shield" | "reveal";
       expires: number;
     };
   }
@@ -65,13 +66,19 @@ type GameAction =
     payload: { phase: Room["gameState"]["phase"]; timer: number };
   }
   | { type: "PLAYER_GUESSED"; payload: { playerId: string; guess: string } }
-  | { type: "GAME_OVER"; payload: { winner: Player | { name: string } | null; players: Player[] } };
+  | { type: "GAME_OVER"; payload: { winner: Player | { name: string } | null; players: Player[] } }
+  // Hide and Seek Actions
+  | { type: "PLAYER_CAUGHT"; payload: { playerId: string } }
+  | { type: "PLAYER_CONVERTED"; payload: { playerId: string } }
+  | { type: "FOOTPRINTS_UPDATE"; payload: { footprints: Footprint[] } }
+  | { type: "HIDERS_REVEALED"; payload: { duration: number } };
 
 interface GameState {
   user: Omit<Player, "socketId"> | null;
   room: Room | null;
   isLoading: boolean;
   heistPadFeedback: { [padId: string]: 'correct' | 'incorrect' };
+  revealedHidersUntil: number | null;
 }
 
 const initialState: GameState = {
@@ -79,6 +86,7 @@ const initialState: GameState = {
   room: null,
   isLoading: true,
   heistPadFeedback: {},
+  revealedHidersUntil: null,
 };
 
 const gameReducer = (state: GameState, action: GameAction): GameState => {
@@ -126,7 +134,7 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
         },
       };
     case "GAME_STARTED":
-      return { ...state, room: action.payload.room };
+      return { ...state, room: action.payload.room, revealedHidersUntil: null };
     case "PLAYER_MOVED":
       if (!state.room) return state;
       return {
@@ -179,6 +187,15 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
       };
     case "GAME_OVER":
       if (!state.room) return state;
+      let finalPlayers = action.payload.players;
+      if (state.room.gameMode === GameMode.HIDE_AND_SEEK) {
+        const winnerName = action.payload.winner?.name;
+        if (winnerName === "Hider Team") {
+          finalPlayers = action.payload.players.filter(p => !p.isSeeker && !p.isCaught);
+        } else if (winnerName === "Seeker Team") {
+          finalPlayers = action.payload.players.filter(p => p.isSeeker || p.isCaught);
+        }
+      }
       return {
         ...state,
         room: {
@@ -188,8 +205,9 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
             status: "finished",
             winner: action.payload.winner,
           },
-          players: action.payload.players,
+          players: finalPlayers,
         },
+        revealedHidersUntil: null,
       };
     case "PLAYER_INFECTED":
       if (!state.room) return state;
@@ -211,17 +229,11 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
           players: state.room.players.map((p) => {
             if (p.id === action.payload.playerId) {
               if (action.payload.ability === "sprint")
-                return {
-                  ...p,
-                  sprintUntil: action.payload.expires,
-                  lastSprintTime: Date.now(),
-                };
+                return { ...p, sprintUntil: action.payload.expires, lastSprintTime: Date.now() };
               if (action.payload.ability === "shield")
-                return {
-                  ...p,
-                  shieldUntil: action.payload.expires,
-                  lastShieldTime: Date.now(),
-                };
+                return { ...p, shieldUntil: action.payload.expires, lastShieldTime: Date.now() };
+              if (action.payload.ability === "reveal")
+                return { ...p, lastRevealTime: Date.now() };
             }
             return p;
           }),
@@ -251,10 +263,7 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
           ...state.room,
           players: state.room.players.map((p) => {
             if (p.id === action.payload.playerId) {
-              const newEffects = [
-                ...(p.effects || []),
-                { type: action.payload.type, expires: action.payload.expires },
-              ];
+              const newEffects = [...(p.effects || []), { type: action.payload.type, expires: action.payload.expires },];
               return { ...p, effects: newEffects };
             }
             return p;
@@ -275,13 +284,7 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
       };
     case "PAD_GUESSED":
       if (!state.room || state.room.gameMode !== GameMode.HEIST_PANIC) return state;
-      return {
-        ...state,
-        heistPadFeedback: {
-          ...state.heistPadFeedback,
-          [action.payload.padId]: action.payload.correct ? 'correct' : 'incorrect',
-        },
-      };
+      return { ...state, heistPadFeedback: { ...state.heistPadFeedback, [action.payload.padId]: action.payload.correct ? 'correct' : 'incorrect' } };
     case "CLEAR_PAD_FEEDBACK": {
       const newFeedback = { ...state.heistPadFeedback };
       delete newFeedback[action.payload.padId];
@@ -289,30 +292,22 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
     }
     case "PHASE_CHANGED":
       if (!state.room) return state;
-      return {
-        ...state,
-        room: {
-          ...state.room,
-          gameState: {
-            ...state.room.gameState,
-            phase: action.payload.phase,
-            timer: action.payload.timer,
-          },
-        },
-      };
+      return { ...state, room: { ...state.room, gameState: { ...state.room.gameState, phase: action.payload.phase, timer: action.payload.timer, }, }, };
     case "PLAYER_GUESSED":
       if (!state.room) return state;
-      return {
-        ...state,
-        room: {
-          ...state.room,
-          players: state.room.players.map((p) =>
-            p.id === action.payload.playerId
-              ? { ...p, guess: action.payload.guess }
-              : p
-          ),
-        },
-      };
+      return { ...state, room: { ...state.room, players: state.room.players.map((p) => p.id === action.payload.playerId ? { ...p, guess: action.payload.guess } : p), }, };
+    // Hide and Seek Reducers
+    case "PLAYER_CAUGHT":
+      if (!state.room) return state;
+      return { ...state, room: { ...state.room, players: state.room.players.map(p => p.id === action.payload.playerId ? { ...p, isCaught: true } : p) } };
+    case "PLAYER_CONVERTED":
+      if (!state.room) return state;
+      return { ...state, room: { ...state.room, players: state.room.players.map(p => p.id === action.payload.playerId ? { ...p, isCaught: false, isSeeker: true } : p) } };
+    case "FOOTPRINTS_UPDATE":
+      if (!state.room) return state;
+      return { ...state, room: { ...state.room, gameState: { ...state.room.gameState, footprints: action.payload.footprints } } };
+    case "HIDERS_REVEALED":
+      return { ...state, revealedHidersUntil: Date.now() + action.payload.duration };
     default:
       return state;
   }
@@ -330,83 +325,42 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
 
     const savedUsername = localStorage.getItem("pixel-arena-username");
     if (savedUsername) {
-      dispatch({
-        type: "SET_USER",
-        payload: {
-          id: crypto.randomUUID(),
-          name: savedUsername,
-          x: 0,
-          y: 0,
-          score: 0,
-          color: "",
-          isIt: false,
-          isEliminated: false,
-        },
-      });
+      dispatch({ type: "SET_USER", payload: { id: crypto.randomUUID(), name: savedUsername, x: 0, y: 0, score: 0, color: "", isIt: false, isEliminated: false, }, });
     }
     dispatch({ type: "SET_IS_LOADING", payload: false });
 
     // Setup all listeners
-    socketService.onGameStarted((data) =>
-      dispatch({ type: "GAME_STARTED", payload: data })
-    );
-    socketService.onPlayerJoined((data) =>
-      dispatch({ type: "PLAYER_JOINED", payload: data.player })
-    );
-    socketService.onPlayerLeft((data) =>
-      dispatch({ type: "PLAYER_LEFT", payload: data })
-    );
-    socketService.onHostChanged((data) =>
-      dispatch({ type: "HOST_CHANGED", payload: data })
-    );
-    socketService.onGameModeChanged((data) =>
-      dispatch({ type: "GAME_MODE_CHANGED", payload: data })
-    );
-    socketService.onPlayerMoved((data) =>
-      dispatch({ type: "PLAYER_MOVED", payload: data })
-    );
-    socketService.onPlayerTagged((data) =>
-      dispatch({ type: "PLAYER_TAGGED", payload: data })
-    );
-    socketService.onTileClaimed((data) =>
-      dispatch({ type: "TILE_CLAIMED", payload: data })
-    );
-    socketService.onPlayerInfected((data) =>
-      dispatch({ type: "PLAYER_INFECTED", payload: data })
-    );
-    socketService.onAbilityActivated((data) =>
-      dispatch({ type: "ABILITY_ACTIVATED", payload: data })
-    );
-    socketService.onTrapTriggered((data) =>
-      dispatch({ type: "TRAP_TRIGGERED", payload: data })
-    );
-    socketService.onPlayerEffect((data) =>
-      dispatch({ type: "PLAYER_EFFECT", payload: data })
-    );
+    socketService.onGameStarted((data) => dispatch({ type: "GAME_STARTED", payload: data }));
+    socketService.onPlayerJoined((data) => dispatch({ type: "PLAYER_JOINED", payload: data.player }));
+    socketService.onPlayerLeft((data) => dispatch({ type: "PLAYER_LEFT", payload: data }));
+    socketService.onHostChanged((data) => dispatch({ type: "HOST_CHANGED", payload: data }));
+    socketService.onGameModeChanged((data) => dispatch({ type: "GAME_MODE_CHANGED", payload: data }));
+    socketService.onPlayerMoved((data) => dispatch({ type: "PLAYER_MOVED", payload: data }));
+    socketService.onPlayerTagged((data) => dispatch({ type: "PLAYER_TAGGED", payload: data }));
+    socketService.onTileClaimed((data) => dispatch({ type: "TILE_CLAIMED", payload: data }));
+    socketService.onPlayerInfected((data) => dispatch({ type: "PLAYER_INFECTED", payload: data }));
+    socketService.onAbilityActivated((data) => dispatch({ type: "ABILITY_ACTIVATED", payload: data }));
+    socketService.onTrapTriggered((data) => dispatch({ type: "TRAP_TRIGGERED", payload: data }));
+    socketService.onPlayerEffect((data) => dispatch({ type: "PLAYER_EFFECT", payload: data }));
     socketService.onPadGuessed((data) => {
       dispatch({ type: "PAD_GUESSED", payload: data });
-      // Clear feedback after a short delay for incorrect guesses
       if (!data.correct) {
         setTimeout(() => {
           dispatch({ type: "CLEAR_PAD_FEEDBACK", payload: { padId: data.padId } });
         }, 1000);
       }
     });
-    socketService.onTimerUpdate((data) =>
-      dispatch({ type: "TIMER_UPDATE", payload: data })
-    );
-    socketService.onScoresUpdate((data) =>
-      dispatch({ type: "SCORES_UPDATE", payload: data })
-    );
-    socketService.onPhaseChanged((data) =>
-      dispatch({ type: "PHASE_CHANGED", payload: data })
-    );
-    socketService.onPlayerGuessed((data) =>
-      dispatch({ type: "PLAYER_GUESSED", payload: data })
-    );
-    socketService.onGameOver((data) =>
-      dispatch({ type: "GAME_OVER", payload: data })
-    );
+    socketService.onTimerUpdate((data) => dispatch({ type: "TIMER_UPDATE", payload: data }));
+    socketService.onScoresUpdate((data) => dispatch({ type: "SCORES_UPDATE", payload: data }));
+    socketService.onPhaseChanged((data) => dispatch({ type: "PHASE_CHANGED", payload: data }));
+    socketService.onPlayerGuessed((data) => dispatch({ type: "PLAYER_GUESSED", payload: data }));
+    socketService.onGameOver((data) => dispatch({ type: "GAME_OVER", payload: data }));
+
+    // Hide and Seek Listeners
+    socketService.onPlayerCaught((data) => dispatch({ type: "PLAYER_CAUGHT", payload: data }));
+    socketService.onPlayerConverted((data) => dispatch({ type: "PLAYER_CONVERTED", payload: data }));
+    socketService.onFootprintsUpdate((data) => dispatch({ type: "FOOTPRINTS_UPDATE", payload: data }));
+    socketService.onHidersRevealed((data) => dispatch({ type: "HIDERS_REVEALED", payload: data }));
 
     return () => {
       socketService.disconnect();
@@ -415,16 +369,7 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
   }, []);
 
   const login = (username: string) => {
-    const newUser: Omit<Player, "socketId"> = {
-      id: crypto.randomUUID(),
-      name: username,
-      x: 0,
-      y: 0,
-      score: 0,
-      color: "",
-      isIt: false,
-      isEliminated: false,
-    };
+    const newUser: Omit<Player, "socketId"> = { id: crypto.randomUUID(), name: username, x: 0, y: 0, score: 0, color: "", isIt: false, isEliminated: false, };
     localStorage.setItem("pixel-arena-username", username);
     dispatch({ type: "SET_USER", payload: newUser });
   };
@@ -448,17 +393,7 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
     leaveRoom();
   };
 
-  const value = {
-    user: state.user,
-    room: state.room,
-    isLoading: state.isLoading,
-    login,
-    joinRoom,
-    leaveRoom,
-    endGame,
-    heistPadFeedback: state.heistPadFeedback,
-    logout,
-  };
+  const value = { user: state.user, room: state.room, isLoading: state.isLoading, login, joinRoom, leaveRoom, endGame, heistPadFeedback: state.heistPadFeedback, revealedHidersUntil: state.revealedHidersUntil, logout, };
 
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>;
 };

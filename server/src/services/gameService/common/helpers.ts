@@ -14,7 +14,11 @@ export function createInitialGameState(
         .map(() => Array(GRID_SIZE).fill({ claimedBy: null, color: null }));
       break;
     case GameMode.MAZE_RACE:
+    case GameMode.HIDE_AND_SEEK:
       baseState.maze = { grid: [], end: { x: 0, y: 0 } };
+      if (gameMode === GameMode.HIDE_AND_SEEK) {
+        baseState.footprints = [];
+      }
       break;
     case GameMode.TRAP_RUSH:
       baseState.trapMap = Array(GRID_SIZE)

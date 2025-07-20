@@ -45,6 +45,10 @@ class SocketService {
   public onAbilityActivated: typeof SocketListeners.prototype.onAbilityActivated;
   public onMazeDifficultyChanged: typeof SocketListeners.prototype.onMazeDifficultyChanged;
   public offMazeDifficultyChanged: typeof SocketListeners.prototype.offMazeDifficultyChanged;
+  public onPlayerCaught: typeof SocketListeners.prototype.onPlayerCaught;
+  public onPlayerConverted: typeof SocketListeners.prototype.onPlayerConverted;
+  public onFootprintsUpdate: typeof SocketListeners.prototype.onFootprintsUpdate;
+  public onHidersRevealed: typeof SocketListeners.prototype.onHidersRevealed;
   public offPlayerOnPad: typeof SocketListeners.prototype.offPlayerOnPad;
   public offPlayerOffPad: typeof SocketListeners.prototype.offPlayerOffPad;
   public offAll: typeof SocketListeners.prototype.offAll;
@@ -52,28 +56,40 @@ class SocketService {
   constructor() {
     this.emitters = new SocketEmitters(this);
     this.listeners = new SocketListeners(this);
-    
+
     // Bind emitter methods
     this.createRoom = this.emitters.createRoom.bind(this.emitters);
     this.joinRoom = this.emitters.joinRoom.bind(this.emitters);
     this.setGameMode = this.emitters.setGameMode.bind(this.emitters);
     this.leaveRoom = this.emitters.leaveRoom.bind(this.emitters);
-    this.getAvailableRooms = this.emitters.getAvailableRooms.bind(this.emitters);
-    this.updatePlayerPosition = this.emitters.updatePlayerPosition.bind(this.emitters);
+    this.getAvailableRooms = this.emitters.getAvailableRooms.bind(
+      this.emitters
+    );
+    this.updatePlayerPosition = this.emitters.updatePlayerPosition.bind(
+      this.emitters
+    );
     this.activateAbility = this.emitters.activateAbility.bind(this.emitters);
     this.submitHeistGuess = this.emitters.submitHeistGuess.bind(this.emitters);
     this.submitGuess = this.emitters.submitGuess.bind(this.emitters);
     this.startGame = this.emitters.startGame.bind(this.emitters);
-    this.setMazeRaceDifficulty = this.emitters.setMazeRaceDifficulty.bind(this.emitters);
-    
+    this.setMazeRaceDifficulty = this.emitters.setMazeRaceDifficulty.bind(
+      this.emitters
+    );
+
     // Bind listener methods
-    this.onAvailableRoomsUpdate = this.listeners.onAvailableRoomsUpdate.bind(this.listeners);
-    this.offAvailableRoomsUpdate = this.listeners.offAvailableRoomsUpdate.bind(this.listeners);
+    this.onAvailableRoomsUpdate = this.listeners.onAvailableRoomsUpdate.bind(
+      this.listeners
+    );
+    this.offAvailableRoomsUpdate = this.listeners.offAvailableRoomsUpdate.bind(
+      this.listeners
+    );
     this.onGameStarted = this.listeners.onGameStarted.bind(this.listeners);
     this.onPlayerMoved = this.listeners.onPlayerMoved.bind(this.listeners);
     this.onPlayerTagged = this.listeners.onPlayerTagged.bind(this.listeners);
     this.onTileClaimed = this.listeners.onTileClaimed.bind(this.listeners);
-    this.onPlayerInfected = this.listeners.onPlayerInfected.bind(this.listeners);
+    this.onPlayerInfected = this.listeners.onPlayerInfected.bind(
+      this.listeners
+    );
     this.onTrapTriggered = this.listeners.onTrapTriggered.bind(this.listeners);
     this.onPlayerEffect = this.listeners.onPlayerEffect.bind(this.listeners);
     this.onPadGuessed = this.listeners.onPadGuessed.bind(this.listeners);
@@ -87,10 +103,27 @@ class SocketService {
     this.onPlayerJoined = this.listeners.onPlayerJoined.bind(this.listeners);
     this.onPlayerLeft = this.listeners.onPlayerLeft.bind(this.listeners);
     this.onHostChanged = this.listeners.onHostChanged.bind(this.listeners);
-    this.onGameModeChanged = this.listeners.onGameModeChanged.bind(this.listeners);
-    this.onAbilityActivated = this.listeners.onAbilityActivated.bind(this.listeners);
-    this.onMazeDifficultyChanged = this.listeners.onMazeDifficultyChanged.bind(this.listeners);
-    this.offMazeDifficultyChanged = this.listeners.offMazeDifficultyChanged.bind(this.listeners);
+    this.onGameModeChanged = this.listeners.onGameModeChanged.bind(
+      this.listeners
+    );
+    this.onAbilityActivated = this.listeners.onAbilityActivated.bind(
+      this.listeners
+    );
+    this.onMazeDifficultyChanged = this.listeners.onMazeDifficultyChanged.bind(
+      this.listeners
+    );
+    this.offMazeDifficultyChanged =
+      this.listeners.offMazeDifficultyChanged.bind(this.listeners);
+    this.onPlayerCaught = this.listeners.onPlayerCaught.bind(this.listeners);
+    this.onPlayerConverted = this.listeners.onPlayerConverted.bind(
+      this.listeners
+    );
+    this.onFootprintsUpdate = this.listeners.onFootprintsUpdate.bind(
+      this.listeners
+    );
+    this.onHidersRevealed = this.listeners.onHidersRevealed.bind(
+      this.listeners
+    );
     this.offPlayerOnPad = this.listeners.offPlayerOnPad.bind(this.listeners);
     this.offPlayerOffPad = this.listeners.offPlayerOffPad.bind(this.listeners);
     this.offAll = this.listeners.offAll.bind(this.listeners);
@@ -103,7 +136,7 @@ class SocketService {
   public connect() {
     if (!this.socket) {
       const backendUrl =
-        import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
+        (import.meta as any).env.VITE_BACKEND_URL || "http://localhost:3000";
       this.socket = io(backendUrl, {
         transports: ["websocket"],
       });
@@ -116,7 +149,6 @@ class SocketService {
       this.socket = null;
     }
   }
-
 }
 
 export const socketService = new SocketService();

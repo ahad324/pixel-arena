@@ -10,6 +10,7 @@ import { infectionArenaLogic } from "./modes/infectionArena";
 import { trapRushLogic } from "./modes/trapRush";
 import { spyAndDecodeLogic } from "./modes/spyAndDecode";
 import { heistPanicLogic } from "./modes/heistPanic";
+import { hideAndSeekLogic } from "./modes/hideAndSeek";
 
 export const roomManagement = {
   createRoom: (rooms: Map<string, Room>, hostPlayer: Player): Room => {
@@ -169,6 +170,8 @@ export const playerActions = {
         return spyAndDecodeLogic.handleMove(room, player, newPos);
       case GameMode.HEIST_PANIC:
         return heistPanicLogic.handleMove(room, player, newPos);
+      case GameMode.HIDE_AND_SEEK:
+        return hideAndSeekLogic.handleMove(room, player, newPos);
     }
     return events;
   },
@@ -186,6 +189,8 @@ export const playerActions = {
     switch (room.gameMode) {
       case GameMode.INFECTION_ARENA:
         return infectionArenaLogic.handleAbility(room, player);
+      case GameMode.HIDE_AND_SEEK:
+        return hideAndSeekLogic.handleAbility(room, player);
       default:
         return [];
     }

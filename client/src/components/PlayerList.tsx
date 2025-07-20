@@ -1,6 +1,8 @@
 
+
 import React from "react";
 import type { Player, Room } from "../types/index";
+import { GameMode } from "../types/index";
 import { PLAYER_COLORS, INFECTED_COLOR } from "@constants/index";
 
 const PlayerList: React.FC<{ room: Room; user: Omit<Player, "socketId"> }> = ({ room, user }) => {
@@ -12,9 +14,9 @@ const PlayerList: React.FC<{ room: Room; user: Omit<Player, "socketId"> }> = ({ 
       {room.players.map((p) => (
         <div
           key={p.id}
-          className={`p-2 rounded-md flex items-center justify-between text-sm ${p.isEliminated
-              ? "bg-surface-200/50 text-text-secondary/50 line-through"
-              : "bg-surface-200"
+          className={`p-2 rounded-md flex items-center justify-between text-sm transition-all duration-300 ${p.isEliminated || p.isCaught
+            ? "bg-surface-200/50 text-text-secondary/50 line-through"
+            : "bg-surface-200"
             }`}
         >
           <div className="flex items-center">
@@ -35,8 +37,19 @@ const PlayerList: React.FC<{ room: Room; user: Omit<Player, "socketId"> }> = ({ 
               </span>
             )}
             {p.isInfected && (
-              <span className="ml-2 font-bold animate-pulse" style={{color: INFECTED_COLOR}}>
+              <span className="ml-2 font-bold animate-pulse" style={{ color: INFECTED_COLOR }}>
                 (Infected)
+              </span>
+            )}
+            {room.gameMode === GameMode.HIDE_AND_SEEK && (
+              <span className="ml-2 font-semibold">
+                {p.isCaught ? (
+                  <span className="text-text-secondary">(Caught)</span>
+                ) : p.isSeeker ? (
+                  <span className="text-error">(Seeker)</span>
+                ) : (
+                  <span className="text-primary">(Hider)</span>
+                )}
               </span>
             )}
           </div>

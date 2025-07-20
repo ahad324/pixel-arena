@@ -18,8 +18,41 @@ import VirtualJoystick from "@components/VirtualJoystick";
 import SpyDecodeUI from "@components/GameUI/SpyDecodeUI";
 import InfectionAbilityButton from "@components/GameUI/InfectionAbilityButton";
 import HeistPanicUI from "@components/GameUI/HeistPanicUI";
+import HideAndSeekUI from "@components/GameUI/HideAndSeekUI";
 import { EnterFullscreenIcon, InfoIcon, CheckCircleIcon } from "@components/icons";
 import ReactionsComponent from "@components/ReactionsComponent";
+
+const HidingPhaseIndicator: React.FC<{ room: Room }> = ({ room }) => {
+  const [countdown, setCountdown] = useState(0);
+
+  useEffect(() => {
+    if (!room.gameState.seekerFreezeUntil) return;
+
+    const calculateCountdown = () => {
+      const remaining = room.gameState.seekerFreezeUntil! - Date.now();
+      if (remaining > 0) {
+        setCountdown(Math.ceil(remaining / 1000));
+      } else {
+        setCountdown(0);
+      }
+    };
+
+    calculateCountdown();
+    const interval = setInterval(calculateCountdown, 500);
+
+    return () => clearInterval(interval);
+  }, [room.gameState.seekerFreezeUntil]);
+
+  if (countdown <= 0) return null;
+
+  return (
+    <div className="bg-surface-200 border-2 border-primary/50 rounded-lg p-3 mb-4 text-center animate-pulse">
+      <p className="font-bold text-primary">Hiders are hiding!</p>
+      <p className="text-sm text-text-secondary">Seekers unfreeze in {countdown}s</p>
+    </div>
+  );
+};
+
 
 const GamePage: React.FC = () => {
   const { user, room, leaveRoom, endGame, heistPadFeedback } = useGame();
@@ -33,15 +66,9 @@ const GamePage: React.FC = () => {
   const [activePadId, setActivePadId] = useState<string | null>(null);
   const { handleAction, handleMove, handleMoveEnd } = usePlayerMovement(user!, room!, isMobile);
 
-  const handleHeistGuess = () => {
-    if (user && room && activePadId) {
-      socketService.submitHeistGuess(room.id, user.id, activePadId);
-    }
-  };
-
-  const handleInfectionAction = () => {
-    if (user && room && room.gameMode === GameMode.INFECTION_ARENA) {
-      handleAction(); // Use handleAction from usePlayerMovement
+  const handleGenericAction = () => {
+    if (user && room) {
+      handleAction();
     }
   };
 
@@ -66,26 +93,6 @@ const GamePage: React.FC = () => {
       socketService.offPlayerOffPad();
     };
   }, [user?.id]);
-
-  useEffect(() => {
-    const handleKeyPress = (event: KeyboardEvent) => {
-      if (event.code === "Space" && !isMobile) {
-        const activeElement = document.activeElement as HTMLElement;
-        if (activeElement.tagName === 'BUTTON' || activeElement.closest('button')) {
-          return; // Let button handle its own event
-        }
-        event.preventDefault();
-        if (room?.gameMode === GameMode.HEIST_PANIC && activePadId) {
-          handleHeistGuess();
-        } else if (room?.gameMode === GameMode.INFECTION_ARENA) {
-          handleInfectionAction();
-        }
-      }
-    };
-
-    document.addEventListener("keydown", handleKeyPress);
-    return () => document.removeEventListener("keydown", handleKeyPress);
-  }, [activePadId, isMobile, room?.gameMode]);
 
   const roomRef = useRef(room);
   useEffect(() => {
@@ -150,7 +157,7 @@ const GamePage: React.FC = () => {
 
   const handleTouchStart = (e: TouchEvent<HTMLDivElement>) => {
     if (joystickState.isActive) return;
-    const touch = e.changedTouches[0];
+    const touch = e.changedTouches[0] as Touch;
     if (!touch) return;
     const target = e.target as HTMLElement;
     if (target.closest('button, input, select')) return;
@@ -166,7 +173,7 @@ const GamePage: React.FC = () => {
   const handleTouchMove = (e: TouchEvent<HTMLDivElement>) => {
     if (!joystickState.isActive) return;
     const touch = Array.from(e.changedTouches).find(
-      (t) => t.identifier === joystickState.touchId
+      (t: any) => t.identifier === joystickState.touchId
     );
     if (!touch) return;
     e.preventDefault(); // Prevent window scrolling
@@ -210,7 +217,7 @@ const GamePage: React.FC = () => {
 
   const handleTouchEnd = (e: TouchEvent<HTMLDivElement>) => {
     const touch = Array.from(e.changedTouches).find(
-      (t) => t.identifier === joystickState.touchId
+      (t: any) => t.identifier === joystickState.touchId
     );
     if (!touch) return;
     e.preventDefault(); // Prevent window scrolling
@@ -225,7 +232,7 @@ const GamePage: React.FC = () => {
 
   const handleTouchCancel = (e: TouchEvent<HTMLDivElement>) => {
     const touch = Array.from(e.changedTouches).find(
-      (t) => t.identifier === joystickState.touchId
+      (t: any) => t.identifier === joystickState.touchId
     );
     if (!touch) return;
     e.preventDefault(); // Prevent window scrolling
@@ -256,6 +263,36 @@ const GamePage: React.FC = () => {
 
   if (room.gameState.status === "finished") {
     return <EndScreen room={room} onBackToLobby={endGame} />;
+  }
+
+  const renderMobileActionButtons = () => {
+    if (!isMobile || !isFullscreen || room.gameState.status !== "playing") return null;
+
+    if (room.gameMode === GameMode.INFECTION_ARENA) {
+      return (
+        <div className="absolute bottom-4 right-4 w-24 h-24 z-60">
+          <InfectionAbilityButton room={room} user={user} onAction={handleGenericAction} />
+        </div>
+      );
+    }
+
+    if (room.gameMode === GameMode.HIDE_AND_SEEK) {
+      return (
+        <div className="absolute bottom-4 right-4 w-40 z-60">
+          <HideAndSeekUI room={room} user={user} onAction={handleGenericAction} />
+        </div>
+      );
+    }
+
+    if (room.gameMode === GameMode.HEIST_PANIC && activePadId) {
+      return (
+        <div className="absolute bottom-4 right-4 w-48 z-60">
+          <HeistPanicUI room={room} user={user} onGuessSubmit={handleGenericAction} />
+        </div>
+      );
+    }
+
+    return null;
   }
 
   return (
@@ -306,31 +343,7 @@ const GamePage: React.FC = () => {
           {isMobile && room.gameState.status === "playing" && (
             <VirtualJoystick joystickState={joystickState} />
           )}
-          {isMobile &&
-            room.gameState.status === "playing" &&
-            room.gameMode === GameMode.INFECTION_ARENA &&
-            isFullscreen && (
-              <div className="absolute bottom-4 right-4 w-24 h-24 z-60">
-                <InfectionAbilityButton
-                  room={room}
-                  user={user}
-                  onAction={handleInfectionAction}
-                />
-              </div>
-            )}
-          {isMobile &&
-            room.gameState.status === "playing" &&
-            room.gameMode === GameMode.HEIST_PANIC &&
-            isFullscreen &&
-            activePadId && (
-              <div className="absolute bottom-4 right-4 w-48 z-60">
-                <HeistPanicUI
-                  room={room}
-                  user={user}
-                  onGuessSubmit={handleHeistGuess}
-                />
-              </div>
-            )}
+          {renderMobileActionButtons()}
           {isMobile &&
             room.gameState.status === "playing" &&
             !isFullscreen && (
@@ -381,6 +394,9 @@ const GamePage: React.FC = () => {
             {room.gameMode === GameMode.SPY_AND_DECODE && (
               <SpyDecodeUI room={room} user={user} />
             )}
+            {room.gameMode === GameMode.HIDE_AND_SEEK && room.gameState.status === "playing" && (
+              <HidingPhaseIndicator room={room} />
+            )}
             <GameStatus room={room} isFullscreen={isFullscreen} />
             <PlayerList room={room} user={user} />
             {!isMobile && room.gameState.status === "waiting" && (
@@ -390,7 +406,7 @@ const GamePage: React.FC = () => {
                   type="checkbox"
                   checked={requestFullscreenOnStart}
                   onChange={(e) => setRequestFullscreenOnStart(e.target.checked)}
-                  className="w-4 h-4 text-primary bg-surface-200 border-border rounded focus:ring-primary focus:ring-2"
+                  className="w-4 h-4 text-primary bg-surface-200 border-border rounded focus:ring-2 focus:ring-primary focus:border-primary"
                 />
                 <label
                   htmlFor="fullscreen-checkbox"
@@ -428,24 +444,16 @@ const GamePage: React.FC = () => {
                   </select>
                 </div>
               )}
-              <ReactionsComponent buttonClassName="block sm:hidden mt-2"/>
-            {room.gameMode === GameMode.INFECTION_ARENA &&
-              room.gameState.status === "playing" && (
-                <InfectionAbilityButton
-                  room={room}
-                  user={user}
-                  onAction={handleInfectionAction}
-                />
-              )}
-            {room.gameMode === GameMode.HEIST_PANIC &&
-              room.gameState.status === "playing" &&
-              activePadId && (
-                <HeistPanicUI
-                  room={room}
-                  user={user}
-                  onGuessSubmit={handleHeistGuess}
-                />
-              )}
+            <ReactionsComponent buttonClassName="block sm:hidden mt-2" />
+            {room.gameMode === GameMode.INFECTION_ARENA && room.gameState.status === 'playing' && !isMobile && (
+              <InfectionAbilityButton room={room} user={user} onAction={handleGenericAction} />
+            )}
+            {room.gameMode === GameMode.HEIST_PANIC && room.gameState.status === 'playing' && !isMobile && (
+              <HeistPanicUI room={room} user={user} onGuessSubmit={handleGenericAction} />
+            )}
+            {room.gameMode === GameMode.HIDE_AND_SEEK && room.gameState.status === 'playing' && !isMobile && (
+              <HideAndSeekUI room={room} user={user} onAction={handleGenericAction} />
+            )}
             <GameControls
               room={room}
               isHost={isHost}
