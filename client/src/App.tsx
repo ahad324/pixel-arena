@@ -9,7 +9,7 @@ import GamePage from "@pages/GamePage";
 import LoadingScreen from "@components/LoadingScreen";
 import MaintenancePage from "@pages/MaintenancePage";
 
-const LAUNCH_TIMESTAMP = 1753164000000;
+const LAUNCH_TIMESTAMP = 1753171200000;
 
 const LAUNCH_DATE = new Date(LAUNCH_TIMESTAMP);
 
