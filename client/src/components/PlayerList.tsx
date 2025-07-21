@@ -11,16 +11,15 @@ const PlayerList: React.FC<{ room: Room; user: Omit<Player, "socketId"> }> = ({ 
       <h3 className="font-bold text-lg text-text-primary mb-2 flex-shrink-0">
         Players ({room.players.length}/8)
       </h3>
-      <div className="space-y-2 flex-grow overflow-y-auto scrollbar-thin pr-1">
+      <div className="space-y-2 flex-grow overflow-y-auto scrollbar-thin pr-1 max-h-[20dvh] 2xl:max-h-[70vh]">
         {room.players.map((p, index) => (
           <motion.div
             key={p.id}
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: index * 0.05 }}
-            className={`flex items-center justify-between p-3 rounded-xl border transition-all duration-200 gap-2 ${
-              p.id === user.id ? "bg-surface-200 border-primary" : "bg-surface-100 border-border hover:bg-surface-200"
-            } ${p.isEliminated || p.isCaught ? "opacity-50" : ""}`}
+            className={`flex items-center justify-between p-3 rounded-xl border transition-all duration-200 gap-2 ${p.id === user.id ? "bg-surface-200 border-primary" : "bg-surface-100 border-border hover:bg-surface-200"
+              } ${p.isEliminated || p.isCaught ? "opacity-50" : ""}`}
           >
             <div className="flex items-center gap-3 flex-grow min-w-0">
               <div

@@ -1,4 +1,5 @@
-import React, { useEffect } from "react";
+
+import React, { useState, useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from "react-router-dom";
 import GameProvider, { useGame } from "@contexts/GameContext";
 import LandingPage from "@pages/LandingPage";
@@ -8,22 +9,37 @@ import GamePage from "@pages/GamePage";
 import LoadingScreen from "@components/LoadingScreen";
 import MaintenancePage from "@pages/MaintenancePage";
 
-// --- MAINTENANCE MODE TOGGLE ---
-// Set this to true to enable the maintenance/coming soon page for all routes.
-const IS_MAINTENANCE_MODE = true;
+const LAUNCH_TIMESTAMP = 1753164000000;
+
+const LAUNCH_DATE = new Date(LAUNCH_TIMESTAMP);
 
 const AppRoutes: React.FC = () => {
   const { user, room, isLoading } = useGame();
   const navigate = useNavigate();
   const location = useLocation();
+  const [isLive, setIsLive] = useState(() => Date.now() >= LAUNCH_TIMESTAMP);
 
   useEffect(() => {
-    if (IS_MAINTENANCE_MODE) return;
+    // If the app is already live, we don't need a timer.
+    if (isLive) return;
 
-    // This effect synchronizes the URL with the global game context (e.g., if a user is in a room).
-    // The primary authentication routing is handled declaratively in the <Routes> below.
-    if (isLoading || !user) {
-      return; // Only run these checks if logged in and not loading.
+    // This timer checks every second if the launch time has been reached.
+    const timer = setInterval(() => {
+      if (Date.now() >= LAUNCH_TIMESTAMP) {
+        setIsLive(true);
+        clearInterval(timer);
+      }
+    }, 1000);
+
+    // Clean up the timer when the component unmounts.
+    return () => clearInterval(timer);
+  }, [isLive]);
+
+  // This effect handles in-app navigation logic.
+  useEffect(() => {
+    // We only run navigation logic if the app is live and the user is logged in.
+    if (!isLive || isLoading || !user) {
+      return;
     }
 
     const currentPath = location.pathname;
@@ -36,13 +52,9 @@ const AppRoutes: React.FC = () => {
     else if (!room && currentPath.startsWith('/rooms')) {
       navigate('/lobby');
     }
-  }, [user, room, isLoading, navigate, location.pathname]);
+  }, [user, room, isLoading, navigate, location.pathname, isLive]);
 
-  if (IS_MAINTENANCE_MODE) {
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    tomorrow.setHours(0, 0, 0, 0); // Launch at 9:00 AM tomorrow.
-
+  if (!isLive) {
     return (
       <Routes>
         <Route
@@ -51,7 +63,7 @@ const AppRoutes: React.FC = () => {
             <MaintenancePage
               title="Launching Soon"
               message="Our arena is getting polished for an epic launch. Get ready for the action!"
-              launchDate={tomorrow}
+              launchDate={LAUNCH_DATE}
             />
           }
         />

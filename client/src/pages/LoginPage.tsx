@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import Logo from "/logo.svg"
 import { useGame } from "@contexts/GameContext";
+import { ChevronLeftIcon } from "@components/icons";
 
 const LoginPage: React.FC = () => {
   const { login, user } = useGame();
@@ -53,7 +54,19 @@ const LoginPage: React.FC = () => {
         transition={{ duration: 0.6, ease: [0.6, -0.05, 0.01, 0.99] }}
         className="w-full max-w-md"
       >
-        <div className="bg-surface-100 border border-border rounded-3xl p-8 shadow-2xl">
+        <div className="bg-surface-100 border border-border rounded-3xl p-8 shadow-2xl relative">
+          <motion.button
+            onClick={() => navigate("/")}
+            aria-label="Back to Home"
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.6 }}
+            className="absolute top-6 left-6 w-10 h-10 bg-surface-200/50 hover:bg-surface-200/80 rounded-xl flex items-center justify-center transition-colors border border-border text-text-secondary hover:text-text-primary"
+          >
+            <ChevronLeftIcon className="w-6 h-6" />
+          </motion.button>
           <div className="text-center mb-8">
             <motion.div
               initial={{ scale: 0 }}
@@ -123,15 +136,6 @@ const LoginPage: React.FC = () => {
               )}
             </motion.button>
           </motion.form>
-          <motion.button
-            onClick={() => navigate("/")}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.6 }}
-            className="w-full mt-4 py-2 text-text-secondary hover:text-text-primary transition-colors duration-200 font-medium"
-          >
-            ← Back to Home
-          </motion.button>
         </div>
       </motion.div>
     </div>

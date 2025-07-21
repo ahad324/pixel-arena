@@ -154,7 +154,7 @@ const LobbyPage: React.FC = () => {
                   disabled={isProcessing}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="flex-grow bg-accent text-on-primary font-black py-3 sm:py-4 px-6 rounded-xl shadow-lg hover:bg-accent-hover transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                  className="flex-grow bg-accent text-on-primary font-black py-3 sm:py-4 px-6 rounded-xl shadow-lg text-on-primary hover:bg-accent-hover transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                 >
                   {isProcessing ? <Spinner className="w-5 h-5" /> : "Create Room"}
                 </motion.button>

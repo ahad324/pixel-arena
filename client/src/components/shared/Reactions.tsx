@@ -54,7 +54,7 @@ const ReactionsPanel: React.FC<ReactionsPanelProps> = ({ onReact, onClose }) => 
       exit={{ opacity: 0, y: 20, scale: 0.95 }}
       transition={{ duration: 0.2, ease: "easeOut" }}
       ref={containerRef}
-      className="absolute bottom-[calc(100%_+_0.5rem)] left-0 bg-surface-100/70 backdrop-blur-md border border-border rounded-2xl shadow-2xl px-5 py-6 w-[90vw] max-w-xs sm:max-w-sm cursor-grab active:cursor-grabbing"
+      className="absolute bottom-[calc(100%_+_0.5rem)] left-0 bg-surface-100/70 backdrop-blur-md border border-border rounded-2xl shadow-2xl px-5 py-6 w-[90vw] max-w-md sm:max-w-md cursor-grab active:cursor-grabbing"
       onClick={(e) => e.stopPropagation()}
     >
       <button onClick={onClose} className="absolute top-2 right-2 text-text-secondary hover:text-text-primary z-10">

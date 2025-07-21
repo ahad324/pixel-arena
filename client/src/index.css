@@ -1,53 +1,84 @@
+@import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..700&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --background-hsl: 210 39% 7%;
-  --surface-100-hsl: 212 19% 11%;
-  --surface-200-hsl: 212 14% 15%;
+  /* Backgrounds */
+  --background-hsl: 220 30% 3%;
+  /* Ultra dark navy (not flat black) */
+  --surface-100-hsl: 220 20% 6%;
+  /* Dark surface, slightly above bg */
+  --surface-200-hsl: 220 16% 10%;
+  /* Usable card surface */
 
-  --primary-hsl: 212 100% 67%;
-  --primary-hover-hsl: 212 100% 75%;
-  --primary-dark-hsl: 212 100% 57%;
+  /* Primary - Deeper blue */
+  --primary-hsl: 220 85% 52%;
+  /* Slightly muted strong blue */
+  --primary-hover-hsl: 220 85% 58%;
+  /* Lighter on hover */
+  --primary-dark-hsl: 220 85% 40%;
+  /* Deeper for contrast layering */
 
-  --accent-hsl: 129 55% 50%;
-  --accent-hover-hsl: 130 54% 55%;
-  --accent-dark-hsl: 130 55% 40%;
-  --accent-secondary-hsl: 329 89% 72%;
+  /* Accent - Modern deep tones */
+  --accent-hsl: 160 55% 32%;
+  /* Deep emerald green */
+  --accent-hover-hsl: 160 55% 38%;
+  --accent-dark-hsl: 160 55% 24%;
+  --accent-secondary-hsl: 315 65% 40%;
+  /* Plum-magenta vibe */
 
-  --error-hsl: 3 93% 63%;
-  --error-hover-hsl: 2 100% 69%;
-  --error-dark-hsl: 3 93% 53%;
+  /* Error - Deep blood red */
+  --error-hsl: 0 70% 42%;
+  --error-hover-hsl: 0 75% 50%;
+  --error-dark-hsl: 0 70% 32%;
 
-  --warning-hsl: 41 100% 47%;
-  --warning-dark-hsl: 41 100% 37%;
+  /* Warning - Burnt amber */
+  --warning-hsl: 35 90% 38%;
+  --warning-dark-hsl: 35 90% 28%;
 
-  --info-hsl: 195 85% 55%;
-  --experimental-hsl: 25 95% 53%;
+  /* Info - Muted cyan */
+  --info-hsl: 195 80% 45%;
+  --experimental-hsl: 25 85% 38%;
+  /* Rich bronze-orange */
 
-  --text-primary-hsl: 210 16% 82%;
-  --text-secondary-hsl: 212 9% 58%;
-  --text-on-primary-hsl: 210 39% 7%;
-  /* Dark text for light/accented backgrounds */
+  /* Text - High contrast for darkness */
+  --text-primary-hsl: 220 10% 85%;
+  /* Almost white but soft */
+  --text-secondary-hsl: 220 8% 60%;
+  /* Subtle gray */
+  --text-on-primary-hsl: 0 0% 100%;
+  /* Pure white for buttons, etc */
 
-  --border-hsl: 212 12% 21%;
+  /* Border */
+  --border-hsl: 220 10% 16%;
+  /* Barely visible lines */
 
-  /* Player Colors */
-  --player-color-1-hsl: 212 100% 67%;
-  --player-color-2-hsl: 129 55% 50%;
-  --player-color-3-hsl: 329 89% 72%;
-  --player-color-4-hsl: 41 100% 47%;
-  --player-color-5-hsl: 3 93% 63%;
-  --player-color-6-hsl: 260 88% 70%;
-  --player-color-7-hsl: 175 70% 45%;
-  --player-color-8-hsl: 22 95% 53%;
+  /* Player Colors - Distinct but deeper tones */
+  --player-color-1-hsl: 220 85% 52%;
+  /* Blue */
+  --player-color-2-hsl: 160 55% 32%;
+  /* Green */
+  --player-color-3-hsl: 315 65% 40%;
+  /* Magenta */
+  --player-color-4-hsl: 35 90% 38%;
+  /* Amber */
+  --player-color-5-hsl: 0 70% 42%;
+  /* Red */
+  --player-color-6-hsl: 260 70% 45%;
+  /* Purple */
+  --player-color-7-hsl: 190 65% 38%;
+  /* Deep teal */
+  --player-color-8-hsl: 20 85% 40%;
+  /* Dark orange */
 }
 
 html,
 body {
   overscroll-behavior: none;
+  font-family: "Lora", sans-serif;
+  ;
 }
 
 /* Custom scrollbar styles */

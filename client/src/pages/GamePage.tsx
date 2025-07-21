@@ -143,7 +143,7 @@ const GamePage: React.FC = () => {
   return (
     <div className="min-h-screen bg-background text-text-primary">
       {isInstructionsVisible && <InstructionsModal gameMode={room.gameMode} onClose={() => setIsInstructionsVisible(false)} />}
-      <div className="flex flex-col lg:flex-row h-screen p-4 gap-4">
+      <div className="flex flex-col lg:flex-row h-full lg:h-screen p-4 gap-4">
         <div ref={gameAreaRef} className={isFullscreen ? "fixed inset-0 bg-background flex items-center justify-center z-50 p-2" : "flex-1 flex items-center justify-center relative bg-surface-100/50 border border-border rounded-2xl"} onTouchStart={touchHandler(handleTouchStart)} onTouchMove={touchHandler(handleTouchMove)} onTouchEnd={touchHandler(handleTouchEnd)} onTouchCancel={touchHandler(handleTouchEnd)}>
           {isFullscreen && <GameStatus room={room} isFullscreen={isFullscreen} />}
           {isFullscreen && room.gameMode === GameMode.HIDE_AND_SEEK && room.gameState.status === 'playing' && (
