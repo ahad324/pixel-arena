@@ -41,7 +41,7 @@ const AppRoutes: React.FC = () => {
   if (IS_MAINTENANCE_MODE) {
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
-    tomorrow.setHours(9, 0, 0, 0); // Launch at 9:00 AM tomorrow.
+    tomorrow.setHours(0, 0, 0, 0); // Launch at 9:00 AM tomorrow.
 
     return (
       <Routes>
