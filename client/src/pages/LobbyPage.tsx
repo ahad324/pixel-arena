@@ -1,10 +1,10 @@
 
-
 import React, { useState, useEffect } from "react";
-import { motion, easeOut } from "framer-motion";
+import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import { GameMode } from "../types";
 import { socketService } from "@services/socketService";
-import { GAME_DESCRIPTIONS, PLAYER_COLORS, getGameModeStatus, GameStatus } from "@constants/index";
+import { PLAYER_COLORS, getGameModeStatus } from "@constants/index";
 import {
   TagIcon,
   TerritoryIcon,
@@ -22,75 +22,21 @@ import {
 import InstructionsModal from "@components/InstructionsModal";
 import Spinner from "@components/Spinner";
 import { useGame } from "@contexts/GameContext";
-import { StatusBadge } from "@components/StatusBadge";
-
-interface GameModeCardProps {
-  mode: GameMode;
-  icon: React.ReactNode;
-  selected: boolean;
-  onSelect: () => void;
-  status?: GameStatus | null;
-}
-
-const GameModeCard: React.FC<GameModeCardProps> = ({
-  mode,
-  icon,
-  selected,
-  onSelect,
-  status,
-}) => {
-  return (
-    <div className="relative">
-      <button
-        onClick={onSelect}
-        className={`relative overflow-hidden p-4 md:p-6 border-2 rounded-lg text-left transition-all duration-300 w-full h-full flex flex-col transform hover:scale-105 group ${selected
-          ? "border-primary bg-primary/20 shadow-lg shadow-primary/20 animate-bounce-subtle"
-          : "border-border bg-surface-100 hover:bg-surface-200 hover:border-primary/50 hover:shadow-lg"
-          }`}
-      >
-        <div className="flex items-center mb-2">
-          <div className="transform transition-transform duration-300 group-hover:scale-110">
-            {icon}
-          </div>
-          <h3 className="text-xl font-bold ml-3 text-text-primary">{mode}</h3>
-        </div>
-        <p className="text-sm text-text-secondary flex-grow">{GAME_DESCRIPTIONS[mode]}</p>
-      </button>
-      {status && <StatusBadge status={status} />}
-    </div>
-  );
-};
-
-const containerVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: {
-      duration: 0.6,
-      ease: easeOut
-    }
-  }
-};
+import GameModeCard from "@components/GameModeCard";
 
 const LobbyPage: React.FC = () => {
   const { user, joinRoom: onJoinRoom, logout } = useGame();
-  const [selectedGameMode, setSelectedGameMode] = useState<GameMode>(
-    GameMode.TAG
-  );
+  const navigate = useNavigate();
+  const [selectedGameMode, setSelectedGameMode] = useState<GameMode>(GameMode.TAG);
   const [joinCode, setJoinCode] = useState("");
   const [error, setError] = useState("");
-  const [availableRooms, setAvailableRooms] = useState<
-    { id: string; gameMode: GameMode; playerCount: number }[]
-  >([]);
+  const [availableRooms, setAvailableRooms] = useState<{ id: string; gameMode: GameMode; playerCount: number }[]>([]);
   const [isInstructionsVisible, setIsInstructionsVisible] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isLoadingRooms, setIsLoadingRooms] = useState(true);
 
   useEffect(() => {
-    const handleRoomsUpdate = (
-      rooms: { id: string; gameMode: GameMode; playerCount: number }[]
-    ) => {
+    const handleRoomsUpdate = (rooms: { id: string; gameMode: GameMode; playerCount: number }[]) => {
       setAvailableRooms(rooms);
       setIsLoadingRooms(false);
     };
@@ -103,7 +49,10 @@ const LobbyPage: React.FC = () => {
   const handleCreateRoom = () => {
     if (isProcessing || !user) return;
     setIsProcessing(true);
-    socketService.createRoom(user, selectedGameMode, onJoinRoom);
+    socketService.createRoom(user, selectedGameMode, (room) => {
+      onJoinRoom(room);
+      navigate(`/rooms/${room.id}`);
+    });
   };
 
   const handleJoinWithCode = (code: string) => {
@@ -112,6 +61,7 @@ const LobbyPage: React.FC = () => {
     socketService.joinRoom(code.toUpperCase(), user, ({ room, error }) => {
       if (room) {
         onJoinRoom(room);
+        navigate(`/rooms/${room.id}`);
       } else {
         setError(error || "An unknown error occurred.");
         setTimeout(() => setError(""), 3000);
@@ -121,175 +71,206 @@ const LobbyPage: React.FC = () => {
   };
 
   const gameModeIcons: Record<string, React.ReactNode> = {
-    [GameMode.TAG]: <TagIcon className="h-8 w-8 text-red-500" />,
-    [GameMode.TERRITORY_CONTROL]: (
-      <TerritoryIcon className="h-8 w-8 text-green-500" />
-    ),
-    [GameMode.MAZE_RACE]: <MazeIcon className="h-8 w-8 text-yellow-500" />,
-    [GameMode.HEIST_PANIC]: (
-      <HeistIcon className="h-8 w-8 text-blue-500" />
-    ),
-    [GameMode.INFECTION_ARENA]: (
-      <InfectionIcon className="h-8 w-8 text-lime-400" />
-    ),
-    [GameMode.TRAP_RUSH]: <TrapIcon className="h-8 w-8 text-orange-500" />,
-    [GameMode.SPY_AND_DECODE]: <SpyIcon className="h-8 w-8 text-indigo-500" />,
-    [GameMode.HIDE_AND_SEEK]: <HideAndSeekIcon className="h-8 w-8 text-teal-400" />,
+    [GameMode.TAG]: <TagIcon className="h-8 w-8" />,
+    [GameMode.TERRITORY_CONTROL]: <TerritoryIcon className="h-8 w-8" />,
+    [GameMode.MAZE_RACE]: <MazeIcon className="h-8 w-8" />,
+    [GameMode.HEIST_PANIC]: <HeistIcon className="h-8 w-8" />,
+    [GameMode.INFECTION_ARENA]: <InfectionIcon className="h-8 w-8" />,
+    [GameMode.TRAP_RUSH]: <TrapIcon className="h-8 w-8" />,
+    [GameMode.SPY_AND_DECODE]: <SpyIcon className="h-8 w-8" />,
+    [GameMode.HIDE_AND_SEEK]: <HideAndSeekIcon className="h-8 w-8" />,
   };
 
   return (
     <>
-      {isInstructionsVisible && (
-        <InstructionsModal
-          gameMode={selectedGameMode}
-          onClose={() => setIsInstructionsVisible(false)}
-        />
-      )}
-      <motion.div className="w-full max-w-6xl mx-auto animate-in fade-in duration-500">
-        <div className="text-center mb-8 relative pt-10 sm:pt-10">
-          <h1 className="text-4xl font-bold tracking-wider text-text-primary">GAME LOBBY</h1>
-          <p className="text-text-secondary mt-2">
-            Welcome,{" "}
-            <span className="text-primary font-bold">{user?.name}</span>!
-            Choose your game.
-          </p>
+      {isInstructionsVisible && <InstructionsModal gameMode={selectedGameMode} onClose={() => setIsInstructionsVisible(false)} />}
 
-          <button
-            onClick={logout}
-            className="absolute top-0 right-0 w-10 h-10 bg-error/20 hover:bg-error/40 border border-error/50 rounded-full flex items-center justify-center transition-all duration-300 hover:shadow-lg hover:shadow-error/30 group"
-            aria-label="Logout"
+      <div className="min-h-screen bg-background p-4 sm:p-6">
+        <div className="max-w-7xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center mb-8 md:mb-12 relative"
           >
-            <LogoutIcon className="w-5 h-5 text-error group-hover:scale-110 transition-transform" />
-          </button>
-        </div>
-      </motion.div>
-
-      <motion.div
-        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8"
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-      >
-        {(Object.values(GameMode) as GameMode[]).map((mode) => {
-          const status = getGameModeStatus(mode);
-          return (
-            <GameModeCard
-              key={mode}
-              mode={mode}
-              icon={gameModeIcons[mode]}
-              selected={selectedGameMode === mode}
-              onSelect={() => setSelectedGameMode(mode)}
-              status={status}
-            />
-          );
-        })}
-      </motion.div>
-
-      <motion.div
-        className="grid grid-cols-1 md:grid-cols-2 gap-6"
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-      >
-        <div className="bg-surface-100 border border-border rounded-lg p-6 flex flex-col">
-          <h2 className="text-2xl font-bold mb-4 flex items-center text-text-primary">
-            <CreateIcon className="w-8 h-8 mr-2 text-accent" /> Create a
-            Room
-          </h2>
-          <p className="text-text-secondary mb-4 flex-grow">
-            Start a new game of{" "}
-            <span className="font-bold text-text-primary">{selectedGameMode}</span>{" "}
-            and invite friends.
-          </p>
-          <div className="flex gap-2">
-            <button
-              onClick={handleCreateRoom}
-              disabled={isProcessing}
-              className="h-12 flex-grow bg-accent hover:bg-accent-hover text-white font-bold py-3 px-4 rounded-md focus:outline-none focus:shadow-outline transform hover:scale-105 transition-transform duration-200 flex items-center justify-center disabled:opacity-70 disabled:cursor-not-allowed"
+            <h1 className="text-4xl sm:text-5xl md:text-6xl font-black tracking-tighter mb-4 text-text-primary">GAME LOBBY</h1>
+            <p className="text-lg sm:text-xl text-text-secondary">
+              Welcome back, <span className="text-text-primary font-bold">{user?.name}</span>
+            </p>
+            <motion.button
+              onClick={logout}
+              whileHover={{ scale: 1.05, backgroundColor: "hsl(var(--surface-200-hsl))" }}
+              whileTap={{ scale: 0.95 }}
+              className="absolute top-0 right-0 w-10 h-10 sm:w-12 sm:h-12 bg-surface-100 border border-border rounded-xl flex items-center justify-center transition-all duration-300 group"
+              aria-label="Logout"
             >
-              {isProcessing ? <Spinner className="w-6 h-6" /> : "Create Room"}
-            </button>
-            <button
-              onClick={() => setIsInstructionsVisible(true)}
-              className="flex-shrink-0 bg-surface-200 hover:bg-border text-text-secondary hover:text-text-primary font-bold p-3 rounded-md focus:outline-none focus:shadow-outline transform hover:scale-105 transition-transform duration-200"
-              aria-label="How to Play"
-            >
-              <InfoIcon className="w-6 h-6" />
-            </button>
-          </div>
-        </div>
+              <LogoutIcon className="w-5 h-5 text-text-secondary group-hover:text-error transition-colors" />
+            </motion.button>
+          </motion.div>
 
-        <div className="bg-surface-100 border border-border rounded-lg p-6 flex flex-col">
-          <h2 className="text-2xl font-bold mb-4 flex items-center text-text-primary">
-            <EnterIcon className="w-8 h-8 mr-2 text-primary" /> Join with
-            Code
-          </h2>
-          <div className="flex gap-2 flex-grow items-center">
-            <input
-              type="text"
-              value={joinCode}
-              onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
-              onKeyDown={(e) =>
-                e.key === "Enter" && handleJoinWithCode(joinCode)
-              }
-              className="flex-grow shadow appearance-none border border-border rounded-md w-full py-3 px-4 bg-surface-200 text-text-primary leading-tight focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all uppercase placeholder-text-secondary"
-              placeholder="ROOM CODE"
-              maxLength={6}
-            />
-            <button
-              onClick={() => handleJoinWithCode(joinCode)}
-              disabled={!joinCode || isProcessing}
-              className="h-12 w-20 flex-shrink-0 bg-primary hover:bg-primary-hover text-white font-bold py-3 px-4 rounded-md focus:outline-none focus:shadow-outline transform hover:scale-105 transition-transform duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
-            >
-              {isProcessing ? <Spinner className="w-6 h-6" /> : "Join"}
-            </button>
-          </div>
-          <p className={`text-error text-sm mt-2 h-5 transition-all duration-300 ${error ? 'animate-shake' : ''}`}>{error}</p>
-        </div>
-      </motion.div>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8 md:mb-12"
+          >
+            {(Object.values(GameMode) as GameMode[]).map((mode, index) => {
+              const status = getGameModeStatus(mode);
+              return (
+                <motion.div
+                  key={mode}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.05 }}
+                >
+                  <GameModeCard
+                    mode={mode}
+                    icon={gameModeIcons[mode]}
+                    selected={selectedGameMode === mode}
+                    onSelect={() => setSelectedGameMode(mode)}
+                    status={status}
+                  />
+                </motion.div>
+              );
+            })}
+          </motion.div>
 
-      <div className="mt-8">
-        <h2 className="text-2xl font-bold mb-4 text-text-primary">Available Rooms</h2>
-        <div className="space-y-3 max-h-60 overflow-y-auto pr-2">
-          {isLoadingRooms ? (
-            <div className="flex justify-center items-center py-8">
-              <Spinner />
-            </div>
-          ) : availableRooms.length > 0 ? (
-            availableRooms.map((room) => (
-              <div
-                key={room.id}
-                className="bg-surface-100/80 border border-border rounded-lg p-4 flex items-center justify-between hover:bg-surface-200/60 transition-colors"
-              >
-                <div>
-                  <p className="font-bold text-lg text-text-primary">{room.gameMode}</p>
-                  <p className="text-sm text-text-secondary">
-                    Room Code:{" "}
-                    <span className="font-mono text-warning">
-                      {room.id}
-                    </span>
-                  </p>
-                </div>
-                <div className="flex items-center gap-4">
-                  <p className="text-text-secondary">
-                    {room.playerCount} / {PLAYER_COLORS.length}
-                  </p>
-                  <button
-                    onClick={() => handleJoinWithCode(room.id)}
-                    disabled={isProcessing}
-                    className="bg-primary hover:bg-primary-hover text-white font-bold py-2 px-4 rounded-md transition-colors disabled:opacity-50"
-                  >
-                    Join
-                  </button>
-                </div>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8 mb-8 md:mb-12"
+          >
+            <div className="bg-surface-100 border border-border rounded-3xl p-6 sm:p-8 shadow-2xl">
+              <h2 className="text-2xl sm:text-3xl font-black mb-4 flex items-center text-text-primary">
+                <CreateIcon className="w-8 h-8 mr-4 text-accent" />
+                Create Room
+              </h2>
+              <p className="text-text-secondary mb-8 leading-relaxed text-base sm:text-lg">
+                Start a new game of <span className="font-bold text-text-primary">{selectedGameMode}</span> and invite friends.
+              </p>
+              <div className="flex gap-4">
+                <motion.button
+                  onClick={handleCreateRoom}
+                  disabled={isProcessing}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="flex-grow bg-accent text-on-primary font-black py-3 sm:py-4 px-6 rounded-xl shadow-lg hover:bg-accent-hover transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                >
+                  {isProcessing ? <Spinner className="w-5 h-5" /> : "Create Room"}
+                </motion.button>
+                <motion.button
+                  onClick={() => setIsInstructionsVisible(true)}
+                  whileHover={{ scale: 1.05, backgroundColor: "hsl(var(--surface-200-hsl))" }}
+                  whileTap={{ scale: 0.95 }}
+                  className="bg-surface-200 border border-border text-text-secondary hover:text-text-primary font-bold p-3 sm:p-4 rounded-xl transition-all duration-200"
+                  aria-label="How to Play"
+                >
+                  <InfoIcon className="w-6 h-6" />
+                </motion.button>
               </div>
-            ))
-          ) : (
-            <div className="text-text-secondary text-center py-8 bg-surface-100/50 rounded-lg">
-              <p>No public rooms available.</p>
-              <p>Why not create one?</p>
             </div>
-          )}
+
+            <div className="bg-surface-100 border border-border rounded-3xl p-6 sm:p-8 shadow-2xl">
+              <h2 className="text-2xl sm:text-3xl font-black mb-4 flex items-center text-text-primary">
+                <EnterIcon className="w-8 h-8 mr-4 text-primary" />
+                Join Room
+              </h2>
+              <p className="text-text-secondary mb-8 leading-relaxed text-base sm:text-lg">Enter a room code to join an existing game.</p>
+              <div className="space-y-4">
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <input
+                    type="text"
+                    value={joinCode}
+                    onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
+                    onKeyDown={(e) => e.key === "Enter" && handleJoinWithCode(joinCode)}
+                    className="flex-grow px-4 py-3 sm:py-4 bg-surface-200 border border-border rounded-xl text-text-primary placeholder-text-secondary focus:outline-none focus:border-primary transition-all duration-200 uppercase font-mono text-lg"
+                    placeholder="ROOM CODE"
+                    maxLength={6}
+                  />
+                  <motion.button
+                    onClick={() => handleJoinWithCode(joinCode)}
+                    disabled={!joinCode || isProcessing}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="bg-primary text-on-primary font-black py-3 sm:py-4 px-8 rounded-xl shadow-lg hover:bg-primary-hover transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center min-w-[100px]"
+                  >
+                    {isProcessing ? <Spinner className="w-5 h-5" /> : "Join"}
+                  </motion.button>
+                </div>
+                {error && (
+                  <motion.p
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="text-error text-sm font-medium"
+                  >
+                    {error}
+                  </motion.p>
+                )}
+              </div>
+            </div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="bg-surface-100 border border-border rounded-3xl p-6 sm:p-8 shadow-2xl"
+          >
+            <h2 className="text-2xl sm:text-3xl font-black mb-8 text-text-primary">Available Rooms</h2>
+            <div className="space-y-4 max-h-[40vh] overflow-y-auto scrollbar-thin">
+              {isLoadingRooms ? (
+                <div className="flex justify-center items-center py-16">
+                  <Spinner className="w-8 h-8" />
+                </div>
+              ) : availableRooms.length > 0 ? (
+                availableRooms.map((room, index) => (
+                  <motion.div
+                    key={room.id}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.05 }}
+                    whileHover={{ scale: 1.01, backgroundColor: "hsl(var(--surface-200-hsl))" }}
+                    className="bg-surface-200 border border-border rounded-2xl p-4 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 hover:border-border/50 transition-all duration-200"
+                  >
+                    <div className="flex items-center space-x-4 sm:space-x-6 flex-grow min-w-0">
+                      <div className="text-primary">{gameModeIcons[room.gameMode]}</div>
+                      <div className="flex-grow min-w-0">
+                        <p className="font-bold text-text-primary text-lg sm:text-xl truncate">{room.gameMode}</p>
+                        <p className="text-sm text-text-secondary">
+                          Code: <span className="font-mono text-warning font-bold text-base">{room.id}</span>
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-4 sm:gap-6 w-full sm:w-auto">
+                      <div className="text-left sm:text-right flex-grow sm:flex-grow-0">
+                        <p className="text-text-primary font-bold text-lg">
+                          {room.playerCount} / {PLAYER_COLORS.length}
+                        </p>
+                        <p className="text-xs text-text-secondary uppercase tracking-wider">players</p>
+                      </div>
+                      <motion.button
+                        onClick={() => handleJoinWithCode(room.id)}
+                        disabled={isProcessing}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        className="bg-primary text-on-primary font-black py-3 px-6 rounded-xl shadow-lg hover:bg-primary-hover transition-all duration-200 disabled:opacity-50"
+                      >
+                        Join
+                      </motion.button>
+                    </div>
+                  </motion.div>
+                ))
+              ) : (
+                <div className="text-center py-16">
+                  <div className="text-text-secondary mb-6">
+                    <CreateIcon className="w-20 h-20 mx-auto mb-6 opacity-30" />
+                    <p className="text-2xl font-bold mb-2">No rooms available</p>
+                    <p className="text-lg">Be the first to create one!</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </motion.div>
         </div>
       </div>
     </>

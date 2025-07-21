@@ -1,31 +1,38 @@
 
 import React from "react";
+import { motion } from "framer-motion";
 import type { Room } from "../types/index";
+import Spinner from "./Spinner";
 
 const GameControls: React.FC<{
   room: Room;
   isHost: boolean;
   onStartGame: () => void;
   onLeaveRoom: () => void;
-}> = ({ room, isHost, onStartGame, onLeaveRoom }) => {
+  isProcessing?: boolean;
+}> = ({ room, isHost, onStartGame, onLeaveRoom, isProcessing }) => {
   return (
-    <>
+    <div className="flex flex-col gap-3">
       {room.gameState.status === "waiting" && isHost && (
-        <button
+        <motion.button
           onClick={onStartGame}
-          disabled={room.players.length < 1}
-          className="w-full bg-accent hover:bg-accent-hover text-white font-bold py-3 px-4 rounded-md focus:outline-none focus:shadow-outline transition-all duration-200 disabled:bg-surface-200 disabled:text-text-secondary disabled:cursor-not-allowed mt-2 transform hover:scale-105 disabled:hover:scale-100"
+          disabled={room.players.length < 1 || isProcessing}
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          className="w-full bg-gradient-to-r from-accent to-accent-dark text-on-primary font-bold py-3 px-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
         >
-          Start Game
-        </button>
+          {isProcessing ? <Spinner className="w-5 h-5" /> : "Start Game"}
+        </motion.button>
       )}
-      <button
+      <motion.button
         onClick={onLeaveRoom}
-        className="w-full mt-2 bg-error/80 hover:bg-error text-white font-bold py-2 px-4 rounded-md focus:outline-none focus:shadow-outline transition-all duration-200 transform hover:scale-105"
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
+        className="w-full bg-gradient-to-r from-error to-error-dark text-on-primary font-bold py-3 px-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
       >
         Leave Room
-      </button>
-    </>
+      </motion.button>
+    </div>
   );
 };
 

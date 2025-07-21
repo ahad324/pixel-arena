@@ -1,3 +1,4 @@
+
 import React, { CSSProperties } from "react";
 
 interface VirtualJoystickProps {
@@ -8,12 +9,10 @@ interface VirtualJoystickProps {
   };
 }
 
-const JOYSTICK_SIZE = 80; // px
-const THUMB_SIZE = 40; // px
+const JOYSTICK_SIZE = 80;
+const THUMB_SIZE = 40;
 
-const VirtualJoystick: React.FC<VirtualJoystickProps> = ({
-  joystickState,
-}) => {
+const VirtualJoystick: React.FC<VirtualJoystickProps> = ({ joystickState }) => {
   if (!joystickState.isActive) {
     return null;
   }
@@ -24,11 +23,8 @@ const VirtualJoystick: React.FC<VirtualJoystickProps> = ({
     left: joystickState.position.x - JOYSTICK_SIZE / 2,
     width: JOYSTICK_SIZE,
     height: JOYSTICK_SIZE,
-    borderRadius: "50%",
-    backgroundColor: "rgba(0, 0, 0, 0.2)",
-    backdropFilter: "blur(2px)",
     zIndex: 50,
-    pointerEvents: "none", // Pass touches through to the game area
+    pointerEvents: "none",
   };
 
   const thumbStyle: CSSProperties = {
@@ -38,16 +34,16 @@ const VirtualJoystick: React.FC<VirtualJoystickProps> = ({
     top: (JOYSTICK_SIZE - THUMB_SIZE) / 2 + joystickState.thumbPosition.y,
     left: (JOYSTICK_SIZE - THUMB_SIZE) / 2 + joystickState.thumbPosition.x,
     borderRadius: "50%",
-    backgroundColor: "rgba(255, 255, 255, 0.4)",
+    backgroundColor: "hsla(var(--text-primary-hsl))",
     transition: "top 50ms, left 50ms",
   };
 
   return (
     <div style={baseStyle}>
+       <div className="absolute inset-0 bg-surface-200 border-2 border-border rounded-full opacity-80" />
       <div style={thumbStyle}></div>
     </div>
   );
 };
 
 export default VirtualJoystick;
-

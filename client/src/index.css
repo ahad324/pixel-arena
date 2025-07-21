@@ -1,21 +1,71 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --background-hsl: 210 39% 7%;
+  --surface-100-hsl: 212 19% 11%;
+  --surface-200-hsl: 212 14% 15%;
+
+  --primary-hsl: 212 100% 67%;
+  --primary-hover-hsl: 212 100% 75%;
+  --primary-dark-hsl: 212 100% 57%;
+
+  --accent-hsl: 129 55% 50%;
+  --accent-hover-hsl: 130 54% 55%;
+  --accent-dark-hsl: 130 55% 40%;
+  --accent-secondary-hsl: 329 89% 72%;
+
+  --error-hsl: 3 93% 63%;
+  --error-hover-hsl: 2 100% 69%;
+  --error-dark-hsl: 3 93% 53%;
+
+  --warning-hsl: 41 100% 47%;
+  --warning-dark-hsl: 41 100% 37%;
+
+  --info-hsl: 195 85% 55%;
+  --experimental-hsl: 25 95% 53%;
+
+  --text-primary-hsl: 210 16% 82%;
+  --text-secondary-hsl: 212 9% 58%;
+  --text-on-primary-hsl: 210 39% 7%;
+  /* Dark text for light/accented backgrounds */
+
+  --border-hsl: 212 12% 21%;
+
+  /* Player Colors */
+  --player-color-1-hsl: 212 100% 67%;
+  --player-color-2-hsl: 129 55% 50%;
+  --player-color-3-hsl: 329 89% 72%;
+  --player-color-4-hsl: 41 100% 47%;
+  --player-color-5-hsl: 3 93% 63%;
+  --player-color-6-hsl: 260 88% 70%;
+  --player-color-7-hsl: 175 70% 45%;
+  --player-color-8-hsl: 22 95% 53%;
+}
+
+html,
+body {
+  overscroll-behavior: none;
+}
+
 /* Custom scrollbar styles */
 .scrollbar-thin::-webkit-scrollbar {
   width: 8px;
+  height: 8px;
 }
 
 .scrollbar-thin::-webkit-scrollbar-track {
-  background: #161B22; /* surface-200 */
+  background: hsl(var(--surface-100-hsl));
+  border-radius: 4px;
 }
 
 .scrollbar-thin::-webkit-scrollbar-thumb {
-  background: #30363D; /* border */
+  background: hsl(var(--surface-200-hsl));
   border-radius: 4px;
 }
 
 .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-  background: #58A6FF; /* primary */
+  background: hsl(var(--border-hsl));
 }

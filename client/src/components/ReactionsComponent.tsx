@@ -1,23 +1,19 @@
-import React, { useEffect, useState } from "react";
+
+import React, { useEffect, useState, useRef } from "react";
 import ReactionManager from "@utils/ReactionManager";
 import { ReactionsPanel, ReactionOverlay } from "@components/shared/Reactions";
-import { AnimatePresence, motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
-interface ReactionsComponentProps {
-  buttonClassName?: string;
-}
-
-const ReactionsComponent: React.FC<ReactionsComponentProps> = ({ buttonClassName = "" }) => {
+const ReactionsComponent: React.FC = () => {
   const [latestEmoji, setLatestEmoji] = useState("");
   const [isPanelOpen, setIsPanelOpen] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     ReactionManager.onReceive((emoji: string) => {
       setLatestEmoji(emoji);
     });
-    return () => {
-      ReactionManager.offReceive();
-    };
+    return () => ReactionManager.offReceive();
   }, []);
 
   const handleReact = (emoji: string) => {
@@ -27,27 +23,27 @@ const ReactionsComponent: React.FC<ReactionsComponentProps> = ({ buttonClassName
 
   return (
     <>
-      <AnimatePresence>
-        {!isPanelOpen && (
-          <motion.button
-            key="react-btn"
-            onClick={() => setIsPanelOpen(true)}
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            transition={{ duration: 0.3, ease: "easeOut" }}
-            className={`w-12 h-12 bg-primary text-white text-2xl rounded-full hover:bg-primary-hover transition shadow-lg flex items-center justify-center ${buttonClassName}`}
-          >
-            🎉
-          </motion.button>
-        )}
-      </AnimatePresence>
+      <div className="fixed bottom-6 left-6 z-[60]">
+        <AnimatePresence>
+          {isPanelOpen && (
+            <ReactionsPanel
+              onReact={handleReact}
+              onClose={() => setIsPanelOpen(false)}
+            />
+          )}
+        </AnimatePresence>
+        <motion.button
+          ref={triggerRef}
+          onClick={() => setIsPanelOpen(p => !p)}
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+          className="w-12 h-12 sm:w-14 sm:h-14 bg-surface-200 text-text-primary text-2xl rounded-full border-2 border-border shadow-lg flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-primary"
+        >
+          <motion.span animate={{ rotate: isPanelOpen ? 45 : 0 }}>😊</motion.span>
+        </motion.button>
+      </div>
 
-      <ReactionsPanel
-        onReact={handleReact}
-        onClose={() => setIsPanelOpen(false)}
-        isOpen={isPanelOpen}
-      />
+      {isPanelOpen && <div className="fixed inset-0 z-[59]" onClick={() => setIsPanelOpen(false)} />}
 
       <ReactionOverlay triggerEmoji={latestEmoji} />
     </>

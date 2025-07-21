@@ -1,5 +1,7 @@
-import React, { useEffect, useState, useRef } from "react";
+
+import React, { useEffect, useState, useRef, useLayoutEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { ChevronLeftIcon, ChevronRightIcon, XIcon } from "@components/icons";
 
 interface ReactionBurst {
   id: string;
@@ -11,62 +13,102 @@ interface ReactionBurst {
 
 interface ReactionsPanelProps {
   onReact: (emoji: string) => void;
-  availableReactions?: string[];
-  className?: string;
-  onClose?: () => void;
-  isOpen?: boolean;
+  onClose: () => void;
 }
 
-const DEFAULT_REACTIONS = ["👍", "😂", "😍", "😮", "😢", "👏"];
+const ALL_REACTIONS = ["👍", "😂", "😍", "😮", "😢", "👏", "🔥", "🤯", "💯", "🎉", "🙏", "🤔", "🤣", "💔", "❤️"];
 
-const ReactionsPanel: React.FC<ReactionsPanelProps> = ({
-  onReact,
-  availableReactions = DEFAULT_REACTIONS,
-  className = "",
-  onClose,
-  isOpen = false,
-}) => {
-  const constraintsRef = useRef<HTMLDivElement>(null);
+const ReactionsPanel: React.FC<ReactionsPanelProps> = ({ onReact, onClose }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [itemsPerPage, setItemsPerPage] = useState(5);
+  const [page, setPage] = useState(0);
+
+  useLayoutEffect(() => {
+    const updateItems = () => {
+      if (!containerRef.current) return;
+      const width = containerRef.current.offsetWidth;
+
+      if (width >= 360) setItemsPerPage(5);
+      else if (width >= 280) setItemsPerPage(4);
+      else setItemsPerPage(3);
+    };
+
+    updateItems();
+    window.addEventListener("resize", updateItems);
+    return () => window.removeEventListener("resize", updateItems);
+  }, []);
+
+  const totalPages = Math.ceil(ALL_REACTIONS.length / itemsPerPage);
+
+  const visibleReactions = ALL_REACTIONS.slice(
+    page * itemsPerPage,
+    (page + 1) * itemsPerPage
+  );
 
   return (
-    <div ref={constraintsRef} className="fixed inset-0 z-50 pointer-events-none">
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            drag
-            dragConstraints={constraintsRef}
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            transition={{ duration: 0.3, ease: "easeOut" }}
-            className={`pointer-events-auto absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2
-              rounded-md border border-border shadow-xl px-5 pb-4 pt-3 w-fit
-              bg-surface-100 text-text-primary backdrop-blur-md ${className}`}
-          >
-            <div className="flex justify-end mb-2">
-              <button
-                onClick={onClose}
-                className="text-text-secondary hover:text-white text-3xl font-bold leading-none transition"
-                aria-label="Close"
-              >
-                ×
-              </button>
-            </div>
-            <div className="flex gap-3 justify-center flex-wrap">
-              {availableReactions.map((emoji) => (
-                <button
+    <motion.div
+      drag
+      dragMomentum={false}
+      initial={{ opacity: 0, y: 20, scale: 0.95 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: 20, scale: 0.95 }}
+      transition={{ duration: 0.2, ease: "easeOut" }}
+      ref={containerRef}
+      className="absolute bottom-[calc(100%_+_0.5rem)] left-0 bg-surface-100/70 backdrop-blur-md border border-border rounded-2xl shadow-2xl px-5 py-6 w-[90vw] max-w-xs sm:max-w-sm cursor-grab active:cursor-grabbing"
+      onClick={(e) => e.stopPropagation()}
+    >
+      <button onClick={onClose} className="absolute top-2 right-2 text-text-secondary hover:text-text-primary z-10">
+        <XIcon className="w-5 h-5" />
+      </button>
+      <div className="flex items-center gap-3 sm:gap-4">
+        <button
+          onClick={() => setPage(p => Math.max(p - 1, 0))}
+          disabled={page === 0}
+          className="p-2 rounded-full disabled:opacity-30 enabled:hover:bg-surface-200 text-text-primary flex-shrink-0"
+        >
+          <ChevronLeftIcon className="w-6 h-6" />
+        </button>
+        <div className="flex-grow w-full overflow-hidden">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={page + '-' + itemsPerPage}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.15 }}
+              className="flex items-center justify-center gap-3"
+            >
+              {visibleReactions.map((emoji) => (
+                <motion.button
                   key={emoji}
                   onClick={() => onReact(emoji)}
-                  className="text-3xl sm:text-4xl hover:scale-125 transition-transform duration-200"
+                  whileHover={{ scale: 1.2, rotate: 10 }}
+                  whileTap={{ scale: 0.9 }}
+                  className="text-4xl"
                 >
                   {emoji}
-                </button>
+                </motion.button>
               ))}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
+            </motion.div>
+          </AnimatePresence>
+        </div>
+        <button
+          onClick={() => setPage(p => Math.min(p + 1, totalPages - 1))}
+          disabled={page >= totalPages - 1}
+          className="p-2 rounded-full disabled:opacity-30 enabled:hover:bg-surface-200 text-text-primary flex-shrink-0"
+        >
+          <ChevronRightIcon className="w-6 h-6" />
+        </button>
+      </div>
+      <div className="flex justify-center mt-2 space-x-1.5">
+        {Array.from({ length: totalPages }).map((_, i) => (
+          <div
+            key={i}
+            className={`w-2 h-2 rounded-full transition-colors ${i === page ? 'bg-text-primary' : 'bg-border'}`}
+          />
+        ))}
+      </div>
+    </motion.div>
   );
 };
 
@@ -76,45 +118,74 @@ interface ReactionOverlayProps {
 
 const ReactionOverlay: React.FC<ReactionOverlayProps> = ({ triggerEmoji }) => {
   const [reactions, setReactions] = useState<ReactionBurst[]>([]);
+  const lastTriggerTime = useRef(0);
+  const queue = useRef<string[]>([]);
 
   useEffect(() => {
     if (!triggerEmoji) return;
-
-    const leftPercent = Math.random() * 60 + 20;
-    const newReaction: ReactionBurst = {
-      id: crypto.randomUUID(),
-      emoji: triggerEmoji,
-      left: `${leftPercent}%`,
-      xDrift: (Math.random() - 0.5) * 100,
-      rotation: Math.random() * 40 - 20,
-    };
-
-    setReactions((prev) => [...prev, newReaction]);
-
-    const cleanupTimer = setTimeout(() => {
-      setReactions((prev) => prev.filter((r) => r.id !== newReaction.id));
-    }, 2200);
-
-    return () => clearTimeout(cleanupTimer);
+    const now = Date.now();
+    if (now - lastTriggerTime.current < 200) {
+      queue.current.push(triggerEmoji);
+      return;
+    }
+    lastTriggerTime.current = now;
+    triggerBurst(triggerEmoji);
   }, [triggerEmoji]);
 
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (queue.current.length > 0) {
+        const emoji = queue.current.shift();
+        if (emoji) {
+          lastTriggerTime.current = Date.now();
+          triggerBurst(emoji);
+        }
+      }
+    }, 200);
+    return () => clearInterval(interval);
+  }, []);
+
+  const triggerBurst = (emoji: string) => {
+    const burstSize = 3 + Math.floor(Math.random() * 3);
+    const newReactions: ReactionBurst[] = [];
+
+    for (let i = 0; i < burstSize; i++) {
+      const newReaction: ReactionBurst = {
+        id: crypto.randomUUID(),
+        emoji,
+        left: `${Math.random() * 80 + 10}%`,
+        xDrift: (Math.random() - 0.5) * 150,
+        rotation: Math.random() * 360 - 180,
+      };
+      newReactions.push(newReaction);
+    }
+
+    setReactions((prev) => [...prev, ...newReactions]);
+
+    newReactions.forEach((reaction) => {
+      setTimeout(() => {
+        setReactions((prev) => prev.filter((r) => r.id !== reaction.id));
+      }, 2200);
+    });
+  };
+
   return (
-    <div className="fixed bottom-20 left-0 w-full pointer-events-none z-40">
+    <div className="fixed inset-0 w-full h-full pointer-events-none z-[61] overflow-hidden">
       <AnimatePresence>
         {reactions.map((reaction) => (
           <motion.div
             key={reaction.id}
-            initial={{ opacity: 0, y: 0, scale: 0.6, x: 0 }}
+            initial={{ opacity: 1, y: '100vh', scale: 0.5 }}
             animate={{
-              opacity: [0, 1, 1, 0],
-              y: [-10, -80, -160, -240],
-              scale: [0.6, 1.2, 1, 0.8],
-              x: [0, reaction.xDrift * 0.3, reaction.xDrift * 0.6, reaction.xDrift],
-              rotate: reaction.rotation,
+              opacity: [1, 1, 0],
+              y: ['80vh', '30vh', '0vh'],
+              x: [0, reaction.xDrift * 0.5, reaction.xDrift],
+              scale: [0.5, 1.2, 0.8],
+              rotate: [0, reaction.rotation / 2, reaction.rotation],
             }}
             transition={{ duration: 2.2, ease: "easeOut" }}
             className="absolute text-3xl sm:text-4xl select-none"
-            style={{ left: reaction.left }}
+            style={{ left: reaction.left, willChange: 'transform, opacity' }}
           >
             {reaction.emoji}
           </motion.div>

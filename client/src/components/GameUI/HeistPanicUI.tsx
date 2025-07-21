@@ -1,4 +1,6 @@
+
 import React from "react";
+import { motion } from "framer-motion";
 import type { Player, Room } from "../../types/index";
 import { GameMode } from "../../types/index";
 import { useDeviceDetection } from "@hooks/useDeviceDetection";
@@ -21,25 +23,22 @@ const HeistPanicUI: React.FC<{
     }
   };
 
-  if (
-    room.gameMode !== GameMode.HEIST_PANIC ||
-    room.gameState.status !== "playing"
-  )
+  if (room.gameMode !== GameMode.HEIST_PANIC || room.gameState.status !== "playing")
     return null;
 
   return (
-    <div className="flex flex-col items-center space-y-2">
-      <button
-        onClick={handleGuessSubmit}
-        onTouchStart={handleGuessSubmit}
-        disabled={!!isFrozen}
-        className="w-full bg-warning hover:bg-yellow-600 text-white font-bold py-3 px-4 rounded-md focus:outline-none focus:shadow-outline transition-colors disabled:bg-surface-200 disabled:text-text-secondary disabled:cursor-not-allowed"
-      >
-        {isFrozen
-          ? "Frozen!"
-          : `Attempt Guess${!isMobile ? " (Press Space)" : ""}`}
-      </button>
-    </div>
+    <motion.button
+      onClick={handleGuessSubmit}
+      onTouchStart={handleGuessSubmit}
+      disabled={!!isFrozen}
+      whileHover={{ scale: 1.02 }}
+      whileTap={{ scale: 0.98 }}
+      className="w-full bg-gradient-to-r from-warning to-warning-dark text-on-primary font-bold py-3 px-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+    >
+      {isFrozen
+        ? "Frozen!"
+        : `Attempt Guess${!isMobile ? " (Space)" : ""}`}
+    </motion.button>
   );
 };
 

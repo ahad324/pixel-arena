@@ -1,48 +1,37 @@
 
 import React from "react";
 import type { Room } from "../types";
-import { GameMode } from "../types";
+import { motion } from "framer-motion";
 
 const GameStatus: React.FC<{ room: Room; isFullscreen: boolean }> = ({ room, isFullscreen }) => {
   const getStatusMessage = () => {
     const { status, timer, phase } = room.gameState;
-    const { gameMode } = room;
-
-    if (status === "waiting") return "Waiting for host to start...";
-    if (timer > 0)
-      return `${phase
-          ? `${phase.charAt(0).toUpperCase() + phase.slice(1)} Phase: `
-          : "Time Left: "
-        }${timer}s`;
-
-    switch (gameMode) {
-      case GameMode.TAG:
-        return "Don't get tagged!";
-      case GameMode.MAZE_RACE:
-        return "First to the finish wins!";
-      case GameMode.INFECTION_ARENA:
-        return "Don't get infected!";
-      case GameMode.TRAP_RUSH:
-        return "Get to the finish line!";
-      case GameMode.SPY_AND_DECODE:
-        return "Awaiting next phase...";
-      case GameMode.HEIST_PANIC:
-        return "First to the correct code wins!";
-      default:
-        return "";
+    if (status === "waiting") return { title: "Waiting for host...", subtitle: "The game will begin shortly." };
+    if (timer > 0) {
+      const formattedTime = new Date(timer * 1000).toISOString().slice(14, 19);
+      return {
+          title: formattedTime,
+          subtitle: phase ? `${phase.charAt(0).toUpperCase() + phase.slice(1)} Phase` : "Time Remaining"
+      };
     }
+    return { title: "Game in Progress", subtitle: "Good luck!" };
   };
 
-  const statusMessage = getStatusMessage();
+  const { title, subtitle } = getStatusMessage();
 
-  return isFullscreen ? (
-    <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-black/50 backdrop-blur-sm text-text-primary font-bold text-lg md:text-2xl px-4 py-2 md:px-6 md:py-3 rounded-xl z-10 pointer-events-none shadow-lg border border-border">
-      {statusMessage}
-    </div>
-  ) : (
-    <div className="bg-primary/10 text-primary rounded-md p-3 text-center mb-4 font-semibold border border-primary/20">
-      {statusMessage}
-    </div>
+  const containerClasses = isFullscreen
+    ? "absolute top-4 left-1/2 -translate-x-1/2 bg-surface-100/80 backdrop-blur-sm text-text-primary font-bold text-lg md:text-2xl px-6 py-3 rounded-2xl z-10 pointer-events-none shadow-lg border border-border"
+    : "bg-surface-200/50 text-text-primary rounded-2xl p-4 text-center border border-border/80";
+
+  return (
+    <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className={containerClasses}
+    >
+      <p className="text-2xl font-black tracking-tighter">{title}</p>
+      <p className="text-sm text-text-secondary">{subtitle}</p>
+    </motion.div>
   );
 };
 

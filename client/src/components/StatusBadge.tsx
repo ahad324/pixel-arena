@@ -32,7 +32,7 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({ status, className = '' }) => 
   const config = STATUS_CONFIG[status];
   const IconComponent = iconMap[config.iconName as keyof typeof iconMap];
 
-  if (!IconComponent) {
+  if (!config || !IconComponent) {
     return null;
   }
 
@@ -71,5 +71,4 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({ status, className = '' }) => 
   );
 };
 
-export default StatusBadge;
 export { StatusBadge };

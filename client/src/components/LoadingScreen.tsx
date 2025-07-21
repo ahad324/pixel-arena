@@ -1,15 +1,29 @@
+
 import React from 'react';
 import Spinner from '@components/Spinner';
-import logo from "/logo.svg";
+import Logo from "/logo.svg"
+import { motion } from 'framer-motion';
 
 const LoadingScreen: React.FC = () => {
     return (
-        <div className="w-full h-full flex flex-col items-center justify-center gap-4 animate-fade-in">
-            <div className="h-20 w-20 rounded-full overflow-hidden mb-4 border border-border bg-surface-100 animate-bounce-subtle">
-                <img src={logo} className="w-full h-full object-cover" alt="Logo" />
-            </div>
-            <Spinner className="w-16 h-16" />
-            <p className="text-text-secondary mt-2 animate-fade-in">Loading Pixel Arena...</p>
+        <div className="fixed inset-0 bg-background flex flex-col items-center justify-center gap-4">
+            <motion.div
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ type: 'spring', stiffness: 150, delay: 0.1 }}
+                className="h-20 w-20 overflow-hidden bg-surface-100 rounded-2xl mb-4 border border-border"
+            >
+                <img src={Logo} className="h-full w-full text-text-primary"/>
+            </motion.div>
+            <Spinner className="w-12 h-12" />
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.3 }}
+              className="text-text-secondary mt-2"
+            >
+              Loading Pixel Arena...
+            </motion.p>
         </div>
     );
 };

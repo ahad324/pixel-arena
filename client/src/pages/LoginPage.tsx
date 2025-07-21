@@ -1,11 +1,22 @@
 
 import React, { useState, FormEvent, useEffect } from "react";
-import logo from "/logo.svg"
+import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
+import Logo from "/logo.svg"
 import { useGame } from "@contexts/GameContext";
 
 const LoginPage: React.FC = () => {
-  const { login } = useGame();
+  const { login, user } = useGame();
   const [username, setUsername] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (user) {
+      navigate("/lobby");
+    }
+  }, [user, navigate]);
 
   useEffect(() => {
     const savedUsername = localStorage.getItem("pixel-arena-username");
@@ -16,56 +27,113 @@ const LoginPage: React.FC = () => {
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    if (username.trim()) {
-      login(username.trim());
+    const trimmedUsername = username.trim();
+    if (trimmedUsername.length < 3) {
+      setError("Username must be at least 3 characters.");
+      return;
     }
+     if (trimmedUsername.length > 15) {
+      setError("Username cannot be more than 15 characters.");
+      return;
+    }
+    setError("");
+    setIsLoading(true);
+    // Simulate network delay for better UX
+    setTimeout(() => {
+      login(trimmedUsername);
+      navigate("/lobby");
+    }, 500);
   };
 
   return (
-    <div className="w-full max-w-md mx-auto animate-in fade-in-50 duration-500">
-      <div className="bg-surface-100/50 backdrop-blur-sm border border-border/50 rounded-2xl p-8 shadow-2xl shadow-primary/10">
-        <div className="flex flex-col items-center mb-8">
-          <div className="w-52 h-52 bg-surface-200 rounded-full mb-4 border border-border">
-            <img
-              src={logo}
-              className="w-full h-full rounded-full object-cover"
-            />
-
-          </div>
-          <h1 className="text-5xl text-center font-bold tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent-secondary">
-            PIXEL ARENA
-          </h1>
-          <p className="text-text-secondary mt-2 text-lg">Enter the arena.</p>
-        </div>
-        <form onSubmit={handleSubmit}>
-          <div className="mb-6">
-            <label
-              htmlFor="username"
-              className="block text-sm font-bold mb-2 text-text-primary sr-only"
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, ease: [0.6, -0.05, 0.01, 0.99] }}
+        className="w-full max-w-md"
+      >
+        <div className="bg-surface-100 border border-border rounded-3xl p-8 shadow-2xl">
+          <div className="text-center mb-8">
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
+              className="inline-flex h-20 w-20 overflow-hidden bg-surface-200 border border-border rounded-2xl mb-6"
             >
-              Choose Your Username
-            </label>
-            <input
-              type="text"
-              id="username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              autoFocus
-              className="text-center text-lg shadow-inner appearance-none border-2 border-border rounded-lg w-full py-3 px-4 bg-surface-200/50 text-text-primary leading-tight focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-300"
-              placeholder="Enter your name"
-              required
-              maxLength={15}
-            />
+              <img src={Logo} className="w-full h-full" />
+            </motion.div>
+            <motion.h1
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="text-4xl font-black mb-2 text-text-primary"
+            >
+              Enter the Arena
+            </motion.h1>
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.4 }}
+              className="text-text-secondary"
+            >
+              Choose your name to begin.
+            </motion.p>
           </div>
-          <button
-            type="submit"
-            className="w-full bg-gradient-to-r from-primary to-accent-secondary text-white font-bold text-lg py-3 px-4 rounded-lg focus:outline-none focus:ring-4 focus:ring-primary/50 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed"
-            disabled={!username.trim()}
+          <motion.form
+            onSubmit={handleSubmit}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+            className="space-y-4"
           >
-            Play Now
-          </button>
-        </form>
-      </div>
+            <div>
+              <label htmlFor="username" className="sr-only">
+                Player Name
+              </label>
+              <motion.input
+                whileFocus={{ scale: 1.02 }}
+                type="text"
+                id="username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                autoFocus
+                className="w-full px-4 py-4 bg-surface-200 border border-border rounded-xl text-text-primary placeholder-text-secondary focus:outline-none focus:border-primary transition-all duration-200 text-center"
+                placeholder="Your Name"
+                required
+                maxLength={15}
+                disabled={isLoading}
+              />
+               {error && <p className="text-error text-sm mt-2 text-center">{error}</p>}
+            </div>
+            <motion.button
+              type="submit"
+              disabled={!username.trim() || isLoading}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="w-full py-4 px-4 bg-primary text-on-primary font-black rounded-xl shadow-lg hover:bg-primary-hover focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+            >
+              {isLoading ? (
+                <div className="flex items-center justify-center space-x-2">
+                  <div className="w-5 h-5 border-2 border-text-on-primary/50 border-t-text-on-primary rounded-full animate-spin" />
+                  <span>Entering...</span>
+                </div>
+              ) : (
+                "Play Now"
+              )}
+            </motion.button>
+          </motion.form>
+          <motion.button
+            onClick={() => navigate("/")}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.6 }}
+            className="w-full mt-4 py-2 text-text-secondary hover:text-text-primary transition-colors duration-200 font-medium"
+          >
+            ← Back to Home
+          </motion.button>
+        </div>
+      </motion.div>
     </div>
   );
 };
