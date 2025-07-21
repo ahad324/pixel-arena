@@ -1,6 +1,6 @@
 
 import React, { useState, FormEvent, useEffect } from "react";
-import { LogoIcon } from "@components/icons";
+import logo from "/logo.svg"
 import { useGame } from "@contexts/GameContext";
 
 const LoginPage: React.FC = () => {
@@ -25,8 +25,12 @@ const LoginPage: React.FC = () => {
     <div className="w-full max-w-md mx-auto animate-in fade-in-50 duration-500">
       <div className="bg-surface-100/50 backdrop-blur-sm border border-border/50 rounded-2xl p-8 shadow-2xl shadow-primary/10">
         <div className="flex flex-col items-center mb-8">
-          <div className="p-4 bg-surface-200 rounded-full mb-4 border border-border">
-            <LogoIcon className="h-16 w-16 text-primary" />
+          <div className="w-52 h-52 bg-surface-200 rounded-full mb-4 border border-border">
+            <img
+              src={logo}
+              className="w-full h-full rounded-full object-cover"
+            />
+
           </div>
           <h1 className="text-5xl text-center font-bold tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent-secondary">
             PIXEL ARENA
