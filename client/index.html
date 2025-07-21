@@ -1,22 +1,47 @@
-
 <!DOCTYPE html>
 <html lang="en">
   <head>
+    <!-- Basic Meta -->
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/x-icon" href="/logo.svg" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0, user-scalable=no"
-    />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+    <!-- Title & Description -->
     <title>Pixel Arena - Multiplayer Games</title>
+    <meta name="description" content="Join Pixel Arena and dive into fast-paced, real-time multiplayer games. Choose a game mode, challenge friends, and conquer the arena!" />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/logo.svg" />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:title" content="Pixel Arena - Multiplayer Games" />
+    <meta property="og:description" content="Play fun, competitive real-time multiplayer games in Pixel Arena. Enter the arena now!" />
+    <meta property="og:image" content="/cover.jpeg" />
+    <meta property="og:url" content="https://your-domain.com" />
+    <meta property="og:type" content="website" />
+
+    <!-- Twitter Meta -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Pixel Arena - Multiplayer Games" />
+    <meta name="twitter:description" content="Join the ultimate multiplayer battle in Pixel Arena. Fun game modes, fast gameplay!" />
+    <meta name="twitter:image" content="/cover.jpeg" />
+
+    <!-- Theme Color -->
+    <meta name="theme-color" content="#111827" />
+
+    <!-- CSS Reset / Custom Style -->
     <style>
       html,
       body {
+        margin: 0;
+        padding: 0;
         overscroll-behavior: none;
+        background-color: #111827; /* matches Tailwind's gray-900 */
+        color: white;
       }
     </style>
   </head>
-  <body class="bg-gray-900 text-white antialiased">
+  <body class="antialiased">
     <div id="root"></div>
     <script type="module" src="/src/index.tsx"></script>
   </body>
