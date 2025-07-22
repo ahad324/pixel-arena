@@ -100,3 +100,28 @@ body {
 .scrollbar-thin::-webkit-scrollbar-thumb:hover {
   background: hsl(var(--border-hsl));
 }
+
+.shiny-text {
+  position: relative;
+  background: linear-gradient(
+    120deg,
+    rgba(255, 255, 255, 0.4) 0%,
+    rgba(255, 255, 255, 1) 50%,
+    rgba(255, 255, 255, 0.4) 100%
+  );
+  background-size: 200% auto;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: #ffffff;
+  -webkit-text-fill-color: transparent;
+  animation: textShine 2.5s ease-in-out infinite;
+}
+
+@keyframes textShine {
+  0% {
+    background-position: -100% center;
+  }
+  100% {
+    background-position: 100% center;
+  }
+}

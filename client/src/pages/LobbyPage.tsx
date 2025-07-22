@@ -23,9 +23,10 @@ import Loader from "@components/Loader";
 import { useGame } from "@contexts/GameContext";
 import GameModeCard from "@components/GameModeCard";
 import ProcessingOverlay from "@components/ui/ProcessingOverlay";
+import ConnectionBanner from "@components/ui/ConnectionBanner";
 
 const LobbyPage: React.FC = () => {
-  const { user, joinRoom: onJoinRoom, logout } = useGame();
+  const { user, joinRoom: onJoinRoom, logout, isConnected, connectionError, isConnectionWarningDismissed, dismissConnectionWarning, resetConnectionWarning } = useGame();
   const navigate = useNavigate();
   const [selectedGameMode, setSelectedGameMode] = useState<GameMode>(GameMode.TAG);
   const [joinCode, setJoinCode] = useState("");
@@ -37,18 +38,40 @@ const LobbyPage: React.FC = () => {
   const [isLoadingRooms, setIsLoadingRooms] = useState(true);
 
   useEffect(() => {
+    if (!isConnected) {
+        setIsProcessing(false);
+        setIsLoadingRooms(false);
+    } else {
+        setIsLoadingRooms(true);
+        socketService.getAvailableRooms();
+    }
+  }, [isConnected]);
+
+  useEffect(() => {
     const handleRoomsUpdate = (rooms: { id: string; gameMode: GameMode; playerCount: number }[]) => {
       setAvailableRooms(rooms);
       setIsLoadingRooms(false);
     };
     socketService.onAvailableRoomsUpdate(handleRoomsUpdate);
-    socketService.getAvailableRooms();
+    
+    // Initial fetch
+    if(isConnected) {
+        socketService.getAvailableRooms();
+    }
 
     return () => socketService.offAvailableRoomsUpdate();
-  }, []);
+  }, [isConnected]);
+
+  const checkConnection = () => {
+    if (!isConnected) {
+      resetConnectionWarning();
+      return false;
+    }
+    return true;
+  };
 
   const handleCreateRoom = () => {
-    if (isProcessing || !user) return;
+    if (!checkConnection() || isProcessing || !user) return;
     setIsProcessing(true);
     setProcessingText("Creating Room...");
     socketService.createRoom(user, selectedGameMode, (room) => {
@@ -58,7 +81,7 @@ const LobbyPage: React.FC = () => {
   };
 
   const handleJoinWithCode = (code: string) => {
-    if (!code || isProcessing || !user) return;
+    if (!checkConnection() || !code || isProcessing || !user) return;
     setIsProcessing(true);
     setProcessingText("Joining Room...");
     socketService.joinRoom(code.toUpperCase(), user, ({ room, error }) => {
@@ -87,6 +110,11 @@ const LobbyPage: React.FC = () => {
 
   return (
     <>
+      <ConnectionBanner 
+        isVisible={!isConnected && !isConnectionWarningDismissed} 
+        error={connectionError}
+        onDismiss={dismissConnectionWarning}
+      />
       <ProcessingOverlay isVisible={isProcessing} text={processingText} />
       {isInstructionsVisible && <InstructionsModal gameMode={selectedGameMode} onClose={() => setIsInstructionsVisible(false)} />}
 
@@ -112,10 +140,19 @@ const LobbyPage: React.FC = () => {
             </motion.button>
           </motion.div>
 
-          <motion.div
+          <motion.h2
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
+            className="text-2xl sm:text-3xl font-black mb-6 text-text-primary text-center md:text-left"
+          >
+            Select a Game Mode
+          </motion.h2>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8 md:mb-12"
           >
             {(Object.values(GameMode) as GameMode[]).map((mode, index) => {
@@ -142,7 +179,7 @@ const LobbyPage: React.FC = () => {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
+            transition={{ delay: 0.3 }}
             className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8 mb-8 md:mb-12"
           >
             <div className="bg-surface-100 border border-border rounded-3xl p-6 sm:p-8 shadow-2xl">
@@ -156,7 +193,7 @@ const LobbyPage: React.FC = () => {
               <div className="flex gap-4">
                 <motion.button
                   onClick={handleCreateRoom}
-                  disabled={isProcessing}
+                  disabled={isProcessing || !isConnected}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   className="flex-grow bg-accent text-on-primary font-black py-3 sm:py-4 px-6 rounded-xl shadow-lg hover:bg-accent-hover transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
@@ -191,10 +228,11 @@ const LobbyPage: React.FC = () => {
                     className="flex-grow px-4 py-3 sm:py-4 bg-surface-200 border border-border rounded-xl text-text-primary placeholder-text-secondary focus:outline-none focus:border-primary transition-all duration-200 uppercase font-mono text-lg"
                     placeholder="ROOM CODE"
                     maxLength={6}
+                    disabled={!isConnected}
                   />
                   <motion.button
                     onClick={() => handleJoinWithCode(joinCode)}
-                    disabled={!joinCode || isProcessing}
+                    disabled={!joinCode || isProcessing || !isConnected}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     className="bg-primary text-on-primary font-black py-3 sm:py-4 px-8 rounded-xl shadow-lg hover:bg-primary-hover transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center min-w-[100px]"
@@ -218,14 +256,21 @@ const LobbyPage: React.FC = () => {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
+            transition={{ delay: 0.4 }}
             className="bg-surface-100 border border-border rounded-3xl p-6 sm:p-8 shadow-2xl"
           >
             <h2 className="text-2xl sm:text-3xl font-black mb-8 text-text-primary">Available Rooms</h2>
             <div className="space-y-4 max-h-[40vh] overflow-y-auto scrollbar-thin">
-              {isLoadingRooms ? (
+              {isLoadingRooms && isConnected ? (
                 <div className="flex justify-center items-center py-16">
                   <Loader className="w-8 h-8" text="Loading rooms..." containerClassName="flex-col"/>
+                </div>
+              ) : !isConnected ? (
+                 <div className="text-center py-16">
+                  <div className="text-text-secondary mb-6">
+                    <p className="text-2xl font-bold mb-2">Connection Error</p>
+                    <p className="text-lg">Cannot fetch available rooms. Please check your connection.</p>
+                  </div>
                 </div>
               ) : availableRooms.length > 0 ? (
                 availableRooms.map((room, index) => (
@@ -255,7 +300,7 @@ const LobbyPage: React.FC = () => {
                       </div>
                       <motion.button
                         onClick={() => handleJoinWithCode(room.id)}
-                        disabled={isProcessing}
+                        disabled={isProcessing || !isConnected}
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                         className="bg-primary text-on-primary font-black py-3 px-6 rounded-xl shadow-lg hover:bg-primary-hover transition-all duration-200 disabled:opacity-50"

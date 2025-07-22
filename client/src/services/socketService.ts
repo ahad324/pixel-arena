@@ -21,6 +21,9 @@ class SocketService {
   public setMazeRaceDifficulty: typeof SocketEmitters.prototype.setMazeRaceDifficulty;
 
   // Listener methods
+  public onConnect: typeof SocketListeners.prototype.onConnect;
+  public onDisconnect: typeof SocketListeners.prototype.onDisconnect;
+  public onConnectError: typeof SocketListeners.prototype.onConnectError;
   public onAvailableRoomsUpdate: typeof SocketListeners.prototype.onAvailableRoomsUpdate;
   public offAvailableRoomsUpdate: typeof SocketListeners.prototype.offAvailableRoomsUpdate;
   public onGameStarted: typeof SocketListeners.prototype.onGameStarted;
@@ -77,6 +80,9 @@ class SocketService {
     );
 
     // Bind listener methods
+    this.onConnect = this.listeners.onConnect.bind(this.listeners);
+    this.onDisconnect = this.listeners.onDisconnect.bind(this.listeners);
+    this.onConnectError = this.listeners.onConnectError.bind(this.listeners);
     this.onAvailableRoomsUpdate = this.listeners.onAvailableRoomsUpdate.bind(
       this.listeners
     );
@@ -134,11 +140,13 @@ class SocketService {
   }
 
   public connect() {
-    if (!this.socket) {
+    if (!this.socket?.connected) {
       const backendUrl =
         (import.meta as any).env.VITE_BACKEND_URL || "http://localhost:3000";
       this.socket = io(backendUrl, {
         transports: ["websocket"],
+        reconnectionAttempts: 5,
+        reconnectionDelay: 1000,
       });
     }
   }

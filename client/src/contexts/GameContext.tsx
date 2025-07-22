@@ -8,11 +8,16 @@ interface GameContextType {
   user: Omit<Player, "socketId"> | null;
   room: Room | null;
   isLoading: boolean;
+  isConnected: boolean;
+  connectionError: string | null;
+  isConnectionWarningDismissed: boolean;
   login: (username: string) => void;
   joinRoom: (room: Room) => void;
   leaveRoom: () => void;
   endGame: () => void;
   logout: () => void;
+  dismissConnectionWarning: () => void;
+  resetConnectionWarning: () => void;
   heistPadFeedback: { [padId: string]: 'correct' | 'incorrect' };
   revealedHidersUntil: number | null;
 }
@@ -23,6 +28,10 @@ type GameAction =
   | { type: "SET_IS_LOADING"; payload: boolean }
   | { type: "SET_USER"; payload: Omit<Player, "socketId"> | null }
   | { type: "SET_ROOM"; payload: Room | null }
+  | { type: "SET_CONNECTION_STATUS"; payload: boolean }
+  | { type: "SET_CONNECTION_ERROR"; payload: string | null }
+  | { type: "DISMISS_CONNECTION_WARNING" }
+  | { type: "RESET_CONNECTION_WARNING" }
   | { type: "PLAYER_JOINED"; payload: Player }
   | { type: "PLAYER_LEFT"; payload: { playerId: string } }
   | { type: "HOST_CHANGED"; payload: { newHostId: string } }
@@ -77,6 +86,9 @@ interface GameState {
   user: Omit<Player, "socketId"> | null;
   room: Room | null;
   isLoading: boolean;
+  isConnected: boolean;
+  connectionError: string | null;
+  isConnectionWarningDismissed: boolean;
   heistPadFeedback: { [padId: string]: 'correct' | 'incorrect' };
   revealedHidersUntil: number | null;
 }
@@ -85,6 +97,9 @@ const initialState: GameState = {
   user: null,
   room: null,
   isLoading: true,
+  isConnected: true,
+  connectionError: null,
+  isConnectionWarningDismissed: false,
   heistPadFeedback: {},
   revealedHidersUntil: null,
 };
@@ -97,6 +112,18 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
       return { ...state, user: action.payload };
     case "SET_ROOM":
       return { ...state, room: action.payload };
+    case "SET_CONNECTION_STATUS":
+      if (action.payload) { // If connected
+        return { ...state, isConnected: true, connectionError: null, isConnectionWarningDismissed: false };
+      }
+      // If disconnected
+      return { ...state, isConnected: false };
+    case "SET_CONNECTION_ERROR":
+      return { ...state, isConnected: false, connectionError: action.payload, isConnectionWarningDismissed: false };
+    case "DISMISS_CONNECTION_WARNING":
+        return { ...state, isConnectionWarningDismissed: true };
+    case "RESET_CONNECTION_WARNING":
+        return { ...state, isConnectionWarningDismissed: false };
     case "PLAYER_JOINED":
       if (!state.room) return state;
       return {
@@ -330,6 +357,13 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
     dispatch({ type: "SET_IS_LOADING", payload: false });
 
     // Setup all listeners
+    socketService.onConnect(() => dispatch({ type: "SET_CONNECTION_STATUS", payload: true }));
+    socketService.onDisconnect(() => dispatch({ type: "SET_CONNECTION_STATUS", payload: false }));
+    socketService.onConnectError((err) => {
+        console.error("Connection Error:", err.message);
+        dispatch({ type: "SET_CONNECTION_ERROR", payload: "Cannot connect to Pixel Arena servers. The server may be down for maintenance or there could be an issue with your network." });
+    });
+    
     socketService.onGameStarted((data) => dispatch({ type: "GAME_STARTED", payload: data }));
     socketService.onPlayerJoined((data) => dispatch({ type: "PLAYER_JOINED", payload: data.player }));
     socketService.onPlayerLeft((data) => dispatch({ type: "PLAYER_LEFT", payload: data }));
@@ -393,7 +427,26 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
     leaveRoom();
   };
 
-  const value = { user: state.user, room: state.room, isLoading: state.isLoading, login, joinRoom, leaveRoom, endGame, heistPadFeedback: state.heistPadFeedback, revealedHidersUntil: state.revealedHidersUntil, logout, };
+  const dismissConnectionWarning = () => dispatch({ type: "DISMISS_CONNECTION_WARNING" });
+  const resetConnectionWarning = () => dispatch({ type: "RESET_CONNECTION_WARNING" });
+
+  const value: GameContextType = { 
+      user: state.user, 
+      room: state.room, 
+      isLoading: state.isLoading,
+      isConnected: state.isConnected,
+      connectionError: state.connectionError,
+      isConnectionWarningDismissed: state.isConnectionWarningDismissed,
+      login, 
+      joinRoom, 
+      leaveRoom, 
+      endGame, 
+      dismissConnectionWarning,
+      resetConnectionWarning,
+      heistPadFeedback: state.heistPadFeedback, 
+      revealedHidersUntil: state.revealedHidersUntil, 
+      logout,
+    };
 
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>;
 };

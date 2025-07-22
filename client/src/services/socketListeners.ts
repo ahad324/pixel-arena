@@ -19,6 +19,19 @@ export class SocketListeners {
     this.socketService = socketService;
   }
 
+  // --- Connection Status Listeners ---
+  public onConnect(callback: () => void) {
+    this.socketService.getSocket()?.on("connect", callback);
+  }
+
+  public onDisconnect(callback: () => void) {
+    this.socketService.getSocket()?.on("disconnect", callback);
+  }
+
+  public onConnectError(callback: (err: Error) => void) {
+    this.socketService.getSocket()?.on("connect_error", callback);
+  }
+
   public onAvailableRoomsUpdate(
     callback: (
       rooms: { id: string; gameMode: GameMode; playerCount: number }[]

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, TouchEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { GameMode, MazeRaceDifficulty, Room } from "../types/index";
@@ -21,6 +22,7 @@ import HeistPanicUI from "@components/GameUI/HeistPanicUI";
 import HideAndSeekUI from "@components/GameUI/HideAndSeekUI";
 import { EnterFullscreenIcon, InfoIcon, CheckCircleIcon, TargetIcon } from "@components/icons";
 import ReactionsComponent from "@components/ReactionsComponent";
+import ConnectionBanner from "@components/ui/ConnectionBanner";
 
 const HidingPhaseIndicator: React.FC<{ room: Room }> = ({ room }) => {
   const [countdown, setCountdown] = useState(0);
@@ -51,7 +53,7 @@ const HidingPhaseIndicator: React.FC<{ room: Room }> = ({ room }) => {
 };
 
 const GamePage: React.FC = () => {
-  const { user, room, leaveRoom, endGame, heistPadFeedback } = useGame();
+  const { user, room, leaveRoom, endGame, heistPadFeedback, isConnected, connectionError, isConnectionWarningDismissed, dismissConnectionWarning, resetConnectionWarning } = useGame();
   const { isMobile } = useDeviceDetection();
   const navigate = useNavigate();
   const [isInstructionsVisible, setIsInstructionsVisible] = useState(false);
@@ -102,10 +104,10 @@ const GamePage: React.FC = () => {
   }, [room?.gameState.status, isMobile, isFullscreen, enterFullscreen, exitFullscreen, requestFullscreenOnStart]);
   
   useEffect(() => {
-    if (room?.gameState.status !== "waiting") {
+    if (room?.gameState.status !== "waiting" || !isConnected) {
         setIsStartingGame(false);
     }
-  }, [room?.gameState.status]);
+  }, [room?.gameState.status, isConnected]);
 
   useEffect(() => { if (room?.mazeRaceSettings?.difficulty) setSelectedDifficulty(room.mazeRaceSettings.difficulty) }, [room?.mazeRaceSettings?.difficulty]);
 
@@ -143,7 +145,7 @@ const GamePage: React.FC = () => {
   };
   
   const handleTouchMove = (e: TouchEvent<HTMLDivElement>) => {
-    const touch = Array.from(e.changedTouches).find(t => t.identifier === joystickState.touchId);
+    const touch = Array.from(e.changedTouches).find((t) => t.identifier === joystickState.touchId);
     if (!touch || !joystickState.isActive) return;
     e.preventDefault();
     const { x: centerX, y: centerY } = joystickState.position;
@@ -158,7 +160,7 @@ const GamePage: React.FC = () => {
   };
 
   const handleTouchEnd = (e: TouchEvent<HTMLDivElement>) => {
-    if (!Array.from(e.changedTouches).some(t => t.identifier === joystickState.touchId)) return;
+    if (!Array.from(e.changedTouches).some((t) => t.identifier === joystickState.touchId)) return;
     e.preventDefault();
     handleMoveEnd();
     setJoystickState({ isActive: false, position: { x: 0, y: 0 }, thumbPosition: { x: 0, y: 0 }, touchId: null });
@@ -167,8 +169,16 @@ const GamePage: React.FC = () => {
   if (!user || !room) return null;
   const isHost = room.hostId === user.id;
 
+  const checkConnection = () => {
+    if (!isConnected) {
+      resetConnectionWarning();
+      return false;
+    }
+    return true;
+  };
+
   const handleStartGame = () => {
-      if (isStartingGame) return;
+      if (!checkConnection() || isStartingGame) return;
       setIsStartingGame(true);
       socketService.startGame(room.id, user.id);
   };
@@ -188,6 +198,11 @@ const GamePage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background text-text-primary">
+      <ConnectionBanner
+        isVisible={!isConnected && !isConnectionWarningDismissed}
+        error={connectionError}
+        onDismiss={dismissConnectionWarning}
+      />
       {isInstructionsVisible && <InstructionsModal gameMode={room.gameMode} onClose={() => setIsInstructionsVisible(false)} />}
       <div className="flex flex-col lg:flex-row h-screen p-4 gap-4">
         <div ref={gameAreaRef} className={isFullscreen ? "fixed inset-0 bg-background flex items-center justify-center z-50 p-2" : "flex-1 flex items-center justify-center relative bg-surface-100/50 border border-border rounded-2xl"} onTouchStart={touchHandler(handleTouchStart)} onTouchMove={touchHandler(handleTouchMove)} onTouchEnd={touchHandler(handleTouchEnd)} onTouchCancel={touchHandler(handleTouchEnd)}>
@@ -231,7 +246,8 @@ const GamePage: React.FC = () => {
                   id="difficulty-select"
                   value={selectedDifficulty} 
                   onChange={e => socketService.setMazeRaceDifficulty(room.id, user.id, e.target.value as MazeRaceDifficulty)}
-                  className="w-full p-3 bg-surface-200/50 border border-border text-text-primary rounded-xl focus:outline-none focus:ring-2 focus:ring-primary"
+                  disabled={!isConnected}
+                  className="w-full p-3 bg-surface-200/50 border border-border text-text-primary rounded-xl focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50"
                 >
                   {(['easy', 'medium', 'hard', 'expert'] as const).map(d => 
                     <option key={d} value={d}>{d.charAt(0).toUpperCase() + d.slice(1)}</option>
@@ -243,7 +259,7 @@ const GamePage: React.FC = () => {
               {room.gameState.status === 'playing' && !isMobile && room.gameMode === GameMode.INFECTION_ARENA && <InfectionAbilityButton room={room} user={user} onAction={handleGenericAction} />}
               {room.gameState.status === 'playing' && !isMobile && room.gameMode === GameMode.HEIST_PANIC && <HeistPanicUI room={room} user={user} onGuessSubmit={handleGenericAction} />}
               {room.gameState.status === 'playing' && !isMobile && room.gameMode === GameMode.HIDE_AND_SEEK && <HideAndSeekUI room={room} user={user} onAction={handleGenericAction} />}
-              <GameControls room={room} isHost={isHost} onStartGame={handleStartGame} onLeaveRoom={handleLeaveRoom} isProcessing={isStartingGame} />
+              <GameControls room={room} isHost={isHost} onStartGame={handleStartGame} onLeaveRoom={handleLeaveRoom} isProcessing={isStartingGame || !isConnected} />
             </div>
           </div>
         )}

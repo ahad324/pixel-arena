@@ -135,7 +135,7 @@ export const ArrowRightIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) =
 );
 
 export const StarIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
-  <svg {...props}  xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M12 .587l3.668 7.568 8.332 1.151-6.064 5.828 1.48 8.279-7.416-3.967-7.417 3.967 1.481-8.279-6.064-5.828 8.332-1.151z"/></svg>
+  <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M12 .587l3.668 7.568 8.332 1.151-6.064 5.828 1.48 8.279-7.416-3.967-7.417 3.967 1.481-8.279-6.064-5.828 8.332-1.151z" /></svg>
 );
 
 export const GamepadIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
@@ -204,4 +204,20 @@ export const ChevronRightIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props)
 
 export const XIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
   <svg {...props} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+);
+
+export const AlertTriangleIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
+  <svg
+    {...props}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+    />
+  </svg>
 );
