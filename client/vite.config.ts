@@ -20,6 +20,7 @@ export default defineConfig({
       "@types": path.resolve(__dirname, "src/types"),
       "@config": path.resolve(__dirname, "src/config"),
       "@routes": path.resolve(__dirname, "src/routes"),
+      "@layouts": path.resolve(__dirname, "src/layouts"),
     },
   },
   server: {

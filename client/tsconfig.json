@@ -27,7 +27,8 @@
       "@types/*": ["src/types/*"],
       "@utils/*": ["src/utils/*"],
       "@config/*": ["src/config/*"],
-      "@routes/*": ["src/routes/*"]
+      "@routes/*": ["src/routes/*"],
+      "@layouts/*": ["src/layouts/*"]
     }
   },
   "include": ["src"],

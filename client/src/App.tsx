@@ -3,12 +3,15 @@ import React from 'react';
 import { BrowserRouter } from 'react-router-dom';
 import GameProvider from '@contexts/GameContext';
 import RootRouter from '@routes/index';
+import MainLayout from '@layouts/MainLayout';
 
 const App: React.FC = () => {
   return (
     <GameProvider>
       <BrowserRouter>
-        <RootRouter />
+        <MainLayout>
+          <RootRouter />
+        </MainLayout>
       </BrowserRouter>
     </GameProvider>
   );
