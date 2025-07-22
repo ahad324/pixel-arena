@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
@@ -20,9 +19,10 @@ import {
   LogoutIcon
 } from "@components/icons";
 import InstructionsModal from "@components/InstructionsModal";
-import Spinner from "@components/Spinner";
+import Loader from "@components/Loader";
 import { useGame } from "@contexts/GameContext";
 import GameModeCard from "@components/GameModeCard";
+import ProcessingOverlay from "@components/ui/ProcessingOverlay";
 
 const LobbyPage: React.FC = () => {
   const { user, joinRoom: onJoinRoom, logout } = useGame();
@@ -33,6 +33,7 @@ const LobbyPage: React.FC = () => {
   const [availableRooms, setAvailableRooms] = useState<{ id: string; gameMode: GameMode; playerCount: number }[]>([]);
   const [isInstructionsVisible, setIsInstructionsVisible] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [processingText, setProcessingText] = useState("");
   const [isLoadingRooms, setIsLoadingRooms] = useState(true);
 
   useEffect(() => {
@@ -49,6 +50,7 @@ const LobbyPage: React.FC = () => {
   const handleCreateRoom = () => {
     if (isProcessing || !user) return;
     setIsProcessing(true);
+    setProcessingText("Creating Room...");
     socketService.createRoom(user, selectedGameMode, (room) => {
       onJoinRoom(room);
       navigate(`/rooms/${room.id}`);
@@ -58,6 +60,7 @@ const LobbyPage: React.FC = () => {
   const handleJoinWithCode = (code: string) => {
     if (!code || isProcessing || !user) return;
     setIsProcessing(true);
+    setProcessingText("Joining Room...");
     socketService.joinRoom(code.toUpperCase(), user, ({ room, error }) => {
       if (room) {
         onJoinRoom(room);
@@ -66,6 +69,7 @@ const LobbyPage: React.FC = () => {
         setError(error || "An unknown error occurred.");
         setTimeout(() => setError(""), 3000);
         setIsProcessing(false);
+        setProcessingText("");
       }
     });
   };
@@ -83,6 +87,7 @@ const LobbyPage: React.FC = () => {
 
   return (
     <>
+      <ProcessingOverlay isVisible={isProcessing} text={processingText} />
       {isInstructionsVisible && <InstructionsModal gameMode={selectedGameMode} onClose={() => setIsInstructionsVisible(false)} />}
 
       <div className="min-h-screen bg-background p-4 sm:p-6">
@@ -154,9 +159,9 @@ const LobbyPage: React.FC = () => {
                   disabled={isProcessing}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="flex-grow bg-accent text-on-primary font-black py-3 sm:py-4 px-6 rounded-xl shadow-lg text-on-primary hover:bg-accent-hover transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                  className="flex-grow bg-accent text-on-primary font-black py-3 sm:py-4 px-6 rounded-xl shadow-lg hover:bg-accent-hover transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                 >
-                  {isProcessing ? <Spinner className="w-5 h-5" /> : "Create Room"}
+                  {isProcessing ? <Loader className="w-5 h-5 text-on-primary" /> : "Create Room"}
                 </motion.button>
                 <motion.button
                   onClick={() => setIsInstructionsVisible(true)}
@@ -194,7 +199,7 @@ const LobbyPage: React.FC = () => {
                     whileTap={{ scale: 0.98 }}
                     className="bg-primary text-on-primary font-black py-3 sm:py-4 px-8 rounded-xl shadow-lg hover:bg-primary-hover transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center min-w-[100px]"
                   >
-                    {isProcessing ? <Spinner className="w-5 h-5" /> : "Join"}
+                    {isProcessing ? <Loader className="w-5 h-5 text-on-primary" /> : "Join"}
                   </motion.button>
                 </div>
                 {error && (
@@ -220,7 +225,7 @@ const LobbyPage: React.FC = () => {
             <div className="space-y-4 max-h-[40vh] overflow-y-auto scrollbar-thin">
               {isLoadingRooms ? (
                 <div className="flex justify-center items-center py-16">
-                  <Spinner className="w-8 h-8" />
+                  <Loader className="w-8 h-8" text="Loading rooms..." containerClassName="flex-col"/>
                 </div>
               ) : availableRooms.length > 0 ? (
                 availableRooms.map((room, index) => (

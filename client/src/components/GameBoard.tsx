@@ -12,7 +12,7 @@ interface GameBoardProps {
   heistPadFeedback?: { [padId: string]: "correct" | "incorrect" };
 }
 
-const Footprint: React.FC<{ footprint: Footprint; cellSize: number; color: string }> = ({ footprint, cellSize, color }) => {
+const FootprintComponent: React.FC<{ footprint: Footprint; cellSize: number; color: string }> = ({ footprint, cellSize, color }) => {
   return (
     <motion.div
       key={`${footprint.x}-${footprint.y}-${footprint.timestamp}`}
@@ -66,17 +66,26 @@ const GameBoard: React.FC<GameBoardProps> = ({ room, user, heistPadFeedback, }) 
   }, []);
 
   useEffect(() => {
-    if (gameMode !== GameMode.MAZE_RACE || gameState.status !== "playing") {
+    // Rotation is now applicable to Maze Race (on Hard/Expert) and Hide and Seek
+    if ((gameMode !== GameMode.MAZE_RACE && gameMode !== GameMode.HIDE_AND_SEEK) || gameState.status !== "playing") {
       if (clientRotation !== 0) setClientRotation(0);
       return;
     }
+
     const difficulty = gameState.maze?.difficulty || MazeRaceDifficulty.EASY;
-    const shouldRotate = difficulty === MazeRaceDifficulty.HARD || difficulty === MazeRaceDifficulty.EXPERT;
+    const isMazeRaceRotation = gameMode === GameMode.MAZE_RACE && (difficulty === MazeRaceDifficulty.HARD || difficulty === MazeRaceDifficulty.EXPERT);
+    const isHideAndSeekRotation = gameMode === GameMode.HIDE_AND_SEEK;
+    const shouldRotate = isMazeRaceRotation || isHideAndSeekRotation;
+
     if (!shouldRotate) {
       if (clientRotation !== 0) setClientRotation(0);
       return;
     }
-    const rotationInterval = setInterval(() => { setClientRotation((prev) => (prev + 90) % 360); }, 12000);
+
+    const rotationInterval = setInterval(() => {
+      setClientRotation((prev) => (prev + 90) % 360);
+    }, 12000); // Rotate every 12 seconds
+
     return () => clearInterval(rotationInterval);
   }, [gameMode, gameState.status, gameState.maze?.difficulty, clientRotation]);
 
@@ -117,7 +126,9 @@ const GameBoard: React.FC<GameBoardProps> = ({ room, user, heistPadFeedback, }) 
     let visibilityInCells = Infinity;
     if (gameMode === GameMode.MAZE_RACE) {
       const difficulty = gameState.maze?.difficulty || MazeRaceDifficulty.EASY;
-      if (difficulty === MazeRaceDifficulty.MEDIUM || difficulty === MazeRaceDifficulty.EXPERT) visibilityInCells = 4.5;
+      if (difficulty === MazeRaceDifficulty.MEDIUM || difficulty === MazeRaceDifficulty.HARD || difficulty === MazeRaceDifficulty.EXPERT) {
+        visibilityInCells = 4.5;
+      }
     } else if (gameMode === GameMode.HIDE_AND_SEEK) {
       visibilityInCells = currentPlayer.isSeeker ? 7.5 : 4.5;
     }
@@ -135,15 +146,22 @@ const GameBoard: React.FC<GameBoardProps> = ({ room, user, heistPadFeedback, }) 
         return gameState.tiles?.flat().map((tile, index) => tile.color ? (
           <div key={index} className="absolute transition-colors duration-500" style={{ left: `${(index % GRID_SIZE) * cellSize}px`, top: `${Math.floor(index / GRID_SIZE) * cellSize}px`, width: cellSize, height: cellSize, backgroundColor: tile.color, opacity: 0.4 }} />) : null);
       case GameMode.MAZE_RACE:
+        return gameState.maze?.grid.map((row, y) => row.map((cell, x) => cell === 1 ? (
+          <div key={`${x}-${y}`} className="absolute bg-surface-200 border border-border" style={{ left: x * cellSize, top: y * cellSize, width: cellSize, height: cellSize, }} />
+        ) : gameState.maze?.end && y === gameState.maze.end.y && x === gameState.maze.end.x ? (
+          <motion.div key="end-point" className="absolute bg-accent rounded-full" style={{ left: x * cellSize + cellSize / 4, top: y * cellSize + cellSize / 4, width: cellSize / 2, height: cellSize / 2 }} animate={{ scale: [1, 1.2, 1], opacity: [0.5, 0.8, 0.5] }} transition={{ duration: 2, repeat: Infinity }} />
+        ) : null));
       case GameMode.HIDE_AND_SEEK:
         const mazeElements = gameState.maze?.grid.map((row, y) => row.map((cell, x) => cell === 1 ? (
           <div key={`${x}-${y}`} className="absolute bg-surface-200 border border-border" style={{ left: x * cellSize, top: y * cellSize, width: cellSize, height: cellSize, }} />
-        ) : gameMode === GameMode.MAZE_RACE && gameState.maze?.end && y === gameState.maze.end.y && x === gameState.maze.end.x ? (
-          <motion.div key="end-point" className="absolute bg-accent rounded-full" style={{ left: x * cellSize + cellSize / 4, top: y * cellSize + cellSize / 4, width: cellSize / 2, height: cellSize / 2 }} animate={{ scale: [1, 1.2, 1], opacity: [0.5, 0.8, 0.5] }} transition={{ duration: 2, repeat: Infinity }} />
         ) : null));
 
-        if (gameMode === GameMode.HIDE_AND_SEEK && self?.isSeeker) {
-          const footprints = <AnimatePresence>{gameState.footprints?.map(fp => players.find(pl => pl.id === fp.playerId) ? <Footprint key={`${fp.x}-${fp.y}-${fp.timestamp}`} footprint={fp} cellSize={cellSize} color={players.find(pl => pl.id === fp.playerId)!.color} /> : null)}</AnimatePresence>;
+        if (self?.isSeeker) {
+          const footprints = <AnimatePresence>{gameState.footprints?.map(fp => {
+            const player = players.find(pl => pl.id === fp.playerId);
+            return player ? <FootprintComponent key={`${fp.x}-${fp.y}-${fp.timestamp}`} footprint={fp} cellSize={cellSize} color={player.color} /> : null
+          })
+          }</AnimatePresence>;
           return [mazeElements, footprints];
         }
         return mazeElements;
@@ -180,7 +198,7 @@ const GameBoard: React.FC<GameBoardProps> = ({ room, user, heistPadFeedback, }) 
         {ghosts.map((g) => (
           <GhostAvatar key={g.id} x={g.x} y={g.y} cellSize={cellSize} rotation={-clientRotation} />
         ))}
-        {fogOfWarOverlayStyle && <div className="absolute inset-0 pointer-events-none transition-all duration-300 ease-linear" style={fogOfWarOverlayStyle} />}
+        {fogOfWarOverlayStyle && <div className="absolute inset-0 pointer-events-none transition-all duration-300 ease-linear z-20" style={fogOfWarOverlayStyle} />}
       </div>
     </div>
   );

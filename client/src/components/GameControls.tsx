@@ -1,8 +1,7 @@
-
 import React from "react";
 import { motion } from "framer-motion";
 import type { Room } from "../types/index";
-import Spinner from "./Spinner";
+import Loader from "./Loader";
 
 const GameControls: React.FC<{
   room: Room;
@@ -21,7 +20,7 @@ const GameControls: React.FC<{
           whileTap={{ scale: 0.98 }}
           className="w-full bg-gradient-to-r from-accent to-accent-dark text-on-primary font-bold py-3 px-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
         >
-          {isProcessing ? <Spinner className="w-5 h-5" /> : "Start Game"}
+          {isProcessing ? <Loader className="w-5 h-5 text-text-secondary" text="Starting..." /> : "Start Game"}
         </motion.button>
       )}
       <motion.button

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, TouchEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { GameMode, MazeRaceDifficulty, Room } from "../types/index";
@@ -58,6 +57,7 @@ const GamePage: React.FC = () => {
   const [isInstructionsVisible, setIsInstructionsVisible] = useState(false);
   const [requestFullscreenOnStart, setRequestFullscreenOnStart] = useState(false);
   const [selectedDifficulty, setSelectedDifficulty] = useState(MazeRaceDifficulty.EASY);
+  const [isStartingGame, setIsStartingGame] = useState(false);
   const gameAreaRef = useRef<HTMLDivElement>(null);
   const { isFullscreen, enterFullscreen, exitFullscreen } = useFullscreen();
   const { copied, handleCopy } = useClipboard(room?.id || "");
@@ -82,6 +82,12 @@ const GamePage: React.FC = () => {
     }
     if (room?.gameState.status !== "playing" && isFullscreen) exitFullscreen();
   }, [room?.gameState.status, isMobile, isFullscreen, enterFullscreen, exitFullscreen, requestFullscreenOnStart]);
+  
+  useEffect(() => {
+    if (room?.gameState.status !== "waiting") {
+        setIsStartingGame(false);
+    }
+  }, [room?.gameState.status]);
 
   useEffect(() => { if (room?.mazeRaceSettings?.difficulty) setSelectedDifficulty(room.mazeRaceSettings.difficulty) }, [room?.mazeRaceSettings?.difficulty]);
 
@@ -125,7 +131,11 @@ const GamePage: React.FC = () => {
   if (!user || !room) return null;
   const isHost = room.hostId === user.id;
 
-  const handleStartGame = () => socketService.startGame(room.id, user.id);
+  const handleStartGame = () => {
+      if (isStartingGame) return;
+      setIsStartingGame(true);
+      socketService.startGame(room.id, user.id);
+  };
   const handleLeaveRoom = () => { leaveRoom(); navigate("/lobby"); };
   const handleEndGame = () => { endGame(); navigate("/lobby"); };
 
@@ -143,7 +153,7 @@ const GamePage: React.FC = () => {
   return (
     <div className="min-h-screen bg-background text-text-primary">
       {isInstructionsVisible && <InstructionsModal gameMode={room.gameMode} onClose={() => setIsInstructionsVisible(false)} />}
-      <div className="flex flex-col lg:flex-row h-full lg:h-screen p-4 gap-4">
+      <div className="flex flex-col lg:flex-row h-screen p-4 gap-4">
         <div ref={gameAreaRef} className={isFullscreen ? "fixed inset-0 bg-background flex items-center justify-center z-50 p-2" : "flex-1 flex items-center justify-center relative bg-surface-100/50 border border-border rounded-2xl"} onTouchStart={touchHandler(handleTouchStart)} onTouchMove={touchHandler(handleTouchMove)} onTouchEnd={touchHandler(handleTouchEnd)} onTouchCancel={touchHandler(handleTouchEnd)}>
           {isFullscreen && <GameStatus room={room} isFullscreen={isFullscreen} />}
           {isFullscreen && room.gameMode === GameMode.HIDE_AND_SEEK && room.gameState.status === 'playing' && (
@@ -155,6 +165,7 @@ const GamePage: React.FC = () => {
           {isMobile && room.gameState.status === "playing" && <VirtualJoystick joystickState={joystickState} />}
           {renderMobileActionButtons()}
           {isMobile && room.gameState.status === "playing" && !isFullscreen && <button onClick={() => enterFullscreen(gameAreaRef.current!)} className="absolute top-4 right-4 z-10 p-2 bg-surface-200/50 rounded-full" aria-label="Enter fullscreen"><EnterFullscreenIcon className="w-6 h-6" /></button>}
+          <ReactionsComponent />
         </div>
         {!isFullscreen && (
           <div className="lg:w-96 flex-shrink-0 bg-surface-100/50 border border-border rounded-2xl p-6 flex flex-col">
@@ -182,12 +193,11 @@ const GamePage: React.FC = () => {
               {room.gameState.status === 'playing' && !isMobile && room.gameMode === GameMode.INFECTION_ARENA && <InfectionAbilityButton room={room} user={user} onAction={handleGenericAction} />}
               {room.gameState.status === 'playing' && !isMobile && room.gameMode === GameMode.HEIST_PANIC && <HeistPanicUI room={room} user={user} onGuessSubmit={handleGenericAction} />}
               {room.gameState.status === 'playing' && !isMobile && room.gameMode === GameMode.HIDE_AND_SEEK && <HideAndSeekUI room={room} user={user} onAction={handleGenericAction} />}
-              <GameControls room={room} isHost={isHost} onStartGame={handleStartGame} onLeaveRoom={handleLeaveRoom} />
+              <GameControls room={room} isHost={isHost} onStartGame={handleStartGame} onLeaveRoom={handleLeaveRoom} isProcessing={isStartingGame} />
             </div>
           </div>
         )}
       </div>
-      <ReactionsComponent />
     </div>
   );
 };

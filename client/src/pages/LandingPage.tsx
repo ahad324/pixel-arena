@@ -5,34 +5,28 @@ import { Link } from "react-router-dom";
 import { useGame } from "@contexts/GameContext";
 import DarkVeil from "@components/ui/DarkVeil";
 import { PlayIcon, ArrowRightIcon } from "@components/icons";
+import GithubButton from "@components/ui/GitHubButton";
 import Logo from "/logo.svg"
 
 const LandingPage: React.FC = () => {
   const { user } = useGame();
 
   return (
-    <div className="min-h-screen bg-background text-text-primary overflow-hidden">
+    <div className="min-h-screen text-text-primary overflow-hidden">
       <header className="absolute top-0 left-0 right-0 p-4 sm:p-6 z-20 flex justify-between items-center">
-        <Link to="/" className="flex items-center gap-3 group">
-          <img src={Logo} alt="Pixel Arena Logo" className="rounded-full w-9 h-9 sm:w-10 sm:h-10 group-hover:animate-bounce-subtle" />
-          <span className="hidden sm:block text-xl font-bold text-text-primary tracking-wide group-hover:text-primary transition-colors">Pixel Arena</span>
+        <Link to="/" className="flex items-center gap-3 group group-hover:border ">
+          <img src={Logo} alt="Pixel Arena Logo" className="rounded-lg w-9 h-9 sm:w-10 sm:h-10 group-hover:animate-bounce-subtle" />
+          <span className="hidden sm:block text-xl font-bold text-text-primary tracking-wide transition-colors">Pixel Arena</span>
         </Link>
-        <Link to={user ? "/lobby" : "/login"}>
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="bg-surface-200/50 hover:bg-surface-200/80 backdrop-blur-sm border border-border px-5 py-2 rounded-lg font-semibold text-text-primary transition-colors"
-          >
-            {user ? "Enter Lobby" : "Login"}
-          </motion.button>
-        </Link>
+        <GithubButton />
       </header>
 
       <section className="relative min-h-screen flex items-center justify-center p-4 overflow-hidden">
         <div className="absolute inset-0 w-full h-full">
-          <DarkVeil />
+          <DarkVeil speed={1}
+          />
         </div>
-        <div className="absolute inset-0 bg-background/40" />
+        <div className="absolute inset-0" />
 
         <div className="relative z-10 text-center max-w-6xl mx-auto flex flex-col items-center">
           <motion.div

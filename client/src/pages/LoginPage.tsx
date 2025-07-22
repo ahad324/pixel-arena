@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import Logo from "/logo.svg"
 import { useGame } from "@contexts/GameContext";
 import { ChevronLeftIcon } from "@components/icons";
+import Loader from "@components/Loader";
 
 const LoginPage: React.FC = () => {
   const { login, user } = useGame();
@@ -124,13 +125,15 @@ const LoginPage: React.FC = () => {
               disabled={!username.trim() || isLoading}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              className="w-full py-4 px-4 bg-primary text-on-primary font-black rounded-xl shadow-lg hover:bg-primary-hover focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+              className="w-full py-4 px-4 bg-primary text-on-primary font-black rounded-xl shadow-lg hover:bg-primary-hover focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center min-h-[56px]"
             >
               {isLoading ? (
-                <div className="flex items-center justify-center space-x-2">
-                  <div className="w-5 h-5 border-2 border-text-on-primary/50 border-t-text-on-primary rounded-full animate-spin" />
-                  <span>Entering...</span>
-                </div>
+                 <Loader
+                    text="Entering..."
+                    className="w-5 h-5 text-text-secondary"
+                    containerClassName="flex flex-row w-full"
+                    textClassName="text-text-secondary"
+                />
               ) : (
                 "Play Now"
               )}

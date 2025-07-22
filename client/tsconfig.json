@@ -25,7 +25,9 @@
       "@contexts/*": ["src/contexts/*"],
       "@constants/*": ["src/constants/*"],
       "@types/*": ["src/types/*"],
-      "@utils/*": ["src/utils/*"]
+      "@utils/*": ["src/utils/*"],
+      "@config/*": ["src/config/*"],
+      "@routes/*": ["src/routes/*"]
     }
   },
   "include": ["src"],

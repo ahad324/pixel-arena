@@ -1,4 +1,3 @@
-
 import React from "react";
 import { motion } from "framer-motion";
 import type { Player } from "../types";
@@ -27,9 +26,10 @@ const PlayerAvatar: React.FC<PlayerAvatarProps> = ({ player, cellSize }) => {
         const distance = Math.hypot(self.x - player.x, self.y - player.y);
         const isVisibleInFog = distance <= 7.5;
         const isRevealedByAbility = revealedHidersUntil && now < revealedHidersUntil;
-        if (isVisibleInFog) {
-          // It's visible, so we proceed to render the full avatar below.
-        } else if (isRevealedByAbility) {
+        if (!isVisibleInFog && !isRevealedByAbility) {
+          // Not in fog, not revealed. Hide completely.
+          return null;
+        } else if (!isVisibleInFog && isRevealedByAbility) {
           // Not in fog, but revealed by ability. Show highlight.
           return (
             <motion.div
@@ -46,16 +46,14 @@ const PlayerAvatar: React.FC<PlayerAvatarProps> = ({ player, cellSize }) => {
               ></div>
             </motion.div>
           );
-        } else {
-          // Not in fog, not revealed. Hide completely.
-          return null;
         }
+        // else isVisibleInFog, so we proceed to render the full avatar below.
       }
     } else { // Viewer is a Hider
       if (player.id !== self.id && !player.isSeeker) return null; // Hide other Hiders
     }
   }
-  
+
   const isShielded = player.shieldUntil && now < player.shieldUntil;
   const isFrozen = player.effects?.some(e => e.type === "frozen" && e.expires > now);
   const isSlowed = player.effects?.some(e => e.type === "slow" && e.expires > now);
@@ -78,13 +76,13 @@ const PlayerAvatar: React.FC<PlayerAvatarProps> = ({ player, cellSize }) => {
         zIndex: player.isSeeker ? 10 : (isSelf ? 6 : 5),
       }}
     >
-      <div 
+      <div
         className="w-full h-full p-[8%] transition-all duration-200"
         style={{ filter: `drop-shadow(0 0 5px ${finalColor}) ${isSlowed ? 'brightness(0.7)' : 'brightness(1)'}` }}
       >
         <div
           className="relative w-full h-full rounded-md flex items-center justify-center text-on-primary font-bold text-sm"
-          style={{ 
+          style={{
             backgroundColor: finalColor,
             transform: player.isCaught ? 'rotate(180deg)' : 'rotate(0deg)',
             opacity: player.isCaught ? 0.5 : 1,
@@ -100,7 +98,7 @@ const PlayerAvatar: React.FC<PlayerAvatarProps> = ({ player, cellSize }) => {
 
         </div>
       </div>
-      <div 
+      <div
         className="absolute -bottom-4 bg-background/60 text-text-primary text-[10px] px-1.5 py-0.5 rounded-md whitespace-nowrap"
         style={{ opacity: isSelf ? 1 : 0.8 }}
       >
