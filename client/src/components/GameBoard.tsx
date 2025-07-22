@@ -26,7 +26,7 @@ const FootprintComponent: React.FC<{ footprint: Footprint; cellSize: number; col
         left: footprint.x * cellSize, top: footprint.y * cellSize, width: cellSize, height: cellSize,
       }}
     >
-      <div className="w-full h-full opacity-30" style={{ backgroundColor: color, clipPath: "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)" }}/>
+      <div className="w-full h-full opacity-30" style={{ backgroundColor: color, clipPath: "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)" }} />
     </motion.div>
   );
 };
@@ -93,6 +93,8 @@ const GameBoard: React.FC<GameBoardProps> = ({ room, user, heistPadFeedback, cli
 
   const boardSize = GRID_SIZE * cellSize;
 
+  const playerMap = useMemo(() => new Map(players.map(p => [p.id, p])), [players]);
+
   const fogOfWarOverlay = useMemo(() => {
     const isFogEnabledGame = gameMode === GameMode.MAZE_RACE || gameMode === GameMode.HIDE_AND_SEEK;
     if (!isFogEnabledGame || gameState.status !== "playing" || !self) {
@@ -111,25 +113,26 @@ const GameBoard: React.FC<GameBoardProps> = ({ room, user, heistPadFeedback, cli
     }
 
     if (visibilityInCells === Infinity) {
-        return null;
+      return null;
     }
 
     const visibilityRadiusPx = visibilityInCells * cellSize;
     const playerCenterX = self.x * cellSize + cellSize / 2;
     const playerCenterY = self.y * cellSize + cellSize / 2;
-    
+
     // The background is hsl(220 30% 5%), which is approx #050812.
     // Using RGBA allows for a semi-transparent fog that lets players faintly see the maze.
-    const fogColor = 'rgba(5, 8, 18, 0.92)';
-    
+    const fogColor = `hsl(var(--fog-hsl) / ${0.92})`;
+
+
     // This gradient creates a clear circle that blends into the fog color.
     const gradient = `radial-gradient(circle ${visibilityRadiusPx}px at ${playerCenterX}px ${playerCenterY}px, transparent 70%, ${fogColor} 100%)`;
 
     return (
-        <div 
-            className="absolute inset-0 pointer-events-none z-20"
-            style={{ background: gradient }}
-        />
+      <div
+        className="absolute inset-0 pointer-events-none z-20"
+        style={{ background: gradient }}
+      />
     );
   }, [gameMode, gameState.status, gameState.maze?.difficulty, self, cellSize]);
 
@@ -140,22 +143,60 @@ const GameBoard: React.FC<GameBoardProps> = ({ room, user, heistPadFeedback, cli
         return gameState.tiles?.flat().map((tile, index) => tile.color ? (
           <div key={index} className="absolute transition-colors duration-500" style={{ left: `${(index % GRID_SIZE) * cellSize}px`, top: `${Math.floor(index / GRID_SIZE) * cellSize}px`, width: cellSize, height: cellSize, backgroundColor: tile.color, opacity: 0.4 }} />) : null);
       case GameMode.MAZE_RACE:
-        return gameState.maze?.grid.map((row, y) => row.map((cell, x) => cell === 1 ? (
-          <div key={`${x}-${y}`} className="absolute bg-surface-200 border border-border" style={{ left: x * cellSize, top: y * cellSize, width: cellSize, height: cellSize, }} />
-        ) : gameState.maze?.end && y === gameState.maze.end.y && x === gameState.maze.end.x ? (
-          <motion.div key="end-point" className="absolute bg-accent rounded-full" style={{ left: x * cellSize + cellSize / 4, top: y * cellSize + cellSize / 4, width: cellSize / 2, height: cellSize / 2 }} animate={{ scale: [1, 1.2, 1], opacity: [0.5, 0.8, 0.5] }} transition={{ duration: 2, repeat: Infinity }} />
-        ) : null));
+        return gameState.maze?.grid.map((row, y) => row.map((cell, x) =>
+          cell === 1 ? (
+            <div key={`${x}-${y}`} className="absolute border border-border" style={{
+              backgroundColor: "hsl(var(--grid-wall-hsl))",
+              borderColor: "hsl(var(--grid-border-hsl))", left: x * cellSize, top: y * cellSize, width: cellSize, height: cellSize,
+            }} />
+          ) : gameState.maze?.end && y === gameState.maze.end.y && x === gameState.maze.end.x ? (
+            <motion.div key="end-point" className="absolute rounded-full" style={{ backgroundColor: "hsl(var(--grid-end-hsl))", left: x * cellSize + cellSize / 4, top: y * cellSize + cellSize / 4, width: cellSize / 2, height: cellSize / 2 }} animate={{ scale: [1, 1.2, 1], opacity: [0.5, 0.8, 0.5] }} transition={{ duration: 2, repeat: Infinity }} />
+          ) : (
+            <div key={`${x}-${y}`} className="absolute" style={{
+              backgroundColor: "hsl(var(--grid-path-hsl))",
+              left: x * cellSize,
+              top: y * cellSize,
+              width: cellSize,
+              height: cellSize,
+            }} />
+          )));
+
       case GameMode.HIDE_AND_SEEK:
         const mazeElements = gameState.maze?.grid.map((row, y) => row.map((cell, x) => cell === 1 ? (
-          <div key={`${x}-${y}`} className="absolute bg-surface-200 border border-border" style={{ left: x * cellSize, top: y * cellSize, width: cellSize, height: cellSize, }} />
-        ) : null));
+          <div key={`${x}-${y}`} className="absolute border border-border" style={{
+            backgroundColor: "hsl(var(--grid-wall-hsl))",
+            borderColor: "hsl(var(--grid-border-hsl))", left: x * cellSize, top: y * cellSize, width: cellSize, height: cellSize,
+          }} />
+        ) : (
+          <div key={`${x}-${y}`} className="absolute" style={{
+            backgroundColor: "hsl(var(--grid-path-hsl))",
+            left: x * cellSize,
+            top: y * cellSize,
+            width: cellSize,
+            height: cellSize,
+          }} />
+        )));
 
-        if (self?.isSeeker) {
-          const footprints = <AnimatePresence>{gameState.footprints?.map(fp => {
-            const player = players.find(pl => pl.id === fp.playerId);
-            return player ? <FootprintComponent key={`${fp.x}-${fp.y}-${fp.timestamp}`} footprint={fp} cellSize={cellSize} color={player.color} /> : null
-            })
-          }</AnimatePresence>;
+
+        if (self?.isSeeker || gameState.footprints?.some(fp => fp.playerId === self?.id)) {
+          const footprints = (
+            <AnimatePresence>
+              {gameState.footprints
+                ?.filter(fp => self?.isSeeker || fp.playerId === self?.id)
+                .map(fp => {
+                  const player = playerMap.get(fp.playerId);
+                  return player ? (
+                    <FootprintComponent
+                      key={`${fp.x}-${fp.y}-${fp.timestamp}`}
+                      footprint={fp}
+                      cellSize={cellSize}
+                      color={player.color}
+                    />
+                  ) : null;
+                })}
+            </AnimatePresence>
+          );
+
           return [mazeElements, footprints];
         }
         return mazeElements;
@@ -165,10 +206,10 @@ const GameBoard: React.FC<GameBoardProps> = ({ room, user, heistPadFeedback, cli
           let feedbackClass = "bg-primary/50 border-primary";
           if (feedback === "incorrect") feedbackClass = "bg-error/50 border-error animate-pulse";
           else if (feedback === "correct") feedbackClass = "bg-accent/50 border-accent animate-pulse";
-          return <div key={pad.id} className={`absolute rounded-md border flex items-center justify-center font-bold transition-all duration-300 ${feedbackClass}`} style={{ left: pad.x * cellSize, top: pad.y * cellSize, width: cellSize, height: cellSize }}><span className="text-text-primary text-opacity-50 text-xs">?</span></div>;
+          return <div key={pad.id} className={`absolute rounded-md border flex items-center justify-center font-bold transition-all duration-300 ${feedbackClass}`} style={{ left: pad.x * cellSize, top: pad.y * cellSize, width: cellSize, height: cellSize }}><span className="text-text-on-primary text-opacity-80 text-xs">?</span></div>;
         });
       case GameMode.TRAP_RUSH: {
-        const trapElements = gameState.trapMap?.flatMap((row, y) => row.map((trap, x) => !trap || !trap.revealed ? null : <div key={`${x}-${y}`} className="absolute p-1" style={{ left: x * cellSize, top: y * cellSize, width: cellSize, height: cellSize }}><div className="w-full h-full bg-surface-200/80 rounded-full flex items-center justify-center">{trap.type === "freeze" ? <FreezeIcon className="w-2/3 h-2/3 text-primary"/> : trap.type === "slow" ? <SlowIcon className="w-2/3 h-2/3 text-warning"/> : <TeleportIcon className="w-2/3 h-2/3 text-accent-secondary"/>}</div></div>));
+        const trapElements = gameState.trapMap?.flatMap((row, y) => row.map((trap, x) => !trap || !trap.revealed ? null : <div key={`${x}-${y}`} className="absolute p-1" style={{ left: x * cellSize, top: y * cellSize, width: cellSize, height: cellSize }}><div className="w-full h-full bg-surface-200/80 rounded-full flex items-center justify-center">{trap.type === "freeze" ? <FreezeIcon className="w-2/3 h-2/3 text-primary" /> : trap.type === "slow" ? <SlowIcon className="w-2/3 h-2/3 text-warning" /> : <TeleportIcon className="w-2/3 h-2/3 text-accent-secondary" />}</div></div>));
         const finishLine = <div key="finish-line" className="absolute" style={{ left: 0, top: gameState.finishLine! * cellSize, width: "100%", height: cellSize, backgroundImage: `repeating-conic-gradient(hsl(var(--surface-200-hsl)) 0% 25%, hsl(var(--border-hsl)) 0% 50%)`, backgroundSize: `${cellSize}px ${cellSize}px`, opacity: 0.8, }} />;
         return [finishLine, ...(trapElements || [])];
       }
