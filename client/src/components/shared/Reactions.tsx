@@ -146,7 +146,7 @@ const ReactionOverlay: React.FC<ReactionOverlayProps> = ({ triggerEmoji }) => {
   }, []);
 
   const triggerBurst = (emoji: string) => {
-    const burstSize = 3 + Math.floor(Math.random() * 3);
+    const burstSize = 1; // Formerly a random burst of 3-5, now just 1.
     const newReactions: ReactionBurst[] = [];
 
     for (let i = 0; i < burstSize; i++) {
