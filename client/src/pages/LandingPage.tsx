@@ -22,7 +22,7 @@ const LandingPage: React.FC = () => {
             alt="Pixel Arena Logo"
             className="rounded-lg w-9 h-9 sm:w-10 sm:h-10 group-hover:animate-bounce-subtle"
           />
-          <span className="hidden sm:block text-xl font-bold text-text-primary tracking-wide transition-colors">
+          <span className="hidden sm:block text-xl font-bold text-text-on-primary tracking-wide transition-colors">
             Pixel Arena
           </span>
         </Link>
@@ -63,7 +63,7 @@ const LandingPage: React.FC = () => {
             className="text-center"
           >
             <h1
-              className="text-7xl sm:text-8xl md:text-9xl font-black tracking-tighter mb-4 text-text-primary relative"
+              className="text-7xl sm:text-8xl md:text-9xl tracking-tighter mb-4 text-text-primary relative"
               style={{ textShadow: "0 5px 30px hsla(var(--primary-hsl), 0.2)" }}
             >
               <motion.span
@@ -129,7 +129,7 @@ const LandingPage: React.FC = () => {
                   boxShadow: "0 0 40px hsla(var(--primary-hsl), 0.5)",
                 }}
                 whileTap={{ scale: 0.95 }}
-                className="group bg-primary hover:bg-primary-hover text-on-primary px-8 py-4 rounded-xl font-bold text-xl transition-all duration-300 flex items-center gap-3 shadow-lg shadow-primary/25"
+                className="group bg-primary hover:bg-primary-hover text-text-on-primary px-8 py-4 rounded-xl font-bold text-xl transition-all duration-300 flex items-center gap-3 shadow-lg shadow-primary/25"
               >
                 <PlayIcon className="w-7 h-7" />
                 {user ? "Enter Lobby" : "Start Playing"}

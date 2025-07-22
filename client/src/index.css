@@ -74,6 +74,7 @@
   /* Dark orange */
 }
 
+
 html,
 body {
   overscroll-behavior: none;
@@ -105,17 +106,17 @@ body {
   position: relative;
   background: linear-gradient(
     120deg,
-    rgba(255, 255, 255, 0.4) 0%,
-    rgba(255, 255, 255, 1) 50%,
-    rgba(255, 255, 255, 0.4) 100%
+    rgba(var(--tw-text-color-rgb, 255, 255, 255), 0.4) 0%,
+    rgba(var(--tw-text-color-rgb, 255, 255, 255), 1) 50%,
+    rgba(var(--tw-text-color-rgb, 255, 255, 255), 0.4) 100%
   );
   background-size: 200% auto;
   background-clip: text;
   -webkit-background-clip: text;
-  color: #ffffff;
   -webkit-text-fill-color: transparent;
   animation: textShine 2.5s ease-in-out infinite;
 }
+
 
 @keyframes textShine {
   0% {

@@ -35,7 +35,7 @@ const PlayerList: React.FC<{ room: Room; user: Omit<Player, "socketId"> }> = ({ 
             </div>
 
             <div className="flex items-center justify-end flex-shrink-0 flex-wrap gap-x-2 gap-y-1 text-xs font-bold">
-              {p.id === room.hostId && <span className="bg-warning text-on-primary px-2 py-0.5 rounded-full">HOST</span>}
+              {p.id === room.hostId && <span className="bg-warning text-text-on-primary px-2 py-0.5 rounded-full">HOST</span>}
               {p.isIt && <span className="text-error animate-pulse">(It!)</span>}
               {p.isInfected && <span className="animate-pulse" style={{ color: INFECTED_COLOR }}>(Infected)</span>}
               {room.gameMode === GameMode.HIDE_AND_SEEK && (

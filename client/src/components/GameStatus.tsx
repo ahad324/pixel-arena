@@ -29,7 +29,7 @@ const GameStatus: React.FC<{ room: Room; isFullscreen: boolean }> = ({ room, isF
         animate={{ opacity: 1, y: 0 }}
         className={containerClasses}
     >
-      <p className="text-2xl font-black tracking-tighter">{title}</p>
+      <p className="text-2xl tracking-tighter">{title}</p>
       <p className="text-sm text-text-secondary">{subtitle}</p>
     </motion.div>
   );

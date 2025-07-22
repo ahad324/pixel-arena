@@ -46,7 +46,7 @@ const EndScreen: React.FC<EndScreenProps> = ({ room, onBackToLobby }) => {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="text-4xl font-black mb-2 text-text-primary"
+            className="text-4xl mb-2 text-text-primary"
         >
             {winnerName}
         </motion.h1>
@@ -90,7 +90,7 @@ const EndScreen: React.FC<EndScreenProps> = ({ room, onBackToLobby }) => {
           transition={{ delay: 0.5 + sortedPlayers.length * 0.1 }}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
-          className="mt-8 w-full bg-primary hover:bg-primary-hover text-on-primary font-bold py-3 px-4 rounded-xl focus:outline-none transition-all duration-200"
+          className="mt-8 w-full bg-primary hover:bg-primary-hover text-text-on-primary font-bold py-3 px-4 rounded-xl focus:outline-none transition-all duration-200"
         >
           Back to Lobby
         </motion.button>

@@ -222,7 +222,7 @@ const GamePage: React.FC = () => {
           <div className="lg:w-96 flex-shrink-0 bg-surface-100/50 border border-border rounded-2xl p-6 flex flex-col">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-primary to-accent-secondary rounded-xl flex items-center justify-center"><TargetIcon className="w-5 h-5 text-on-primary" /></div>
+                <div className="w-10 h-10 bg-gradient-to-br from-primary to-accent-secondary rounded-xl flex items-center justify-center"><TargetIcon className="w-5 h-5 text-text-on-primary" /></div>
                 <div>
                   <h2 className="text-xl font-bold text-text-primary">{room.gameMode}</h2>
                   <div className="flex items-center space-x-2 text-sm text-text-secondary">

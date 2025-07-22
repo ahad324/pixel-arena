@@ -35,7 +35,7 @@ const InstructionsModal: React.FC<InstructionsModalProps> = ({ gameMode, onClose
           onClick={(e) => e.stopPropagation()}
         >
           <div className="p-6 border-b border-border text-center">
-            <h2 className="text-3xl font-black text-text-primary">{instructions.title}</h2>
+            <h2 className="text-3xl text-text-primary">{instructions.title}</h2>
           </div>
           <div className="p-6 space-y-6 overflow-y-auto scrollbar-thin">
             <div>
@@ -64,7 +64,7 @@ const InstructionsModal: React.FC<InstructionsModalProps> = ({ gameMode, onClose
               onClick={onClose}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              className="w-full bg-primary text-on-primary font-bold py-3 rounded-xl focus:outline-none transition-all duration-200"
+              className="w-full bg-primary text-text-on-primary font-bold py-3 rounded-xl focus:outline-none transition-all duration-200"
             >
               Got it!
             </motion.button>

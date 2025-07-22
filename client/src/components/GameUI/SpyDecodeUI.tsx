@@ -42,7 +42,7 @@ const SpyDecodeUI: React.FC<{ room: Room; user: Omit<Player, "socketId"> }> = ({
               disabled={!!self?.guess}
               whileHover={{ scale: self?.guess ? 1 : 1.05 }}
               whileTap={{ scale: self?.guess ? 1 : 0.95 }}
-              className={`p-2 rounded-md font-bold text-on-primary transition-colors ${self?.guess === code.id ? "bg-accent" : "bg-primary/80 hover:bg-primary"} disabled:opacity-60 disabled:cursor-not-allowed`}
+              className={`p-2 rounded-md font-bold text-text-on-primary transition-colors ${self?.guess === code.id ? "bg-accent" : "bg-primary/80 hover:bg-primary"} disabled:opacity-60 disabled:cursor-not-allowed`}
             >
               {code.value}
             </motion.button>

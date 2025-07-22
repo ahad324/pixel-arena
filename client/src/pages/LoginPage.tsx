@@ -34,7 +34,7 @@ const LoginPage: React.FC = () => {
       setError("Username must be at least 3 characters.");
       return;
     }
-     if (trimmedUsername.length > 15) {
+    if (trimmedUsername.length > 15) {
       setError("Username cannot be more than 15 characters.");
       return;
     }
@@ -81,7 +81,7 @@ const LoginPage: React.FC = () => {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
-              className="text-4xl font-black mb-2 text-text-primary"
+              className="text-4xl mb-2 text-text-primary"
             >
               Enter the Arena
             </motion.h1>
@@ -118,21 +118,21 @@ const LoginPage: React.FC = () => {
                 maxLength={15}
                 disabled={isLoading}
               />
-               {error && <p className="text-error text-sm mt-2 text-center">{error}</p>}
+              {error && <p className="text-error text-sm mt-2 text-center">{error}</p>}
             </div>
             <motion.button
               type="submit"
               disabled={!username.trim() || isLoading}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              className="w-full py-4 px-4 bg-primary text-on-primary font-black rounded-xl shadow-lg hover:bg-primary-hover focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center min-h-[56px]"
+              className="w-full py-4 px-4 bg-primary text-text-on-primary rounded-xl shadow-lg hover:bg-primary-hover focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center min-h-[56px]"
             >
               {isLoading ? (
-                 <Loader
-                    text="Entering..."
-                    className="w-5 h-5 text-text-secondary"
-                    containerClassName="flex flex-row w-full"
-                    textClassName="text-text-secondary"
+                <Loader
+                  text="Entering..."
+                  className="w-5 h-5 text-text-on-primary"
+                  containerClassName="flex flex-row w-full"
+                  textClassName="text-text-on-primary"
                 />
               ) : (
                 "Play Now"

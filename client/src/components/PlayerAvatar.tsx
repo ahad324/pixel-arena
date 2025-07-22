@@ -81,7 +81,7 @@ const PlayerAvatar: React.FC<PlayerAvatarProps> = ({ player, cellSize }) => {
         style={{ filter: `drop-shadow(0 0 5px ${finalColor}) ${isSlowed ? 'brightness(0.7)' : 'brightness(1)'}` }}
       >
         <div
-          className="relative w-full h-full rounded-md flex items-center justify-center text-on-primary font-bold text-sm"
+          className="relative w-full h-full rounded-md flex items-center justify-center text-text-on-primary font-bold text-sm"
           style={{
             backgroundColor: finalColor,
             transform: player.isCaught ? 'rotate(180deg)' : 'rotate(0deg)',
@@ -89,7 +89,7 @@ const PlayerAvatar: React.FC<PlayerAvatarProps> = ({ player, cellSize }) => {
             transition: 'transform 0.3s ease, opacity 0.3s ease'
           }}
         >
-          {isFrozen && <FreezeIcon className="w-3/4 h-3/4 text-on-primary/80 animate-pulse" />}
+          {isFrozen && <FreezeIcon className="w-3/4 h-3/4 text-text-on-primary/80 animate-pulse" />}
 
           {/* Effects and statuses as rings/overlays */}
           {player.isIt && <div className="absolute inset-0 rounded-md ring-2 ring-offset-2 ring-offset-background ring-error animate-pulse" />}

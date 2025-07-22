@@ -53,7 +53,7 @@ const InfectionAbilityButton: React.FC<{
       disabled={isDisabled}
       whileHover={{ scale: isDisabled ? 1 : 1.02 }}
       whileTap={{ scale: isDisabled ? 1 : 0.98 }}
-      className={`w-full bg-gradient-to-r ${buttonGradient} text-on-primary font-bold py-3 px-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed`}
+      className={`w-full bg-gradient-to-r ${buttonGradient} text-text-on-primary font-bold py-3 px-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed`}
     >
       {isDisabled
         ? `${abilityName} (${cooldown}s)`

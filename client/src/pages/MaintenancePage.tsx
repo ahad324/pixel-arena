@@ -78,7 +78,7 @@ const CountdownUnit: React.FC<{ value: number; label: string; isFinished: boolea
             animate={{ y: '0%', opacity: 1 }}
             exit={{ y: '-100%', opacity: 0 }}
             transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-            className="absolute text-4xl sm:text-5xl md:text-7xl font-black text-text-primary tracking-tighter"
+            className="absolute text-4xl sm:text-5xl md:text-7xl text-text-primary tracking-tighter"
           >
             {isLaunching ? '00' : paddedValue}
           </motion.span>
@@ -131,7 +131,7 @@ const MaintenancePage: React.FC<MaintenancePageProps> = ({ title, message, launc
         <motion.div variants={itemVariants} className="inline-flex w-16 h-16 sm:w-20 sm:h-20 overflow-hidden bg-surface-100 border border-border rounded-2xl mb-6">
           <img src={Logo} className="w-full h-full" />
         </motion.div>
-        <motion.h1 variants={itemVariants} className="text-4xl sm:text-5xl md:text-6xl font-black tracking-tighter mb-4 text-text-primary">
+        <motion.h1 variants={itemVariants} className="text-4xl sm:text-5xl md:text-6xl tracking-tighter mb-4 text-text-primary">
           {title}
         </motion.h1>
         <motion.p variants={itemVariants} className="text-base sm:text-lg md:text-xl text-text-secondary max-w-sm sm:max-w-md md:max-w-2xl mx-auto mb-12">
@@ -140,11 +140,11 @@ const MaintenancePage: React.FC<MaintenancePageProps> = ({ title, message, launc
 
         <motion.div className="flex justify-center items-start gap-2 sm:gap-3 md:gap-5" variants={itemVariants}>
           <CountdownUnit value={days} label="Days" isFinished={isFinished} isLaunching={isLaunching} />
-          <motion.span variants={itemVariants} className="text-4xl sm:text-5xl md:text-7xl font-black text-primary/50 pt-6 sm:pt-6 md:pt-7">:</motion.span>
+          <motion.span variants={itemVariants} className="text-4xl sm:text-5xl md:text-7xl text-primary/50 pt-6 sm:pt-6 md:pt-7">:</motion.span>
           <CountdownUnit value={hours} label="Hours" isFinished={isFinished} isLaunching={isLaunching} />
-          <motion.span variants={itemVariants} className="text-4xl sm:text-5xl md:text-7xl font-black text-primary/50 pt-6 sm:pt-6 md:pt-7">:</motion.span>
+          <motion.span variants={itemVariants} className="text-4xl sm:text-5xl md:text-7xl text-primary/50 pt-6 sm:pt-6 md:pt-7">:</motion.span>
           <CountdownUnit value={minutes} label="Minutes" isFinished={isFinished} isLaunching={isLaunching} />
-          <motion.span variants={itemVariants} className="text-4xl sm:text-5xl md:text-7xl font-black text-primary/50 pt-6 sm:pt-6 md:pt-7">:</motion.span>
+          <motion.span variants={itemVariants} className="text-4xl sm:text-5xl md:text-7xl text-primary/50 pt-6 sm:pt-6 md:pt-7">:</motion.span>
           <CountdownUnit value={seconds} label="Seconds" isFinished={isFinished} isLaunching={isLaunching} />
         </motion.div>
       </motion.div>

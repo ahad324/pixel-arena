@@ -125,7 +125,7 @@ const LobbyPage: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             className="text-center mb-8 md:mb-12 relative"
           >
-            <h1 className="text-4xl sm:text-5xl md:text-6xl font-black tracking-tighter mb-4 text-text-primary">GAME LOBBY</h1>
+            <h1 className="text-4xl sm:text-5xl md:text-6xl tracking-tighter mb-4 text-text-primary">GAME LOBBY</h1>
             <p className="text-lg sm:text-xl text-text-secondary">
               Welcome back, <span className="text-text-primary font-bold">{user?.name}</span>
             </p>
@@ -144,7 +144,7 @@ const LobbyPage: React.FC = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="text-2xl sm:text-3xl font-black mb-6 text-text-primary text-center md:text-left"
+            className="text-2xl sm:text-3xl mb-6 text-text-primary text-center md:text-left"
           >
             Select a Game Mode
           </motion.h2>
@@ -183,7 +183,7 @@ const LobbyPage: React.FC = () => {
             className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8 mb-8 md:mb-12"
           >
             <div className="bg-surface-100 border border-border rounded-3xl p-6 sm:p-8 shadow-2xl">
-              <h2 className="text-2xl sm:text-3xl font-black mb-4 flex items-center text-text-primary">
+              <h2 className="text-2xl sm:text-3xl mb-4 flex items-center text-text-primary">
                 <CreateIcon className="w-8 h-8 mr-4 text-accent" />
                 Create Room
               </h2>
@@ -196,9 +196,9 @@ const LobbyPage: React.FC = () => {
                   disabled={isProcessing || !isConnected}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="flex-grow bg-accent text-on-primary font-black py-3 sm:py-4 px-6 rounded-xl shadow-lg hover:bg-accent-hover transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                  className="flex-grow bg-accent text-text-on-primary py-3 sm:py-4 px-6 rounded-xl shadow-lg hover:bg-accent-hover transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                 >
-                  {isProcessing ? <Loader className="w-5 h-5 text-on-primary" /> : "Create Room"}
+                  {isProcessing ? <Loader className="w-5 h-5 text-text-on-primary" /> : "Create Room"}
                 </motion.button>
                 <motion.button
                   onClick={() => setIsInstructionsVisible(true)}
@@ -213,7 +213,7 @@ const LobbyPage: React.FC = () => {
             </div>
 
             <div className="bg-surface-100 border border-border rounded-3xl p-6 sm:p-8 shadow-2xl">
-              <h2 className="text-2xl sm:text-3xl font-black mb-4 flex items-center text-text-primary">
+              <h2 className="text-2xl sm:text-3xl mb-4 flex items-center text-text-primary">
                 <EnterIcon className="w-8 h-8 mr-4 text-primary" />
                 Join Room
               </h2>
@@ -235,9 +235,9 @@ const LobbyPage: React.FC = () => {
                     disabled={!joinCode || isProcessing || !isConnected}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="bg-primary text-on-primary font-black py-3 sm:py-4 px-8 rounded-xl shadow-lg hover:bg-primary-hover transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center min-w-[100px]"
+                    className="bg-primary text-text-on-primary py-3 sm:py-4 px-8 rounded-xl shadow-lg hover:bg-primary-hover transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center min-w-[100px]"
                   >
-                    {isProcessing ? <Loader className="w-5 h-5 text-on-primary" /> : "Join"}
+                    {isProcessing ? <Loader className="w-5 h-5 text-text-on-primary" /> : "Join"}
                   </motion.button>
                 </div>
                 {error && (
@@ -259,7 +259,7 @@ const LobbyPage: React.FC = () => {
             transition={{ delay: 0.4 }}
             className="bg-surface-100 border border-border rounded-3xl p-6 sm:p-8 shadow-2xl"
           >
-            <h2 className="text-2xl sm:text-3xl font-black mb-8 text-text-primary">Available Rooms</h2>
+            <h2 className="text-2xl sm:text-3xl mb-8 text-text-primary">Available Rooms</h2>
             <div className="space-y-4 max-h-[40vh] overflow-y-auto scrollbar-thin">
               {isLoadingRooms && isConnected ? (
                 <div className="flex justify-center items-center py-16">
@@ -303,7 +303,7 @@ const LobbyPage: React.FC = () => {
                         disabled={isProcessing || !isConnected}
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
-                        className="bg-primary text-on-primary font-black py-3 px-6 rounded-xl shadow-lg hover:bg-primary-hover transition-all duration-200 disabled:opacity-50"
+                        className="bg-primary text-text-on-primary py-3 px-6 rounded-xl shadow-lg hover:bg-primary-hover transition-all duration-200 disabled:opacity-50"
                       >
                         Join
                       </motion.button>
