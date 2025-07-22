@@ -12,7 +12,7 @@
 
 // Example: To launch at Jan 1, 2026, 12:00:00 PM (noon) in Pakistan (PKT),
 // the correct UTC timestamp is 1767207600000.
-export const LAUNCH_TIMESTAMP = 1753171030000;
+export const LAUNCH_TIMESTAMP = 1753171200000;
 
 // The Date object is created from the timestamp for use in the countdown component.
 export const LAUNCH_DATE = new Date(LAUNCH_TIMESTAMP);
