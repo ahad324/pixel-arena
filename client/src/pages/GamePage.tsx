@@ -56,13 +56,31 @@ const GamePage: React.FC = () => {
   const navigate = useNavigate();
   const [isInstructionsVisible, setIsInstructionsVisible] = useState(false);
   const [requestFullscreenOnStart, setRequestFullscreenOnStart] = useState(false);
-  const [selectedDifficulty, setSelectedDifficulty] = useState(MazeRaceDifficulty.EASY);
+  const [selectedDifficulty, setSelectedDifficulty] = useState<MazeRaceDifficulty>(MazeRaceDifficulty.EASY);
   const [isStartingGame, setIsStartingGame] = useState(false);
   const gameAreaRef = useRef<HTMLDivElement>(null);
   const { isFullscreen, enterFullscreen, exitFullscreen } = useFullscreen();
   const { copied, handleCopy } = useClipboard(room?.id || "");
   const [activePadId, setActivePadId] = useState<string | null>(null);
-  const { handleAction, handleMove, handleMoveEnd } = usePlayerMovement(user!, room!, isMobile);
+  const [clientRotation, setClientRotation] = useState(0);
+
+  // Corrects the player's directional input based on the maze's rotation
+  const getTransformedDirection = (direction: string, rotation: number): string => {
+    if (rotation === 0) return direction;
+    const directions = ['up', 'right', 'down', 'left'];
+    const originalIndex = directions.indexOf(direction);
+    if (originalIndex === -1) return direction;
+    // We rotate the input in the opposite direction of the maze's clockwise rotation
+    const rotationSteps = (rotation / 90) % 4;
+    const transformedIndex = (originalIndex - rotationSteps + 4) % 4;
+    return directions[transformedIndex];
+  };
+
+  const { handleAction, handleMove: originalHandleMove, handleMoveEnd } = usePlayerMovement(user!, room!, isMobile);
+  const handleMove = (direction: string) => {
+    const transformedDirection = getTransformedDirection(direction, clientRotation);
+    originalHandleMove(transformedDirection);
+  };
   
   const handleGenericAction = () => { if (user && room) handleAction(); };
 
@@ -95,6 +113,24 @@ const GamePage: React.FC = () => {
     socketService.onMazeDifficultyChanged(data => setSelectedDifficulty(data.difficulty));
     return () => socketService.offMazeDifficultyChanged();
   }, []);
+  
+  useEffect(() => {
+    if (room?.gameMode !== GameMode.MAZE_RACE || room?.gameState.status !== "playing") {
+      if (clientRotation !== 0) setClientRotation(0);
+      return;
+    }
+    const difficulty = room.gameState.maze?.difficulty;
+    const shouldRotate = difficulty === "hard" || difficulty === "expert";
+    if (!shouldRotate) {
+      if (clientRotation !== 0) setClientRotation(0);
+      return;
+    }
+    const rotationInterval = setInterval(() => {
+      setClientRotation((prev) => (prev + 90) % 360);
+    }, 12000);
+    return () => clearInterval(rotationInterval);
+  }, [room?.gameMode, room?.gameState.status, room?.gameState.maze?.difficulty, clientRotation]);
+
 
   const touchHandler = (handler: (e: TouchEvent<HTMLDivElement>) => void) => isMobile && room?.gameState.status === "playing" ? handler : undefined;
 
@@ -161,7 +197,7 @@ const GamePage: React.FC = () => {
                   <HidingPhaseIndicator room={room} />
               </div>
           )}
-          <GameBoard room={room} heistPadFeedback={heistPadFeedback} user={user} />
+          <GameBoard room={room} heistPadFeedback={heistPadFeedback} user={user} clientRotation={clientRotation} />
           {isMobile && room.gameState.status === "playing" && <VirtualJoystick joystickState={joystickState} />}
           {renderMobileActionButtons()}
           {isMobile && room.gameState.status === "playing" && !isFullscreen && <button onClick={() => enterFullscreen(gameAreaRef.current!)} className="absolute top-4 right-4 z-10 p-2 bg-surface-200/50 rounded-full" aria-label="Enter fullscreen"><EnterFullscreenIcon className="w-6 h-6" /></button>}
@@ -188,7 +224,21 @@ const GamePage: React.FC = () => {
             <div className="mb-4"><GameStatus room={room} isFullscreen={isFullscreen} /></div>
             <div className="flex-grow min-h-0 mb-4"><PlayerList room={room} user={user} /></div>
              {!isMobile && room.gameState.status === "waiting" && <label className="flex items-center justify-center cursor-pointer mb-4"><input type="checkbox" checked={requestFullscreenOnStart} onChange={e => setRequestFullscreenOnStart(e.target.checked)} className="w-4 h-4 text-primary bg-surface-200 border-border rounded focus:ring-primary focus:ring-2" /><span className="ml-2 text-sm text-text-secondary">Play in Fullscreen</span></label>}
-            {room.gameMode === GameMode.MAZE_RACE && room.gameState.status === "waiting" && isHost && <select value={selectedDifficulty} onChange={e => socketService.setMazeRaceDifficulty(room.id, user.id, e.target.value as MazeRaceDifficulty)} className="w-full p-3 bg-surface-200/50 border border-border text-text-primary rounded-xl focus:outline-none focus:ring-2 focus:ring-primary mb-4">{(Object.values(MazeRaceDifficulty) as string[]).map(d => <option key={d} value={d}>{d.charAt(0).toUpperCase() + d.slice(1)}</option>)}</select>}
+            {room.gameMode === GameMode.MAZE_RACE && room.gameState.status === "waiting" && isHost && (
+              <div className="mb-4">
+                <label htmlFor="difficulty-select" className="block text-sm font-medium text-text-secondary mb-2 text-center">Maze Difficulty</label>
+                <select 
+                  id="difficulty-select"
+                  value={selectedDifficulty} 
+                  onChange={e => socketService.setMazeRaceDifficulty(room.id, user.id, e.target.value as MazeRaceDifficulty)}
+                  className="w-full p-3 bg-surface-200/50 border border-border text-text-primary rounded-xl focus:outline-none focus:ring-2 focus:ring-primary"
+                >
+                  {(['easy', 'medium', 'hard', 'expert'] as const).map(d => 
+                    <option key={d} value={d}>{d.charAt(0).toUpperCase() + d.slice(1)}</option>
+                  )}
+                </select>
+              </div>
+            )}
             <div className="space-y-2 mt-auto">
               {room.gameState.status === 'playing' && !isMobile && room.gameMode === GameMode.INFECTION_ARENA && <InfectionAbilityButton room={room} user={user} onAction={handleGenericAction} />}
               {room.gameState.status === 'playing' && !isMobile && room.gameMode === GameMode.HEIST_PANIC && <HeistPanicUI room={room} user={user} onGuessSubmit={handleGenericAction} />}

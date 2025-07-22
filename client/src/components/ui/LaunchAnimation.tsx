@@ -153,13 +153,13 @@ const GenesisSpark = ({ mouseX, mouseY, phase }: any) => {
   );
 };
 
-const ArenaView = ({ phase }: { phase: number }) => {
+const ArenaView = ({  }: { phase: number }) => {
   const gridLines = useMemo(() => ({
     horizontal: Array.from({ length: 41 }),
     vertical: Array.from({ length: 81 }),
   }), []);
 
-  const crystals = useMemo(() => Array.from({ length: 16 }).map((_, i) => ({
+  const crystals = useMemo(() => Array.from({ length: 16 }).map((_,) => ({
     x: (Math.random() - 0.5) * 1200,
     z: (Math.random()) * 800 + 200,
     h: 50 + Math.random() * 200,

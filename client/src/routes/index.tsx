@@ -34,30 +34,38 @@ const RootRouter: React.FC = () => {
 
   return (
     <AnimatePresence mode="wait">
-      {launchState === "live" ? (
-        <div key="live">
-          <AppRouter />
-        </div>
-      ) : (
-        <Routes location={location} key="maintenance-container">
+      {launchState === "countingDown" && (
+        <Routes location={location} key="maintenance">
           <Route
             path="*"
             element={
-              <>
-                <MaintenancePage
-                  title="Launching Soon"
-                  message="Our arena is getting polished for an epic launch. Get ready for the action!"
-                  launchDate={LAUNCH_DATE}
-                  onCountdownEnd={() => setLaunchState("launching")}
-                  isLaunching={launchState === "launching"}
-                />
-                {launchState === "launching" && (
-                  <LaunchAnimation onComplete={handleLaunchAnimationComplete} />
-                )}
-              </>
+              <MaintenancePage
+                title="Launching Soon"
+                message="Our arena is getting polished for an epic launch. Get ready for the action!"
+                launchDate={LAUNCH_DATE}
+                onCountdownEnd={() => setLaunchState("launching")}
+              />
             }
           />
         </Routes>
+      )}
+
+      {launchState === "launching" && (
+        <div key="launching">
+          <MaintenancePage
+            title="Launching Soon"
+            message="Our arena is getting polished for an epic launch. Get ready for the action!"
+            launchDate={LAUNCH_DATE}
+            isLaunching={true}
+          />
+          <LaunchAnimation onComplete={handleLaunchAnimationComplete} />
+        </div>
+      )}
+
+      {launchState === "live" && (
+        <div key="live">
+          <AppRouter />
+        </div>
       )}
     </AnimatePresence>
   );

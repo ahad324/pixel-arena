@@ -1,4 +1,3 @@
-
 // --- LAUNCH TIMESTAMP (UTC) ---
 // This is the official launch timestamp in milliseconds since the epoch (UTC).
 // The application will show the maintenance screen until this moment in time is reached,
@@ -12,8 +11,7 @@
 
 // Example: To launch at Jan 1, 2026, 12:00:00 PM (noon) in Pakistan (PKT),
 // the correct UTC timestamp is 1767207600000.
-export const LAUNCH_TIMESTAMP = 1753171200000;
+export const LAUNCH_TIMESTAMP = 1753174800000;
 
 // The Date object is created from the timestamp for use in the countdown component.
 export const LAUNCH_DATE = new Date(LAUNCH_TIMESTAMP);
-console.log(LAUNCH_DATE)
