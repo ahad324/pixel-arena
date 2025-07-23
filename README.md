@@ -1,5 +1,3 @@
-# 🚀 Pixel Arena
-
 <p align="center">
   <img src="https://raw.githubusercontent.com/ahad324/Pixel-Arena/main/client/public/logo.svg" alt="Pixel Arena Logo" width="120">
 </p>
@@ -27,20 +25,20 @@
 
 ---
 
-## Table of Contents
+## 📋 Table of Contents
 
 - [🎮 Game Modes](#-game-modes)
 - [✨ Features](#-features)
-- [📸 Screenshots](#-screenshots)
 - [🛠️ Tech Stack](#-tech-stack)
 - [🚀 Getting Started](#-getting-started)
 - [📜 Available Scripts](#-available-scripts)
+- [📂 Monorepo Structure](#-monorepo-structure)
 
 ---
 
 ## 🎮 Game Modes
 
-Pixel Arena features a growing collection of unique games, each with its own objective and rules.
+Pixel Arena features a collection of unique games, each with its own objective and rules.
 
 | Game Mode             | Icon | Description                                                                          |
 | --------------------- | :--: | ------------------------------------------------------------------------------------ |
@@ -51,7 +49,6 @@ Pixel Arena features a growing collection of unique games, each with its own obj
 | **Heist Panic**       |  💰  | Find the correct code pad to escape the vault. A wrong guess will stun you!          |
 | **Infection Arena**   |  🦠  | One player is the 'Virus'. Evade infection or spread it. Last survivor wins!         |
 | **Trap Rush**         |  💣  | Race to the finish line across a field of hidden, debilitating traps.                |
-| **Spy & Decode**      |  🕵️  | A game of social deduction. A secret spy must signal a code to allies.                 |
 
 ---
 
@@ -59,21 +56,11 @@ Pixel Arena features a growing collection of unique games, each with its own obj
 
 - ⚡️ **Real-time Multiplayer:** Powered by **Socket.IO** for instant, low-latency action.
 - 🚪 **Dynamic Room System:** Create private rooms with a unique code or join public rooms from the lobby.
-- 🕹️ **Diverse Game Modes:** A wide selection of games with unique mechanics, from racing to social deduction.
-- 📱 **Responsive & Mobile-First:** Play seamlessly on both desktop and mobile devices with a virtual joystick.
+- 🕹️ **Diverse Game Modes:** A selection of games with unique mechanics, from racing to evasion.
+- 📱 **Responsive & Mobile-First:** Play seamlessly on both desktop and mobile devices with a virtual joystick and fullscreen support.
 - 😂 **Live Emoji Reactions:** Send emojis that burst across everyone's screen in real-time.
-- ✨ **Dynamic Game Statuses:** "New", "Updated", and "Popular" badges highlight different games.
+- ✨ **Dynamic Theming:** Choose from multiple color themes to customize your experience.
 - 💾 **Persistent Username:** Your name is saved in local storage for quick re-entry.
-
----
-
-## 📸 Screenshots
-
-![Infection Arena Gameplay](https://raw.githubusercontent.com/ahad324/Pixel-Arena/main/Images/infection-arena.png)
-*Gameplay from Infection Arena*
-
-![Heist Panic Gameplay](https://raw.githubusercontent.com/ahad324/Pixel-Arena/main/Images/heist-panic.png)
-*Gameplay from Heist Panic*
 
 ---
 
@@ -81,7 +68,7 @@ Pixel Arena features a growing collection of unique games, each with its own obj
 
 The project is a **monorepo** containing the React client and the Node.js server.
 
-**🚀 Frontend:**
+**🚀 Frontend (`client/`)**
 
 ![React](https://img.shields.io/badge/react-%2320232a.svg?style=flat&logo=react&logoColor=%2361DAFB)
 ![TypeScript](https://img.shields.io/badge/typescript-%23007ACC.svg?style=flat&logo=typescript&logoColor=white)
@@ -90,14 +77,14 @@ The project is a **monorepo** containing the React client and the Node.js server
 ![Socket.IO](https://img.shields.io/badge/Socket.io-black?style=flat&logo=socket.io&badgeColor=010101)
 ![Framer Motion](https://img.shields.io/badge/Framer-black?style=flat&logo=framer&logoColor=blue)
 
-**⚙️ Backend:**
+**⚙️ Backend (`server/`)**
 
 ![NodeJS](https://img.shields.io/badge/node.js-6DA55F?style=flat&logo=node.js&logoColor=white)
 ![Express.js](https://img.shields.io/badge/express.js-%23404d59.svg?style=flat&logo=express&logoColor=%2361DAFB)
 ![TypeScript](https://img.shields.io/badge/typescript-%23007ACC.svg?style=flat&logo=typescript&logoColor=white)
 ![Socket.IO](https://img.shields.io/badge/Socket.io-black?style=flat&logo=socket.io&badgeColor=010101)
 
-**☁️ Deployment & Build:**
+**☁️ Deployment & Build**
 
 ![Netlify](https://img.shields.io/badge/netlify-%23000000.svg?style=flat&logo=netlify&logoColor=white)
 ![Nixpacks](https://img.shields.io/badge/Nixpacks-2088ff?style=flat)
@@ -120,7 +107,7 @@ git clone https://github.com/ahad324/Pixel-Arena.git
 cd Pixel-Arena
 ```
 
-### 2. Set Up the Backend
+### 2. Set Up the Backend Server
 
 The server runs on port `3000` by default.
 
@@ -139,9 +126,9 @@ cp .env.example .env
 npm run dev
 ```
 
-> The backend server will be running at `http://localhost:3000`.
+> The backend server will now be running at `http://localhost:3000`.
 
-### 3. Set Up the Frontend
+### 3. Set Up the Frontend Client
 
 In a **new terminal window**, set up the client. The client runs on port `5173` by default.
 
@@ -164,33 +151,9 @@ npm run dev
 
 ---
 
-## ⚙️ Environment Variables
-
-The application uses environment variables for configuration. The default values in `.env.example` are suitable for local development.
-
-### Server (`server/.env`)
-
-This file configures the server port and the allowed origin for CORS.
-
-```env
-# The port the server will run on
-PORT=3000
-# The URL of your running frontend client, required for CORS
-FRONTEND_URL=http://localhost:5173
-```
-
-### Client (`client/.env`)
-
-This file tells the frontend where to find the backend server.
-
-```env
-# The URL of your running backend server
-VITE_BACKEND_URL=http://localhost:3000
-```
-
----
-
 ## 📜 Available Scripts
+
+Each package (`client` and `server`) has its own set of scripts. Run these commands from within their respective directories.
 
 ### Server (`/server`)
 
@@ -203,7 +166,23 @@ VITE_BACKEND_URL=http://localhost:3000
 - **`npm run dev`**: Starts the Vite development server.
 - **`npm run build`**: Builds the application for production.
 - **`npm run preview`**: Serves the production build locally for testing.
+- **`npm run lint`**: Lints the codebase using ESLint.
 
 ---
 
-*This project was built for fun and to demonstrate full-stack real-time application development. Feel free to fork, contribute, or get inspired!*
+## 📂 Monorepo Structure
+
+This project is organized as a monorepo with two primary packages:
+
+```
+pixel-arena/
+├── client/         # Contains the React frontend application
+└── server/         # Contains the Node.js backend server
+```
+
+- **`client/`**: A React application built with Vite that handles the user interface, game rendering, and communication with the server. See the [Client README](./client/README.md) for more details.
+- **`server/`**: A Node.js and Express application that manages game logic, player state, and real-time communication via WebSockets. See the [Server README](./server/README.md) for more details.
+
+---
+
+*This project was built to demonstrate full-stack real-time application development. Feel free to fork, contribute, or get inspired!*
