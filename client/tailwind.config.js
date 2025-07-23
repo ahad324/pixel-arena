@@ -32,6 +32,11 @@ module.exports = {
           hover: 'hsl(var(--error-hover-hsl) / <alpha-value>)',
           dark: 'hsl(var(--error-dark-hsl) / <alpha-value>)',
         },
+        // Added highlight colors to Tailwind config for use in components.
+        'it-highlight': 'hsl(var(--it-highlight-hsl) / <alpha-value>)',
+        'seeker-highlight': 'hsl(var(--seeker-highlight-hsl) / <alpha-value>)',
+        'infected-highlight': 'hsl(var(--infected-highlight-hsl) / <alpha-value>)',
+        'reveal-highlight': 'hsl(var(--reveal-highlight-hsl) / <alpha-value>)',
         text: {
           primary: 'hsl(var(--text-primary-hsl) / <alpha-value>)',
           secondary: 'hsl(var(--text-secondary-hsl) / <alpha-value>)',

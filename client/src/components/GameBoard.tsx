@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect, useMemo } from "react";
 import type { Player, Room, Footprint } from "../types";
 import { GameMode } from "../types";
@@ -140,8 +141,8 @@ const GameBoard: React.FC<GameBoardProps> = ({ room, user, heistPadFeedback, cli
   const renderGameSpecificElements = () => {
     switch (gameMode) {
       case GameMode.TERRITORY_CONTROL:
-        return gameState.tiles?.flat().map((tile, index) => tile.color ? (
-          <div key={index} className="absolute transition-colors duration-500" style={{ left: `${(index % GRID_SIZE) * cellSize}px`, top: `${Math.floor(index / GRID_SIZE) * cellSize}px`, width: cellSize, height: cellSize, backgroundColor: tile.color, opacity: 0.4 }} />) : null);
+        return gameState.tiles?.flat().map((tile, index) => (tile as any)?.color ? (
+          <div key={index} className="absolute transition-colors duration-500" style={{ left: `${(index % GRID_SIZE) * cellSize}px`, top: `${Math.floor(index / GRID_SIZE) * cellSize}px`, width: cellSize, height: cellSize, backgroundColor: (tile as any).color, opacity: 0.4 }} />) : null);
       case GameMode.MAZE_RACE:
         return gameState.maze?.grid.map((row, y) => row.map((cell, x) =>
           cell === 1 ? (
@@ -161,7 +162,7 @@ const GameBoard: React.FC<GameBoardProps> = ({ room, user, heistPadFeedback, cli
             }} />
           )));
 
-      case GameMode.HIDE_AND_SEEK:
+      case GameMode.HIDE_AND_SEEK: {
         const mazeElements = gameState.maze?.grid.map((row, y) => row.map((cell, x) => cell === 1 ? (
           <div key={`${x}-${y}`} className="absolute border border-border" style={{
             backgroundColor: "hsl(var(--grid-wall-hsl))",
@@ -177,29 +178,28 @@ const GameBoard: React.FC<GameBoardProps> = ({ room, user, heistPadFeedback, cli
           }} />
         )));
 
+        // change from: `if (self?.isSeeker || gameState.footprints?.some(fp => fp.playerId === self?.id))`
+        // to: `if (self?.isSeeker && gameState.footprints?.length)`
+        // because: This change ensures only seekers can see footprints, fixing a bug where hiders could see their own.
+        const footprints = (self?.isSeeker && gameState.footprints && gameState.footprints.length > 0) ? (
+          <AnimatePresence>
+            {/* removed: `.filter(fp => self?.isSeeker || fp.playerId === self?.id)` because the outer check is sufficient. */}
+            {gameState.footprints.map(fp => {
+                const player = playerMap.get(fp.playerId);
+                return player ? (
+                  <FootprintComponent
+                    key={`${fp.x}-${fp.y}-${fp.timestamp}`}
+                    footprint={fp}
+                    cellSize={cellSize}
+                    color={player.color}
+                  />
+                ) : null;
+              })}
+          </AnimatePresence>
+        ) : null;
 
-        if (self?.isSeeker || gameState.footprints?.some(fp => fp.playerId === self?.id)) {
-          const footprints = (
-            <AnimatePresence>
-              {gameState.footprints
-                ?.filter(fp => self?.isSeeker || fp.playerId === self?.id)
-                .map(fp => {
-                  const player = playerMap.get(fp.playerId);
-                  return player ? (
-                    <FootprintComponent
-                      key={`${fp.x}-${fp.y}-${fp.timestamp}`}
-                      footprint={fp}
-                      cellSize={cellSize}
-                      color={player.color}
-                    />
-                  ) : null;
-                })}
-            </AnimatePresence>
-          );
-
-          return [mazeElements, footprints];
-        }
-        return mazeElements;
+        return [mazeElements, footprints];
+      }
       case GameMode.HEIST_PANIC:
         return gameState.codePads?.map((pad) => {
           const feedback = heistPadFeedback?.[pad.id];
