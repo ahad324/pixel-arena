@@ -129,7 +129,7 @@ const LobbyPage: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             className="text-center mb-8 md:mb-12 relative"
           >
-            <h1 className="text-4xl sm:text-5xl md:text-6xl tracking-tighter mb-4 text-text-primary">GAME LOBBY</h1>
+            <h1 className="text-4xl font-bold sm:text-5xl md:text-6xl tracking-tighter mb-4 text-text-primary">GAME LOBBY</h1>
             <p className="text-lg sm:text-xl text-text-secondary">
               Welcome back, <span className="text-text-primary font-bold">{user?.name}</span>
             </p>
@@ -148,7 +148,7 @@ const LobbyPage: React.FC = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="text-2xl sm:text-3xl mb-6 text-text-primary text-center md:text-left"
+            className="text-2xl font-semibold sm:text-3xl mb-6 text-text-primary text-center md:text-left"
           >
             Select a Game Mode
           </motion.h2>
@@ -187,7 +187,7 @@ const LobbyPage: React.FC = () => {
             className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8 mb-8 md:mb-12"
           >
             <div className="bg-surface-100 border border-border rounded-3xl p-6 sm:p-8 shadow-2xl">
-              <h2 className="text-2xl sm:text-3xl mb-4 flex items-center text-text-primary">
+              <h2 className="text-2xl font-semibold sm:text-3xl mb-4 flex items-center text-text-primary">
                 <CreateIcon className="w-8 h-8 mr-4 text-accent" />
                 Create Room
               </h2>
@@ -217,7 +217,7 @@ const LobbyPage: React.FC = () => {
             </div>
 
             <div className="bg-surface-100 border border-border rounded-3xl p-6 sm:p-8 shadow-2xl">
-              <h2 className="text-2xl sm:text-3xl mb-4 flex items-center text-text-primary">
+              <h2 className="text-2xl font-semibold sm:text-3xl mb-4 flex items-center text-text-primary">
                 <EnterIcon className="w-8 h-8 mr-4 text-primary" />
                 Join Room
               </h2>
@@ -263,7 +263,7 @@ const LobbyPage: React.FC = () => {
             transition={{ delay: 0.4 }}
             className="bg-surface-100 border border-border rounded-3xl p-6 sm:p-8 shadow-2xl"
           >
-            <h2 className="text-2xl sm:text-3xl mb-8 text-text-primary">Available Rooms</h2>
+            <h2 className="text-2xl font-semibold sm:text-3xl mb-8 text-text-primary">Available Rooms</h2>
             <div className="space-y-4 max-h-[40vh] overflow-y-auto scrollbar-thin">
               {isLoadingRooms && isConnected ? (
                 <div className="flex justify-center items-center py-16">

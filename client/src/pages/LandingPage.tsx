@@ -59,7 +59,7 @@ const LandingPage: React.FC = () => {
             className="text-center"
           >
             <h1
-              className="text-7xl sm:text-8xl md:text-9xl tracking-tighter mb-4 text-text-primary relative"
+              className="text-7xl font-bold sm:text-8xl md:text-9xl tracking-tighter mb-4 text-text-primary relative"
               style={{ textShadow: "0 5px 30px hsla(var(--primary-hsl), 0.2)" }}
             >
               <motion.span
