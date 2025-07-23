@@ -237,7 +237,7 @@ const GamePage: React.FC = () => {
                   </div>
                 </div>
               </div>
-              <button onClick={() => setIsInstructionsVisible(true)} className="p-2 bg-surface-200/50 hover:bg-surface-200/80 rounded-xl text-text-secondary hover:text-text-primary transition-colors border border-border"><InfoIcon className="w-5 h-5" /></button>
+              <button onClick={() => setIsInstructionsVisible(true)} className="p-2 bg-surface-200/50 hover:bg-surface-200/80 rounded-xl text-text-secondary hover:text-text-primary transition-colors border border-primary"><InfoIcon className="w-5 h-5" /></button>
             </div>
             <p className="text-text-secondary text-sm leading-relaxed mb-4 bg-surface-200/30 rounded-xl p-4 border border-border/50">{GAME_DESCRIPTIONS[room.gameMode]}</p>
             {room.gameMode === GameMode.SPY_AND_DECODE && <SpyDecodeUI room={room} user={user} />}

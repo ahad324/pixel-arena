@@ -137,7 +137,7 @@ const LobbyPage: React.FC = () => {
               onClick={() => setIsSettingsVisible(true)}
               whileHover={{ scale: 1.05, rotate: 15 }}
               whileTap={{ scale: 0.95 }}
-              className="absolute top-0 right-0 w-10 h-10 sm:w-12 sm:h-12 bg-surface-100 hover:bg-surface-200 border border-border rounded-xl flex items-center justify-center transition-all duration-300 group"
+              className="absolute top-0 right-0 w-10 h-10 sm:w-12 sm:h-12 bg-surface-100 hover:bg-surface-200 border border-primary rounded-xl flex items-center justify-center transition-all duration-300 group"
               aria-label="Settings"
             >
               <GearIcon className="w-5 h-5 sm:w-6 sm:h-6 text-text-secondary group-hover:text-primary transition-colors" />
@@ -208,7 +208,7 @@ const LobbyPage: React.FC = () => {
                   onClick={() => setIsInstructionsVisible(true)}
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  className="bg-surface-100 hover:bg-surface-200 border border-border text-text-secondary hover:text-text-primary font-bold p-3 sm:p-4 rounded-xl transition-all duration-200"
+                  className="bg-surface-100 hover:bg-surface-200 border border-primary text-text-secondary hover:text-text-primary font-bold p-3 sm:p-4 rounded-xl transition-all duration-200"
                   aria-label="How to Play"
                 >
                   <InfoIcon className="w-6 h-6" />
