@@ -130,7 +130,7 @@ const GamePage: React.FC = () => {
     }
     const rotationInterval = setInterval(() => {
       setClientRotation((prev) => (prev + 90) % 360);
-    }, 12000);
+    }, 8000);
     return () => clearInterval(rotationInterval);
   }, [room?.gameMode, room?.gameState.status, room?.gameState.maze?.difficulty, clientRotation]);
 
