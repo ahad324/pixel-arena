@@ -50,7 +50,7 @@ const HideAndSeekUI: React.FC<{
       disabled={isDisabled}
       whileHover={{ scale: isDisabled ? 1 : 1.02 }}
       whileTap={{ scale: isDisabled ? 1 : 0.98 }}
-      className="w-full bg-gradient-to-r from-info to-primary text-text-on-primary font-bold py-3 px-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+      className="w-full bg-gradient-to-r from-info to-primary text-text-on-primary font-bold px-2 py-3 sm:py-3 sm:px-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
     >
       <SpyIcon className="w-5 h-5" />
       {isDisabled
