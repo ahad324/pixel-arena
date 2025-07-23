@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useRef, TouchEvent } from "react";
+import React, { useState, useEffect, useRef, TouchEvent, useCallback } from "react"; // -> Added useCallback
 import { useNavigate } from "react-router-dom";
 import { GameMode, MazeRaceDifficulty, Room } from "../types/index";
 import { socketService } from "@services/socketService";
@@ -67,13 +67,11 @@ const GamePage: React.FC = () => {
   const [activePadId, setActivePadId] = useState<string | null>(null);
   const [clientRotation, setClientRotation] = useState(0);
 
-  // Corrects the player's directional input based on the maze's rotation
   const getTransformedDirection = (direction: string, rotation: number): string => {
     if (rotation === 0) return direction;
     const directions = ['up', 'right', 'down', 'left'];
     const originalIndex = directions.indexOf(direction);
     if (originalIndex === -1) return direction;
-    // We rotate the input in the opposite direction of the maze's clockwise rotation
     const rotationSteps = (rotation / 90) % 4;
     const transformedIndex = (originalIndex - rotationSteps + 4) % 4;
     return directions[transformedIndex];
@@ -96,6 +94,82 @@ const GamePage: React.FC = () => {
   const [joystickState, setJoystickState] = useState({
     isActive: false, position: { x: 0, y: 0 }, thumbPosition: { x: 0, y: 0 }, touchId: null as number | null,
   });
+
+  // -> Refactored joystick handlers to fix movement and errors.
+  const handleTouchStart = (e: TouchEvent<HTMLDivElement>) => {
+    if (joystickState.isActive) return;
+    const touch = e.changedTouches[0];
+    if (!touch || (e.target as HTMLElement).closest('button, input, select')) return;
+    e.preventDefault();
+    setJoystickState({
+      isActive: true,
+      position: { x: touch.clientX, y: touch.clientY },
+      thumbPosition: { x: 0, y: 0 },
+      touchId: touch.identifier,
+    });
+  };
+
+  const handleTouchMove = useCallback((e: globalThis.TouchEvent) => {
+    if (!joystickState.isActive) return;
+    const touch = Array.from(e.changedTouches).find((t) => t.identifier === joystickState.touchId);
+    if (!touch) return;
+  
+    e.preventDefault(); // -> Prevent default on active move
+  
+    const { x: centerX, y: centerY } = joystickState.position;
+    
+    // -> Use raw delta for direction logic
+    const dx = touch.clientX - centerX;
+    const dy = touch.clientY - centerY;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+  
+    // -> Clamp thumb position for visuals
+    const radius = 40; // Joystick base radius for a larger feel
+    let thumbDx = dx;
+    let thumbDy = dy;
+  
+    if (dist > radius) {
+      thumbDx = (dx / dist) * radius;
+      thumbDy = (dy / dist) * radius;
+    }
+  
+    setJoystickState(prev => ({ ...prev, thumbPosition: { x: thumbDx, y: thumbDy } }));
+  
+    // -> Use raw values for accurate direction
+    const angle = Math.atan2(dy, dx);
+    const deadzone = 10;
+    let dir = dist < deadzone ? null : (angle > -Math.PI / 4 && angle <= Math.PI / 4) ? "right" : (angle > Math.PI / 4 && angle <= 3 * Math.PI / 4) ? "down" : (angle > 3 * Math.PI / 4 || angle <= -3 * Math.PI / 4) ? "left" : "up";
+  
+    if (dir) {
+      handleMove(dir);
+    } else {
+      handleMoveEnd();
+    }
+  }, [joystickState.isActive, joystickState.touchId, joystickState.position, handleMove, handleMoveEnd]);
+
+  const handleTouchEnd = useCallback((e: globalThis.TouchEvent) => {
+    if (Array.from(e.changedTouches).some((t) => t.identifier === joystickState.touchId)) {
+      handleMoveEnd();
+      setJoystickState({ isActive: false, position: { x: 0, y: 0 }, thumbPosition: { x: 0, y: 0 }, touchId: null });
+    }
+  }, [joystickState.touchId, handleMoveEnd]);
+
+  // -> Added effect for window listeners
+  useEffect(() => {
+    if (!joystickState.isActive) return;
+  
+    const options = { passive: false }; // -> Explicitly set passive to false
+    window.addEventListener('touchmove', handleTouchMove, options);
+    window.addEventListener('touchend', handleTouchEnd);
+    window.addEventListener('touchcancel', handleTouchEnd);
+  
+    return () => {
+      window.removeEventListener('touchmove', handleTouchMove);
+      window.removeEventListener('touchend', handleTouchEnd);
+      window.removeEventListener('touchcancel', handleTouchEnd);
+    };
+  }, [joystickState.isActive, handleTouchMove, handleTouchEnd]);
+
 
   useEffect(() => {
     if (room?.gameState.status === "playing" && !isFullscreen && gameAreaRef.current && (isMobile || requestFullscreenOnStart)) {
@@ -134,38 +208,7 @@ const GamePage: React.FC = () => {
     return () => clearInterval(rotationInterval);
   }, [room?.gameMode, room?.gameState.status, room?.gameState.maze?.difficulty, clientRotation]);
 
-
   const touchHandler = (handler: (e: TouchEvent<HTMLDivElement>) => void) => isMobile && room?.gameState.status === "playing" ? handler : undefined;
-
-  const handleTouchStart = (e: TouchEvent<HTMLDivElement>) => {
-    if (joystickState.isActive) return;
-    const touch = e.changedTouches[0];
-    if (!touch || (e.target as HTMLElement).closest('button, input, select')) return;
-    e.preventDefault();
-    setJoystickState({ isActive: true, position: { x: touch.clientX, y: touch.clientY }, thumbPosition: { x: 0, y: 0 }, touchId: touch.identifier });
-  };
-
-  const handleTouchMove = (e: TouchEvent<HTMLDivElement>) => {
-    const touch = Array.from(e.changedTouches).find((t) => t.identifier === joystickState.touchId);
-    if (!touch || !joystickState.isActive) return;
-    e.preventDefault();
-    const { x: centerX, y: centerY } = joystickState.position;
-    let dx = touch.clientX - centerX, dy = touch.clientY - centerY;
-    const dist = Math.sqrt(dx * dx + dy * dy);
-    const radius = 20;
-    if (dist > radius) { dx = (dx / dist) * radius; dy = (dy / dist) * radius; }
-    setJoystickState(prev => ({ ...prev, thumbPosition: { x: dx, y: dy } }));
-    const angle = Math.atan2(dy, dx);
-    let dir = dist < 10 ? null : (angle > -Math.PI / 4 && angle <= Math.PI / 4) ? "right" : (angle > Math.PI / 4 && angle <= 3 * Math.PI / 4) ? "down" : (angle > 3 * Math.PI / 4 || angle <= -3 * Math.PI / 4) ? "left" : "up";
-    if (dir) handleMove(dir); else handleMoveEnd();
-  };
-
-  const handleTouchEnd = (e: TouchEvent<HTMLDivElement>) => {
-    if (!Array.from(e.changedTouches).some((t) => t.identifier === joystickState.touchId)) return;
-    e.preventDefault();
-    handleMoveEnd();
-    setJoystickState({ isActive: false, position: { x: 0, y: 0 }, thumbPosition: { x: 0, y: 0 }, touchId: null });
-  };
 
   if (!user || !room) return null;
   const isHost = room.hostId === user.id;
@@ -211,7 +254,12 @@ const GamePage: React.FC = () => {
       />
       {isInstructionsVisible && <InstructionsModal gameMode={room.gameMode} onClose={() => setIsInstructionsVisible(false)} />}
       <div className="flex flex-col lg:flex-row h-screen p-4 gap-4">
-        <div ref={gameAreaRef} className={isFullscreen ? "fixed inset-0 bg-background flex items-center justify-center z-50 p-2" : "flex-1 flex items-center justify-center relative bg-surface-100/50 border border-border rounded-2xl"} onTouchStart={touchHandler(handleTouchStart)} onTouchMove={touchHandler(handleTouchMove)} onTouchEnd={touchHandler(handleTouchEnd)} onTouchCancel={touchHandler(handleTouchEnd)}>
+        <div 
+          ref={gameAreaRef} 
+          className={isFullscreen ? "fixed inset-0 bg-background flex items-center justify-center z-50 p-2" : "flex-1 flex items-center justify-center relative bg-surface-100/50 border border-border rounded-2xl"}
+          onTouchStart={touchHandler(handleTouchStart)}
+          // -> Removed passive handlers from JSX
+        >
           {isFullscreen && <GameStatus room={room} isFullscreen={isFullscreen} />}
           {isFullscreen && room.gameMode === GameMode.HIDE_AND_SEEK && room.gameState.status === 'playing' && (
             <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 pointer-events-none">
