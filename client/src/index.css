@@ -1,4 +1,3 @@
-
 @import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..700&display=swap');
 
 @tailwind base;
@@ -58,10 +57,14 @@
 
   /* --- Role & Status Highlights --- */
   /* Added semantic highlight variables for different game roles */
-  --it-highlight-hsl: var(--error-hsl); /* For 'It' player in Tag mode */
-  --seeker-highlight-hsl: 35 90% 45%;   /* A strong amber for Seekers in Hide & Seek */
-  --infected-highlight-hsl: 75 80% 45%; /* A sickly lime green for Infected players */
-  --reveal-highlight-hsl: 50 100% 60%;  /* A bright yellow for the Hider reveal effect */
+  --it-highlight-hsl: var(--error-hsl);
+  /* For 'It' player in Tag mode */
+  --seeker-highlight-hsl: 35 90% 45%;
+  /* A strong amber for Seekers in Hide & Seek */
+  --infected-highlight-hsl: 75 80% 45%;
+  /* A sickly lime green for Infected players */
+  --reveal-highlight-hsl: 50 100% 60%;
+  /* A bright yellow for the Hider reveal effect */
 
   /* Player Colors - Distinct but deeper tones */
   --player-color-1-hsl: 220 85% 52%;

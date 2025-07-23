@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
@@ -16,7 +17,7 @@ import {
   InfoIcon,
   HeistIcon,
   HideAndSeekIcon,
-  LogoutIcon
+  GearIcon
 } from "@components/icons";
 import InstructionsModal from "@components/InstructionsModal";
 import Loader from "@components/Loader";
@@ -24,26 +25,28 @@ import { useGame } from "@contexts/GameContext";
 import GameModeCard from "@components/GameModeCard";
 import ProcessingOverlay from "@components/ui/ProcessingOverlay";
 import ConnectionBanner from "@components/ui/ConnectionBanner";
+import SettingsModal from "@components/SettingsModal";
 
 const LobbyPage: React.FC = () => {
-  const { user, joinRoom: onJoinRoom, logout, isConnected, connectionError, isConnectionWarningDismissed, dismissConnectionWarning, resetConnectionWarning } = useGame();
+  const { user, joinRoom: onJoinRoom, isConnected, connectionError, isConnectionWarningDismissed, dismissConnectionWarning, resetConnectionWarning } = useGame();
   const navigate = useNavigate();
   const [selectedGameMode, setSelectedGameMode] = useState<GameMode>(GameMode.TAG);
   const [joinCode, setJoinCode] = useState("");
   const [error, setError] = useState("");
   const [availableRooms, setAvailableRooms] = useState<{ id: string; gameMode: GameMode; playerCount: number }[]>([]);
   const [isInstructionsVisible, setIsInstructionsVisible] = useState(false);
+  const [isSettingsVisible, setIsSettingsVisible] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingText, setProcessingText] = useState("");
   const [isLoadingRooms, setIsLoadingRooms] = useState(true);
 
   useEffect(() => {
     if (!isConnected) {
-        setIsProcessing(false);
-        setIsLoadingRooms(false);
+      setIsProcessing(false);
+      setIsLoadingRooms(false);
     } else {
-        setIsLoadingRooms(true);
-        socketService.getAvailableRooms();
+      setIsLoadingRooms(true);
+      socketService.getAvailableRooms();
     }
   }, [isConnected]);
 
@@ -53,10 +56,10 @@ const LobbyPage: React.FC = () => {
       setIsLoadingRooms(false);
     };
     socketService.onAvailableRoomsUpdate(handleRoomsUpdate);
-    
+
     // Initial fetch
-    if(isConnected) {
-        socketService.getAvailableRooms();
+    if (isConnected) {
+      socketService.getAvailableRooms();
     }
 
     return () => socketService.offAvailableRoomsUpdate();
@@ -110,13 +113,14 @@ const LobbyPage: React.FC = () => {
 
   return (
     <>
-      <ConnectionBanner 
-        isVisible={!isConnected && !isConnectionWarningDismissed} 
+      <ConnectionBanner
+        isVisible={!isConnected && !isConnectionWarningDismissed}
         error={connectionError}
         onDismiss={dismissConnectionWarning}
       />
       <ProcessingOverlay isVisible={isProcessing} text={processingText} />
       {isInstructionsVisible && <InstructionsModal gameMode={selectedGameMode} onClose={() => setIsInstructionsVisible(false)} />}
+      <SettingsModal isOpen={isSettingsVisible} onClose={() => setIsSettingsVisible(false)} />
 
       <div className="min-h-screen bg-background p-4 sm:p-6">
         <div className="max-w-7xl mx-auto">
@@ -130,13 +134,13 @@ const LobbyPage: React.FC = () => {
               Welcome back, <span className="text-text-primary font-bold">{user?.name}</span>
             </p>
             <motion.button
-              onClick={logout}
-              whileHover={{ scale: 1.05, backgroundColor: "hsl(var(--surface-200-hsl))" }}
+              onClick={() => setIsSettingsVisible(true)}
+              whileHover={{ scale: 1.05, rotate: 15 }}
               whileTap={{ scale: 0.95 }}
-              className="absolute top-0 right-0 w-10 h-10 sm:w-12 sm:h-12 bg-surface-100 border border-border rounded-xl flex items-center justify-center transition-all duration-300 group"
-              aria-label="Logout"
+              className="absolute top-0 right-0 w-10 h-10 sm:w-12 sm:h-12 bg-surface-100 hover:bg-surface-200 border border-border rounded-xl flex items-center justify-center transition-all duration-300 group"
+              aria-label="Settings"
             >
-              <LogoutIcon className="w-5 h-5 text-text-secondary group-hover:text-error transition-colors" />
+              <GearIcon className="w-5 h-5 sm:w-6 sm:h-6 text-text-secondary group-hover:text-primary transition-colors" />
             </motion.button>
           </motion.div>
 
@@ -202,9 +206,9 @@ const LobbyPage: React.FC = () => {
                 </motion.button>
                 <motion.button
                   onClick={() => setIsInstructionsVisible(true)}
-                  whileHover={{ scale: 1.05, backgroundColor: "hsl(var(--surface-200-hsl))" }}
+                  whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  className="bg-surface-200 border border-border text-text-secondary hover:text-text-primary font-bold p-3 sm:p-4 rounded-xl transition-all duration-200"
+                  className="bg-surface-100 hover:bg-surface-200 border border-border text-text-secondary hover:text-text-primary font-bold p-3 sm:p-4 rounded-xl transition-all duration-200"
                   aria-label="How to Play"
                 >
                   <InfoIcon className="w-6 h-6" />
@@ -263,10 +267,10 @@ const LobbyPage: React.FC = () => {
             <div className="space-y-4 max-h-[40vh] overflow-y-auto scrollbar-thin">
               {isLoadingRooms && isConnected ? (
                 <div className="flex justify-center items-center py-16">
-                  <Loader className="w-8 h-8" text="Loading rooms..." containerClassName="flex-col"/>
+                  <Loader className="w-8 h-8" text="Loading rooms..." containerClassName="flex-col" />
                 </div>
               ) : !isConnected ? (
-                 <div className="text-center py-16">
+                <div className="text-center py-16">
                   <div className="text-text-secondary mb-6">
                     <p className="text-2xl font-bold mb-2">Connection Error</p>
                     <p className="text-lg">Cannot fetch available rooms. Please check your connection.</p>
