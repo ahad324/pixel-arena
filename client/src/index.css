@@ -55,6 +55,17 @@
   --border-hsl: 220 10% 16%;
   /* Barely visible lines */
 
+  /* --- Role & Status Highlights --- */
+  /* Added semantic highlight variables for different game roles */
+  --it-highlight-hsl: var(--error-hsl);
+  /* For 'It' player in Tag mode */
+  --seeker-highlight-hsl: 35 90% 45%;
+  /* A strong amber for Seekers in Hide & Seek */
+  --infected-highlight-hsl: 75 80% 45%;
+  /* A sickly lime green for Infected players */
+  --reveal-highlight-hsl: 50 100% 60%;
+  /* A bright yellow for the Hider reveal effect */
+
   /* Player Colors - Distinct but deeper tones */
   --player-color-1-hsl: 220 85% 52%;
   /* Blue */
@@ -72,8 +83,20 @@
   /* Deep teal */
   --player-color-8-hsl: 20 85% 40%;
   /* Dark orange */
-}
+  --grid-wall-hsl: 0 0% 20%;
+  /* dark gray wall */
+  --grid-path-hsl: 0 0% 40%;
+  /* medium gray path */
+  --grid-border-hsl: 0 0% 30%;
+  /* slightly lighter than wall for borders */
+  --grid-start-hsl: 120 70% 40%;
+  /* dark green start */
+  --grid-end-hsl: 240 80% 50%;
+  /* deep blue end */
+  --fog-hsl: 220 30% 0.5%;
 
+
+}
 
 html,
 body {
@@ -100,29 +123,4 @@ body {
 
 .scrollbar-thin::-webkit-scrollbar-thumb:hover {
   background: hsl(var(--border-hsl));
-}
-
-.shiny-text {
-  position: relative;
-  background: linear-gradient(
-    120deg,
-    rgba(var(--tw-text-color-rgb, 255, 255, 255), 0.4) 0%,
-    rgba(var(--tw-text-color-rgb, 255, 255, 255), 1) 50%,
-    rgba(var(--tw-text-color-rgb, 255, 255, 255), 0.4) 100%
-  );
-  background-size: 200% auto;
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  animation: textShine 2.5s ease-in-out infinite;
-}
-
-
-@keyframes textShine {
-  0% {
-    background-position: -100% center;
-  }
-  100% {
-    background-position: 100% center;
-  }
 }

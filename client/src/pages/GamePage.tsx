@@ -23,6 +23,7 @@ import HideAndSeekUI from "@components/GameUI/HideAndSeekUI";
 import { EnterFullscreenIcon, InfoIcon, CheckCircleIcon, TargetIcon } from "@components/icons";
 import ReactionsComponent from "@components/ReactionsComponent";
 import ConnectionBanner from "@components/ui/ConnectionBanner";
+import Dropdown from "@components/ui/Dropdown";
 
 const HidingPhaseIndicator: React.FC<{ room: Room }> = ({ room }) => {
   const [countdown, setCountdown] = useState(0);
@@ -83,7 +84,7 @@ const GamePage: React.FC = () => {
     const transformedDirection = getTransformedDirection(direction, clientRotation);
     originalHandleMove(transformedDirection);
   };
-  
+
   const handleGenericAction = () => { if (user && room) handleAction(); };
 
   useEffect(() => {
@@ -102,10 +103,10 @@ const GamePage: React.FC = () => {
     }
     if (room?.gameState.status !== "playing" && isFullscreen) exitFullscreen();
   }, [room?.gameState.status, isMobile, isFullscreen, enterFullscreen, exitFullscreen, requestFullscreenOnStart]);
-  
+
   useEffect(() => {
     if (room?.gameState.status !== "waiting" || !isConnected) {
-        setIsStartingGame(false);
+      setIsStartingGame(false);
     }
   }, [room?.gameState.status, isConnected]);
 
@@ -115,7 +116,7 @@ const GamePage: React.FC = () => {
     socketService.onMazeDifficultyChanged(data => setSelectedDifficulty(data.difficulty));
     return () => socketService.offMazeDifficultyChanged();
   }, []);
-  
+
   useEffect(() => {
     if (room?.gameMode !== GameMode.MAZE_RACE || room?.gameState.status !== "playing") {
       if (clientRotation !== 0) setClientRotation(0);
@@ -129,7 +130,7 @@ const GamePage: React.FC = () => {
     }
     const rotationInterval = setInterval(() => {
       setClientRotation((prev) => (prev + 90) % 360);
-    }, 12000);
+    }, 8000);
     return () => clearInterval(rotationInterval);
   }, [room?.gameMode, room?.gameState.status, room?.gameState.maze?.difficulty, clientRotation]);
 
@@ -143,7 +144,7 @@ const GamePage: React.FC = () => {
     e.preventDefault();
     setJoystickState({ isActive: true, position: { x: touch.clientX, y: touch.clientY }, thumbPosition: { x: 0, y: 0 }, touchId: touch.identifier });
   };
-  
+
   const handleTouchMove = (e: TouchEvent<HTMLDivElement>) => {
     const touch = Array.from(e.changedTouches).find((t) => t.identifier === joystickState.touchId);
     if (!touch || !joystickState.isActive) return;
@@ -155,7 +156,7 @@ const GamePage: React.FC = () => {
     if (dist > radius) { dx = (dx / dist) * radius; dy = (dy / dist) * radius; }
     setJoystickState(prev => ({ ...prev, thumbPosition: { x: dx, y: dy } }));
     const angle = Math.atan2(dy, dx);
-    let dir = dist < 10 ? null : (angle > -Math.PI/4 && angle <= Math.PI/4) ? "right" : (angle > Math.PI/4 && angle <= 3*Math.PI/4) ? "down" : (angle > 3*Math.PI/4 || angle <= -3*Math.PI/4) ? "left" : "up";
+    let dir = dist < 10 ? null : (angle > -Math.PI / 4 && angle <= Math.PI / 4) ? "right" : (angle > Math.PI / 4 && angle <= 3 * Math.PI / 4) ? "down" : (angle > 3 * Math.PI / 4 || angle <= -3 * Math.PI / 4) ? "left" : "up";
     if (dir) handleMove(dir); else handleMoveEnd();
   };
 
@@ -178,9 +179,9 @@ const GamePage: React.FC = () => {
   };
 
   const handleStartGame = () => {
-      if (!checkConnection() || isStartingGame) return;
-      setIsStartingGame(true);
-      socketService.startGame(room.id, user.id);
+    if (!checkConnection() || isStartingGame) return;
+    setIsStartingGame(true);
+    socketService.startGame(room.id, user.id);
   };
   const handleLeaveRoom = () => { leaveRoom(); navigate("/lobby"); };
   const handleEndGame = () => { endGame(); navigate("/lobby"); };
@@ -196,6 +197,11 @@ const GamePage: React.FC = () => {
     return null;
   };
 
+  const difficultyOptions = (['easy', 'medium', 'hard', 'expert'] as const).map(d => ({
+    value: d,
+    label: d.charAt(0).toUpperCase() + d.slice(1),
+  }));
+
   return (
     <div className="min-h-screen bg-background text-text-primary">
       <ConnectionBanner
@@ -208,9 +214,9 @@ const GamePage: React.FC = () => {
         <div ref={gameAreaRef} className={isFullscreen ? "fixed inset-0 bg-background flex items-center justify-center z-50 p-2" : "flex-1 flex items-center justify-center relative bg-surface-100/50 border border-border rounded-2xl"} onTouchStart={touchHandler(handleTouchStart)} onTouchMove={touchHandler(handleTouchMove)} onTouchEnd={touchHandler(handleTouchEnd)} onTouchCancel={touchHandler(handleTouchEnd)}>
           {isFullscreen && <GameStatus room={room} isFullscreen={isFullscreen} />}
           {isFullscreen && room.gameMode === GameMode.HIDE_AND_SEEK && room.gameState.status === 'playing' && (
-              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 pointer-events-none">
-                  <HidingPhaseIndicator room={room} />
-              </div>
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 pointer-events-none">
+              <HidingPhaseIndicator room={room} />
+            </div>
           )}
           <GameBoard room={room} heistPadFeedback={heistPadFeedback} user={user} clientRotation={clientRotation} />
           {isMobile && room.gameState.status === "playing" && <VirtualJoystick joystickState={joystickState} />}
@@ -231,28 +237,23 @@ const GamePage: React.FC = () => {
                   </div>
                 </div>
               </div>
-              <button onClick={() => setIsInstructionsVisible(true)} className="p-2 bg-surface-200/50 hover:bg-surface-200/80 rounded-xl text-text-secondary hover:text-text-primary transition-colors border border-border"><InfoIcon className="w-5 h-5" /></button>
+              <button onClick={() => setIsInstructionsVisible(true)} className="p-2 bg-surface-200/50 hover:bg-surface-200/80 rounded-xl text-text-secondary hover:text-text-primary transition-colors border border-primary"><InfoIcon className="w-5 h-5" /></button>
             </div>
             <p className="text-text-secondary text-sm leading-relaxed mb-4 bg-surface-200/30 rounded-xl p-4 border border-border/50">{GAME_DESCRIPTIONS[room.gameMode]}</p>
             {room.gameMode === GameMode.SPY_AND_DECODE && <SpyDecodeUI room={room} user={user} />}
             {room.gameMode === GameMode.HIDE_AND_SEEK && room.gameState.status === "playing" && <HidingPhaseIndicator room={room} />}
             <div className="mb-4"><GameStatus room={room} isFullscreen={isFullscreen} /></div>
             <div className="flex-grow min-h-0 mb-4"><PlayerList room={room} user={user} /></div>
-             {!isMobile && room.gameState.status === "waiting" && <label className="flex items-center justify-center cursor-pointer mb-4"><input type="checkbox" checked={requestFullscreenOnStart} onChange={e => setRequestFullscreenOnStart(e.target.checked)} className="w-4 h-4 text-primary bg-surface-200 border-border rounded focus:ring-primary focus:ring-2" /><span className="ml-2 text-sm text-text-secondary">Play in Fullscreen</span></label>}
+            {!isMobile && room.gameState.status === "waiting" && <label className="flex items-center justify-center cursor-pointer mb-4"><input type="checkbox" checked={requestFullscreenOnStart} onChange={e => setRequestFullscreenOnStart(e.target.checked)} className="w-4 h-4 text-primary bg-surface-200 border-border rounded focus:ring-primary focus:ring-2" /><span className="ml-2 text-sm text-text-secondary">Play in Fullscreen</span></label>}
             {room.gameMode === GameMode.MAZE_RACE && room.gameState.status === "waiting" && isHost && (
               <div className="mb-4">
-                <label htmlFor="difficulty-select" className="block text-sm font-medium text-text-secondary mb-2 text-center">Maze Difficulty</label>
-                <select 
-                  id="difficulty-select"
-                  value={selectedDifficulty} 
-                  onChange={e => socketService.setMazeRaceDifficulty(room.id, user.id, e.target.value as MazeRaceDifficulty)}
+                <Dropdown
+                  label="Maze Difficulty"
+                  options={difficultyOptions}
+                  selectedValue={selectedDifficulty}
+                  onChange={(value) => socketService.setMazeRaceDifficulty(room.id, user.id, value as MazeRaceDifficulty)}
                   disabled={!isConnected}
-                  className="w-full p-3 bg-surface-200/50 border border-border text-text-primary rounded-xl focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50"
-                >
-                  {(['easy', 'medium', 'hard', 'expert'] as const).map(d => 
-                    <option key={d} value={d}>{d.charAt(0).toUpperCase() + d.slice(1)}</option>
-                  )}
-                </select>
+                />
               </div>
             )}
             <div className="space-y-2 mt-auto">

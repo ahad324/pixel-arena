@@ -1,11 +1,13 @@
+
 import React from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { useGame } from "@contexts/GameContext";
-import DarkVeil from "@components/ui/DarkVeil";
 import { PlayIcon, ArrowRightIcon } from "@components/icons";
 import GithubButton from "@components/ui/GitHubButton";
 import Logo from "/logo.svg";
+import Particles from "@components/ui/Particles";
+import StarBorder from "@components/ui/StarBorder";
 
 const LandingPage: React.FC = () => {
   const { user } = useGame();
@@ -22,7 +24,7 @@ const LandingPage: React.FC = () => {
             alt="Pixel Arena Logo"
             className="rounded-lg w-9 h-9 sm:w-10 sm:h-10 group-hover:animate-bounce-subtle"
           />
-          <span className="hidden sm:block text-xl font-bold text-text-on-primary tracking-wide transition-colors">
+          <span className="hidden sm:block text-xl font-bold text-secondary tracking-wide transition-colors">
             Pixel Arena
           </span>
         </Link>
@@ -31,23 +33,17 @@ const LandingPage: React.FC = () => {
 
       <section className="relative min-h-screen flex items-center justify-center p-4 overflow-hidden">
         <div className="absolute inset-0 w-full h-full">
-          <DarkVeil speed={1} />
+          <Particles
+          />
         </div>
         <div className="absolute inset-0" />
 
         <div className="relative z-10 text-center max-w-6xl mx-auto flex flex-col items-center">
           {/* Tagline */}
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, ease: "easeOut" }}
-            className="inline-flex items-center justify-center px-3 py-1.5 sm:px-4 sm:py-1.5 rounded-full
-   bg-surface-100/90 backdrop-blur-md border border-primary/50 hover:border-primary/80
-   text-xs sm:text-sm font-semibold shadow-lg hover:shadow-xl
-   cursor-grab active:cursor-grabbing transition-all duration-300"
-          >
-            <span className="shiny-text">8 Game Modes!</span>
-          </motion.div>
+          <StarBorder color="var(--primary-hsl)">
+            8 Game Modes!
+          </StarBorder>
+
 
           {/* Title */}
           <motion.div
@@ -63,7 +59,7 @@ const LandingPage: React.FC = () => {
             className="text-center"
           >
             <h1
-              className="text-7xl sm:text-8xl md:text-9xl tracking-tighter mb-4 text-text-primary relative"
+              className="text-7xl font-bold sm:text-8xl md:text-9xl tracking-tighter mb-4 text-text-primary relative"
               style={{ textShadow: "0 5px 30px hsla(var(--primary-hsl), 0.2)" }}
             >
               <motion.span

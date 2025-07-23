@@ -18,39 +18,28 @@ const PlayerAvatar: React.FC<PlayerAvatarProps> = ({ player, cellSize }) => {
 
   const self = room?.players.find((p) => p.id === user?.id);
   const now = Date.now();
+  const isSelf = player.id === user?.id;
+  const isHnS = room?.gameMode === GameMode.HIDE_AND_SEEK && room.gameState.status === 'playing';
 
-  // Hide and Seek visibility logic
-  if (room?.gameMode === GameMode.HIDE_AND_SEEK && room.gameState.status === "playing" && self) {
-    if (self.isSeeker) { // Viewer is a Seeker
-      if (!player.isSeeker && !player.isCaught) { // Player to render is a Hider
+  // change from: a complex, nested if/else block with multiple return points.
+  // to: a single, unified visibility check at the start of the component.
+  // because: This fixes a bug where hiders inside the fog of war would not render correctly and simplifies the logic. It ensures a single source of truth for visibility before rendering.
+  if (isHnS && self) {
+    if (self.isSeeker) { // Seeker's view
+      if (!player.isSeeker && !player.isCaught) { // Rendering a Hider
         const distance = Math.hypot(self.x - player.x, self.y - player.y);
         const isVisibleInFog = distance <= 7.5;
         const isRevealedByAbility = revealedHidersUntil && now < revealedHidersUntil;
+
         if (!isVisibleInFog && !isRevealedByAbility) {
-          // Not in fog, not revealed. Hide completely.
-          return null;
-        } else if (!isVisibleInFog && isRevealedByAbility) {
-          // Not in fog, but revealed by ability. Show highlight.
-          return (
-            <motion.div
-              layout
-              className="absolute"
-              style={{
-                left: player.x * cellSize, top: player.y * cellSize,
-                width: cellSize, height: cellSize, zIndex: 15,
-              }}
-            >
-              <div
-                className="w-full h-full rounded-md animate-pulse ring-2 ring-warning shadow-lg shadow-warning/80"
-                style={{ backgroundColor: player.color, opacity: 0.6 }}
-              ></div>
-            </motion.div>
-          );
+          return null; // Hide hiders who are outside fog and not revealed.
         }
-        // else isVisibleInFog, so we proceed to render the full avatar below.
       }
-    } else { // Viewer is a Hider
-      if (player.id !== self.id && !player.isSeeker) return null; // Hide other Hiders
+    } else { // Hider's view
+      // Hiders should only see themselves and any seekers.
+      if (!player.isSeeker && player.id !== self.id) {
+        return null;
+      }
     }
   }
 
@@ -58,7 +47,9 @@ const PlayerAvatar: React.FC<PlayerAvatarProps> = ({ player, cellSize }) => {
   const isFrozen = player.effects?.some(e => e.type === "frozen" && e.expires > now);
   const isSlowed = player.effects?.some(e => e.type === "slow" && e.expires > now);
   const finalColor = player.isInfected ? INFECTED_COLOR : player.color;
-  const isSelf = player.id === user?.id;
+
+  // Added a flag to check if a hider is currently revealed by the seeker's ability.
+  const isRevealedHider = isHnS && self?.isSeeker && !player.isSeeker && !player.isCaught && revealedHidersUntil && now < revealedHidersUntil;
 
   return (
     <motion.div
@@ -73,7 +64,10 @@ const PlayerAvatar: React.FC<PlayerAvatarProps> = ({ player, cellSize }) => {
         top: player.y * cellSize,
         width: cellSize,
         height: cellSize,
-        zIndex: player.isSeeker ? 10 : (isSelf ? 6 : 5),
+        // change from: static z-index logic
+        // to: dynamic z-index based on `isRevealedHider`.
+        // because: This ensures revealed hiders appear on top of the fog of war (which is at z-20).
+        zIndex: isRevealedHider ? 25 : (player.isSeeker ? 10 : (isSelf ? 6 : 5)),
       }}
     >
       <div
@@ -92,10 +86,18 @@ const PlayerAvatar: React.FC<PlayerAvatarProps> = ({ player, cellSize }) => {
           {isFrozen && <FreezeIcon className="w-3/4 h-3/4 text-text-on-primary/80 animate-pulse" />}
 
           {/* Effects and statuses as rings/overlays */}
-          {player.isIt && <div className="absolute inset-0 rounded-md ring-2 ring-offset-2 ring-offset-background ring-error animate-pulse" />}
-          {isShielded && <div className="absolute inset-0 rounded-md ring-2 ring-offset-2 ring-offset-background ring-primary animate-subtle-glow" />}
-          {player.isSeeker && <div className="absolute inset-0 rounded-md ring-2 ring-error" />}
+          {/* change from: ring-error to ring-it-highlight for semantic color theming. */}
+          {player.isIt && <div className="absolute inset-0 rounded-md ring-2 ring-offset-2 ring-offset-background ring-it-highlight animate-pulse" />}
+          {/* Added highlight for infected players as requested for better role visibility. */}
+          {player.isInfected && <div className="absolute inset-0 rounded-md ring-2 ring-offset-2 ring-offset-background ring-infected-highlight animate-pulse" />}
 
+          {isShielded && <div className="absolute inset-0 rounded-md ring-2 ring-offset-2 ring-offset-background ring-primary animate-subtle-glow" />}
+
+          {/* change from: ring-error to ring-seeker-highlight for a distinct, themable seeker color. */}
+          {player.isSeeker && <div className="absolute inset-0 rounded-md ring-2 ring-seeker-highlight" />}
+
+          {/* Added highlight for the seeker's "reveal" ability. */}
+          {isRevealedHider && <div className="absolute inset-0 rounded-md ring-2 ring-offset-2 ring-offset-background ring-reveal-highlight animate-pulse" />}
         </div>
       </div>
       <div

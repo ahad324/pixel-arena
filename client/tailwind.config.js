@@ -32,6 +32,11 @@ module.exports = {
           hover: 'hsl(var(--error-hover-hsl) / <alpha-value>)',
           dark: 'hsl(var(--error-dark-hsl) / <alpha-value>)',
         },
+        // Added highlight colors to Tailwind config for use in components.
+        'it-highlight': 'hsl(var(--it-highlight-hsl) / <alpha-value>)',
+        'seeker-highlight': 'hsl(var(--seeker-highlight-hsl) / <alpha-value>)',
+        'infected-highlight': 'hsl(var(--infected-highlight-hsl) / <alpha-value>)',
+        'reveal-highlight': 'hsl(var(--reveal-highlight-hsl) / <alpha-value>)',
         text: {
           primary: 'hsl(var(--text-primary-hsl) / <alpha-value>)',
           secondary: 'hsl(var(--text-secondary-hsl) / <alpha-value>)',
@@ -44,6 +49,13 @@ module.exports = {
         },
         info: 'hsl(var(--info-hsl) / <alpha-value>)',
         experimental: 'hsl(var(--experimental-hsl) / <alpha-value>)',
+        grid: {
+          wall: 'hsl(var(--grid-wall-hsl) / <alpha-value>)',
+          path: 'hsl(var(--grid-path-hsl) / <alpha-value>)',
+          border: 'hsl(var(--grid-border-hsl) / <alpha-value>)',
+          start: 'hsl(var(--grid-start-hsl) / <alpha-value>)',
+          end: 'hsl(var(--grid-end-hsl) / <alpha-value>)',
+        },
       },
       borderRadius: {
         lg: '0.5rem',
@@ -106,6 +118,14 @@ module.exports = {
           '0%, 100%': { opacity: '0.7' },
           '50%': { opacity: '1' },
         },
+        'star-movement-bottom': {
+          '0%': { transform: 'translate(0%, 0%)', opacity: '1' },
+          '100%': { transform: 'translate(-100%, 0%)', opacity: '0' },
+        },
+        'star-movement-top': {
+          '0%': { transform: 'translate(0%, 0%)', opacity: '1' },
+          '100%': { transform: 'translate(100%, 0%)', opacity: '0' },
+        },
       },
       animation: {
         'fade-in': 'fadeIn 0.3s ease-out',
@@ -118,8 +138,10 @@ module.exports = {
         shimmer: 'shimmer 1.5s linear infinite',
         shake: 'shake 0.3s ease-in-out',
         'success-pop': 'successPop 0.4s ease-out',
-        'float': 'float 3s ease-in-out infinite',
+        float: 'float 3s ease-in-out infinite',
         'glow-soft': 'glow-soft 2.5s ease-in-out infinite',
+        'star-movement-bottom': 'star-movement-bottom linear infinite alternate',
+        'star-movement-top': 'star-movement-top linear infinite alternate',
       },
       transitionProperty: {
         width: 'width',
