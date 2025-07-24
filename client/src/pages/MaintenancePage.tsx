@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence, Variants } from 'framer-motion';
 import { useCountdown } from '@hooks/useCountdown';
-import Logo from "/logo.svg"
+import Logo from "/logo.png"
 
 interface MaintenancePageProps {
   title: string;

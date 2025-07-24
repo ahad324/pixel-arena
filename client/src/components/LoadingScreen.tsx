@@ -1,6 +1,6 @@
 import React from 'react';
 import Loader from '@components/Loader';
-import Logo from "/logo.svg";
+import Logo from "/logo.png";
 import { motion } from 'framer-motion';
 
 const LoadingScreen: React.FC = () => {

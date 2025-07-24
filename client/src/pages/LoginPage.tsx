@@ -2,7 +2,7 @@
 import React, { useState, FormEvent, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import Logo from "/logo.svg"
+import Logo from "/logo.png"
 import { useGame } from "@contexts/GameContext";
 import { ChevronLeftIcon } from "@components/icons";
 import Loader from "@components/Loader";

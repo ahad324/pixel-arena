@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 import { useGame } from "@contexts/GameContext";
 import { PlayIcon, ArrowRightIcon } from "@components/icons";
 import GithubButton from "@components/ui/GitHubButton";
-import Logo from "/logo.svg";
+import Logo from "/logo.png";
 import Particles from "@components/ui/Particles";
 import StarBorder from "@components/ui/StarBorder";
 
