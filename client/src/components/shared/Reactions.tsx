@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useEmojis } from "@hooks/useEmojis";
-import type { Emoji } from "../../types";
+import type { Emoji } from "@custom-types/index";
 import Loader from "@components/Loader";
 
 interface EmojiPickerProps {

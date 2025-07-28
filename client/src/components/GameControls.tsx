@@ -1,6 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
-import type { Room } from "../types/index";
+import type { Room } from "@custom-types/index";
 import Loader from "./Loader";
 
 const GameControls: React.FC<{

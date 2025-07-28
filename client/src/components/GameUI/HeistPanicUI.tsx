@@ -1,8 +1,8 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import type { Player, Room } from "../../types/index";
-import { GameMode } from "../../types/index";
+import type { Player, Room } from "@custom-types/index";
+import { GameMode } from "@custom-types/index";
 import { useDeviceDetection } from "@hooks/useDeviceDetection";
 
 const HeistPanicUI: React.FC<{

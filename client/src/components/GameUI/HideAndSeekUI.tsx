@@ -1,8 +1,8 @@
 
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import type { Player, Room } from "../../types/index";
-import { GameMode } from "../../types/index";
+import type { Player, Room } from "@custom-types/index";
+import { GameMode } from "@custom-types/index";
 import { GAME_SETTINGS } from "@constants/index";
 import { useDeviceDetection } from "@hooks/useDeviceDetection";
 import { SpyIcon } from "@components/icons";

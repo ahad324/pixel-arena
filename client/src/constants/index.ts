@@ -1,4 +1,4 @@
-import { GameMode } from "../types";
+import { GameMode } from "@custom-types/index";
 
 export const GRID_SIZE = 20;
 export const CELL_SIZE = 32;

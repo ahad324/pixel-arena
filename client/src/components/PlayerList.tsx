@@ -1,8 +1,8 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import type { Player, Room } from "../types/index";
-import { GameMode } from "../types/index";
+import type { Player, Room } from "@custom-types/index";
+import { GameMode } from "@custom-types/index";
 import { INFECTED_COLOR } from "@constants/index";
 
 const PlayerList: React.FC<{ room: Room; user: Omit<Player, "socketId"> }> = ({ room, user }) => {

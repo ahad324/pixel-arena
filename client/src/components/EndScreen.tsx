@@ -1,7 +1,7 @@
 
 import React from "react";
-import type { Room, Player } from "../types";
-import { GameMode } from "../types";
+import type { Room, Player } from "@custom-types/index";
+import { GameMode } from "@custom-types/index";
 import { TrophyIcon } from "./icons";
 import { motion } from "framer-motion";
 
@@ -35,30 +35,30 @@ const EndScreen: React.FC<EndScreenProps> = ({ room, onBackToLobby }) => {
         className="bg-surface-100 border border-border rounded-3xl p-8 shadow-2xl max-w-lg w-full text-center"
       >
         <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ delay: 0.1, type: "spring", stiffness: 150 }}
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ delay: 0.1, type: "spring", stiffness: 150 }}
         >
-            <TrophyIcon className="h-20 w-20 text-warning mx-auto mb-4" />
+          <TrophyIcon className="h-20 w-20 text-warning mx-auto mb-4" />
         </motion.div>
-        
-        <motion.h1 
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="text-4xl mb-2 text-text-primary"
+
+        <motion.h1
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="text-4xl mb-2 text-text-primary"
         >
-            {winnerName}
+          {winnerName}
         </motion.h1>
-        <motion.p 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.3 }}
-            className="text-text-secondary mb-8"
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.3 }}
+          className="text-text-secondary mb-8"
         >
-            Results for {room.gameMode}
+          Results for {room.gameMode}
         </motion.p>
-        
+
         <div className="space-y-3 text-left max-h-60 overflow-y-auto pr-2 scrollbar-thin">
           {sortedPlayers.map((player, index) => (
             <motion.div
@@ -82,7 +82,7 @@ const EndScreen: React.FC<EndScreenProps> = ({ room, onBackToLobby }) => {
             </motion.div>
           ))}
         </div>
-        
+
         <motion.button
           onClick={onBackToLobby}
           initial={{ opacity: 0, y: 20 }}

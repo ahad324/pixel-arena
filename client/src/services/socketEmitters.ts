@@ -3,7 +3,7 @@ import type {
   Player,
   GameMode,
   MazeRaceDifficulty,
-} from "../types/index";
+} from "@custom-types/index";
 
 // Forward declaration to avoid circular imports
 interface SocketService {

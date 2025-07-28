@@ -1,7 +1,7 @@
 
 import React, { useState, useRef, useEffect, useMemo } from "react";
-import type { Player, Room, Footprint } from "../types";
-import { GameMode } from "../types";
+import type { Player, Room, Footprint } from "@custom-types/index";
+import { GameMode } from "@custom-types/index";
 import { GRID_SIZE } from "@constants/index";
 import PlayerAvatar from "@components/PlayerAvatar";
 import { FreezeIcon, SlowIcon, TeleportIcon } from "@components/icons";

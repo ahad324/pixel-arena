@@ -1,6 +1,6 @@
 import React, { createContext, useEffect, useContext, useReducer } from "react";
-import type { Player, Room, Footprint, ChatMessage } from "../types";
-import { GameMode } from "../types";
+import type { Player, Room, Footprint, ChatMessage } from "@custom-types/index";
+import { GameMode } from "@custom-types/index";
 import { socketService } from "@services/socketService";
 import ChatManager from "@utils/ReactionManager";
 

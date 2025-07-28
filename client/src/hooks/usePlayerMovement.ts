@@ -1,7 +1,7 @@
 import { useEffect, useCallback, useRef } from "react";
 import { socketService } from "@services/socketService";
-import type { Player, Room } from "../types";
-import { GameMode } from "../types";
+import type { Player, Room } from "@custom-types/index";
+import { GameMode } from "@custom-types/index";
 
 const MOVE_INTERVAL_MS = 120; // ms, similar to holding a key
 

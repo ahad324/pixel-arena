@@ -1,4 +1,4 @@
-import type { Emoji } from "../types";
+import type { Emoji } from "@custom-types/index";
 
 export const emojiData: Emoji[] = [
   // Smileys & Emotion
