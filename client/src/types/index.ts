@@ -118,10 +118,29 @@ export interface Room {
   };
 }
 
-export interface SendReactionPayload {
+export interface ChatMessage {
+  id: string;
+  senderId: string;
+  senderName: string;
+  senderColor: string;
+  message: string;
+  timestamp: number;
+}
+
+export interface LegacyReaction {
   emoji: string;
 }
 
-export interface ReceiveReactionPayload {
+export interface Emoji {
   emoji: string;
+  hexcode: string;
+  group: string;
+  subgroup: string;
+  annotation: string;
+  tags: string[];
+}
+
+export interface EmojiGroup {
+  name: string;
+  emojis: Emoji[];
 }

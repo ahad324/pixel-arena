@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useRef, TouchEvent, useCallback } from "react"; // -> Added useCallback
+import React, { useState, useEffect, useRef, TouchEvent, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { GameMode, MazeRaceDifficulty, Room } from "../types/index";
 import { socketService } from "@services/socketService";
@@ -21,7 +21,7 @@ import InfectionAbilityButton from "@components/GameUI/InfectionAbilityButton";
 import HeistPanicUI from "@components/GameUI/HeistPanicUI";
 import HideAndSeekUI from "@components/GameUI/HideAndSeekUI";
 import { EnterFullscreenIcon, InfoIcon, CheckCircleIcon, TargetIcon } from "@components/icons";
-import ReactionsComponent from "@components/ReactionsComponent";
+import ChatComponent from "@components/ChatComponent";
 import ConnectionBanner from "@components/ui/ConnectionBanner";
 import Dropdown from "@components/ui/Dropdown";
 
@@ -95,7 +95,6 @@ const GamePage: React.FC = () => {
     isActive: false, position: { x: 0, y: 0 }, thumbPosition: { x: 0, y: 0 }, touchId: null as number | null,
   });
 
-  // -> Refactored joystick handlers to fix movement and errors.
   const handleTouchStart = (e: TouchEvent<HTMLDivElement>) => {
     if (joystickState.isActive) return;
     const touch = e.changedTouches[0];
@@ -113,33 +112,30 @@ const GamePage: React.FC = () => {
     if (!joystickState.isActive) return;
     const touch = Array.from(e.changedTouches).find((t) => t.identifier === joystickState.touchId);
     if (!touch) return;
-  
-    e.preventDefault(); // -> Prevent default on active move
-  
+
+    e.preventDefault();
+
     const { x: centerX, y: centerY } = joystickState.position;
-    
-    // -> Use raw delta for direction logic
+
     const dx = touch.clientX - centerX;
     const dy = touch.clientY - centerY;
     const dist = Math.sqrt(dx * dx + dy * dy);
-  
-    // -> Clamp thumb position for visuals
-    const radius = 40; // Joystick base radius for a larger feel
+
+    const radius = 40;
     let thumbDx = dx;
     let thumbDy = dy;
-  
+
     if (dist > radius) {
       thumbDx = (dx / dist) * radius;
       thumbDy = (dy / dist) * radius;
     }
-  
+
     setJoystickState(prev => ({ ...prev, thumbPosition: { x: thumbDx, y: thumbDy } }));
-  
-    // -> Use raw values for accurate direction
+
     const angle = Math.atan2(dy, dx);
     const deadzone = 10;
     let dir = dist < deadzone ? null : (angle > -Math.PI / 4 && angle <= Math.PI / 4) ? "right" : (angle > Math.PI / 4 && angle <= 3 * Math.PI / 4) ? "down" : (angle > 3 * Math.PI / 4 || angle <= -3 * Math.PI / 4) ? "left" : "up";
-  
+
     if (dir) {
       handleMove(dir);
     } else {
@@ -154,15 +150,14 @@ const GamePage: React.FC = () => {
     }
   }, [joystickState.touchId, handleMoveEnd]);
 
-  // -> Added effect for window listeners
   useEffect(() => {
     if (!joystickState.isActive) return;
-  
-    const options = { passive: false }; // -> Explicitly set passive to false
+
+    const options = { passive: false };
     window.addEventListener('touchmove', handleTouchMove, options);
     window.addEventListener('touchend', handleTouchEnd);
     window.addEventListener('touchcancel', handleTouchEnd);
-  
+
     return () => {
       window.removeEventListener('touchmove', handleTouchMove);
       window.removeEventListener('touchend', handleTouchEnd);
@@ -254,11 +249,10 @@ const GamePage: React.FC = () => {
       />
       {isInstructionsVisible && <InstructionsModal gameMode={room.gameMode} onClose={() => setIsInstructionsVisible(false)} />}
       <div className="flex flex-col lg:flex-row h-screen p-4 gap-4">
-        <div 
-          ref={gameAreaRef} 
+        <div
+          ref={gameAreaRef}
           className={isFullscreen ? "fixed inset-0 bg-background flex items-center justify-center z-50 p-2" : "flex-1 flex items-center justify-center relative bg-surface-100/50 border border-border rounded-2xl"}
           onTouchStart={touchHandler(handleTouchStart)}
-          // -> Removed passive handlers from JSX
         >
           {isFullscreen && <GameStatus room={room} isFullscreen={isFullscreen} />}
           {isFullscreen && room.gameMode === GameMode.HIDE_AND_SEEK && room.gameState.status === 'playing' && (
@@ -270,7 +264,7 @@ const GamePage: React.FC = () => {
           {isMobile && room.gameState.status === "playing" && <VirtualJoystick joystickState={joystickState} />}
           {renderMobileActionButtons()}
           {isMobile && room.gameState.status === "playing" && !isFullscreen && <button onClick={() => enterFullscreen(gameAreaRef.current!)} className="absolute top-4 right-4 z-10 p-2 bg-surface-200/50 rounded-full" aria-label="Enter fullscreen"><EnterFullscreenIcon className="w-6 h-6" /></button>}
-          <ReactionsComponent />
+          <ChatComponent />
         </div>
         {!isFullscreen && (
           <div className="lg:w-96 flex-shrink-0 bg-surface-100/50 border border-border rounded-2xl p-6 flex flex-col">

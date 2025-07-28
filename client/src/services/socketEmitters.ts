@@ -49,6 +49,10 @@ export class SocketEmitters {
     this.socketService.getSocket()?.emit("get-available-rooms");
   }
 
+  public sendMessage(message: string) {
+    this.socketService.getSocket()?.emit("send-message", { message });
+  }
+
   public updatePlayerPosition(
     roomId: string,
     playerId: string,

@@ -13,6 +13,7 @@ class SocketService {
   public setGameMode: typeof SocketEmitters.prototype.setGameMode;
   public leaveRoom: typeof SocketEmitters.prototype.leaveRoom;
   public getAvailableRooms: typeof SocketEmitters.prototype.getAvailableRooms;
+  public sendMessage: typeof SocketEmitters.prototype.sendMessage;
   public updatePlayerPosition: typeof SocketEmitters.prototype.updatePlayerPosition;
   public activateAbility: typeof SocketEmitters.prototype.activateAbility;
   public submitHeistGuess: typeof SocketEmitters.prototype.submitHeistGuess;
@@ -26,6 +27,7 @@ class SocketService {
   public onConnectError: typeof SocketListeners.prototype.onConnectError;
   public onAvailableRoomsUpdate: typeof SocketListeners.prototype.onAvailableRoomsUpdate;
   public offAvailableRoomsUpdate: typeof SocketListeners.prototype.offAvailableRoomsUpdate;
+  public onNewMessage: typeof SocketListeners.prototype.onNewMessage;
   public onGameStarted: typeof SocketListeners.prototype.onGameStarted;
   public onPlayerMoved: typeof SocketListeners.prototype.onPlayerMoved;
   public onPlayerTagged: typeof SocketListeners.prototype.onPlayerTagged;
@@ -68,6 +70,7 @@ class SocketService {
     this.getAvailableRooms = this.emitters.getAvailableRooms.bind(
       this.emitters
     );
+    this.sendMessage = this.emitters.sendMessage.bind(this.emitters);
     this.updatePlayerPosition = this.emitters.updatePlayerPosition.bind(
       this.emitters
     );
@@ -89,6 +92,7 @@ class SocketService {
     this.offAvailableRoomsUpdate = this.listeners.offAvailableRoomsUpdate.bind(
       this.listeners
     );
+    this.onNewMessage = this.listeners.onNewMessage.bind(this.listeners);
     this.onGameStarted = this.listeners.onGameStarted.bind(this.listeners);
     this.onPlayerMoved = this.listeners.onPlayerMoved.bind(this.listeners);
     this.onPlayerTagged = this.listeners.onPlayerTagged.bind(this.listeners);

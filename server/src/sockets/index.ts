@@ -6,8 +6,7 @@ import type {
   GameMode,
   GameEvent,
   MazeRaceDifficulty,
-  SendReactionPayload,
-  ReceiveReactionPayload,
+  ChatMessage,
 } from "@app-types/index";
 
 const TICK_RATE = 20; // Ticks per second
@@ -45,6 +44,27 @@ export const initializeSockets = (io: Server) => {
 
     socket.on("get-available-rooms", () => {
       socket.emit("available-rooms-update", gameService.getAvailableRooms());
+    });
+
+    socket.on("send-message", (data: { message: string }) => {
+      const playerInfo = socketPlayerMap.get(socket.id);
+      if (!playerInfo) return;
+
+      const { roomId, playerId } = playerInfo;
+      const room = gameService.getRoom(roomId);
+      const player = room?.players.find((p) => p.id === playerId);
+
+      if (room && player && data.message && data.message.trim().length > 0) {
+        const chatMessage: ChatMessage = {
+          id: crypto.randomUUID(),
+          senderId: player.id,
+          senderName: player.name,
+          senderColor: player.color,
+          message: data.message.trim(),
+          timestamp: Date.now(),
+        };
+        io.to(roomId).emit("new-message", chatMessage);
+      }
     });
 
     socket.on("send-reaction", (data: { emoji: string }) => {
