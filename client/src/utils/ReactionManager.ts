@@ -1,28 +1,49 @@
 import { socketService } from "@services/socketService";
-import type { SendReactionPayload, ReceiveReactionPayload } from "../types";
 
-type ReactionCallback = (emoji: string) => void;
+type LegacyReactionCallback = (emoji: string) => void;
 
-class ReactionManager {
-  private static callback: ReactionCallback | null = null;
+interface ReceivedPayload {
+  emoji: string;
+}
 
-  static send(emoji: string) {
-    const payload: SendReactionPayload = { emoji };
+class ChatManager {
+  private legacyReactionCallback: LegacyReactionCallback | null = null;
+  private isListenerSetup = false;
+
+  private handleReceive = (data: ReceivedPayload) => {
+    // This now only handles legacy emoji reactions for the pop-up effect.
+    // Real chat messages are received via the 'new-message' event in GameContext.
+    this.legacyReactionCallback?.(data.emoji);
+  };
+
+  private setupListener() {
+    if (this.isListenerSetup) return;
+    socketService.getSocket()?.on("receive-reaction", this.handleReceive);
+    this.isListenerSetup = true;
+  }
+
+  public sendMessage(text: string) {
+    if (!text.trim()) return;
+    // Emit the new, dedicated event for sending a chat message.
+    socketService.sendMessage(text.trim());
+  }
+
+  public sendLegacyReaction(emoji: string) {
+    const payload = { emoji };
     socketService.getSocket()?.emit("send-reaction", payload);
   }
 
-  static onReceive(callback: ReactionCallback) {
-    this.offReceive(); // ensure no duplicates
-    this.callback = callback;
-    socketService.getSocket()?.on("receive-reaction", (data: ReceiveReactionPayload) => {
-      this.callback?.(data.emoji);
-    });
+  public onReceiveLegacyReaction(callback: LegacyReactionCallback) {
+    this.legacyReactionCallback = callback;
+    this.setupListener();
   }
 
-  static offReceive() {
-    socketService.getSocket()?.off("receive-reaction");
-    this.callback = null;
+  public offAll() {
+    socketService.getSocket()?.off("receive-reaction", this.handleReceive);
+    this.legacyReactionCallback = null;
+    this.isListenerSetup = false;
   }
 }
 
-export default ReactionManager;
+const ChatService = new ChatManager();
+export default ChatService;

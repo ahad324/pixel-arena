@@ -1,8 +1,8 @@
-
 import React, { createContext, useEffect, useContext, useReducer } from "react";
-import type { Player, Room, Footprint } from "../types";
+import type { Player, Room, Footprint, ChatMessage } from "../types";
 import { GameMode } from "../types";
 import { socketService } from "@services/socketService";
+import ChatManager from "@utils/ReactionManager";
 
 interface GameContextType {
   user: Omit<Player, "socketId"> | null;
@@ -11,6 +11,7 @@ interface GameContextType {
   isConnected: boolean;
   connectionError: string | null;
   isConnectionWarningDismissed: boolean;
+  chatMessages: ChatMessage[];
   login: (username: string) => void;
   joinRoom: (room: Room) => void;
   leaveRoom: () => void;
@@ -35,21 +36,13 @@ type GameAction =
   | { type: "PLAYER_JOINED"; payload: Player }
   | { type: "PLAYER_LEFT"; payload: { playerId: string } }
   | { type: "HOST_CHANGED"; payload: { newHostId: string } }
-  | {
-    type: "GAME_MODE_CHANGED";
-    payload: { gameMode: Room["gameMode"]; gameState: Room["gameState"] };
-  }
+  | { type: "GAME_MODE_CHANGED"; payload: { gameMode: Room["gameMode"]; gameState: Room["gameState"] } }
   | { type: "GAME_STARTED"; payload: { room: Room } }
-  | {
-    type: "PLAYER_MOVED";
-    payload: { playerId: string; x: number; y: number };
-  }
+  | { type: "PLAYER_MOVED"; payload: { playerId: string; x: number; y: number } }
   | { type: "PLAYER_TAGGED"; payload: { oldIt: string; newIt: string } }
-  | {
-    type: "TILE_CLAIMED";
-    payload: { x: number; y: number; playerId: string; color: string };
-  }
+  | { type: "TILE_CLAIMED"; payload: { x: number; y: number; playerId: string; color: string } }
   | { type: "PLAYER_INFECTED"; payload: { playerId: string } }
+  | { type: "RECEIVE_CHAT_MESSAGE"; payload: ChatMessage }
   | {
     type: "ABILITY_ACTIVATED";
     payload: {
@@ -59,24 +52,14 @@ type GameAction =
     };
   }
   | { type: "TRAP_TRIGGERED"; payload: { x: number; y: number; type: string } }
-  | {
-    type: "PLAYER_EFFECT";
-    payload: { playerId: string; type: "frozen" | "slow"; expires: number };
-  }
+  | { type: "PLAYER_EFFECT"; payload: { playerId: string; type: "frozen" | "slow"; expires: number } }
   | { type: "PAD_GUESSED"; payload: { padId: string; correct: boolean } }
   | { type: "CLEAR_PAD_FEEDBACK"; payload: { padId: string } }
   | { type: "TIMER_UPDATE"; payload: { time: number } }
-  | {
-    type: "SCORES_UPDATE";
-    payload: { scores: { id: string; score: number }[] };
-  }
-  | {
-    type: "PHASE_CHANGED";
-    payload: { phase: Room["gameState"]["phase"]; timer: number };
-  }
+  | { type: "SCORES_UPDATE"; payload: { scores: { id: string; score: number }[] } }
+  | { type: "PHASE_CHANGED"; payload: { phase: Room["gameState"]["phase"]; timer: number } }
   | { type: "PLAYER_GUESSED"; payload: { playerId: string; guess: string } }
   | { type: "GAME_OVER"; payload: { winner: Player | { name: string } | null; players: Player[] } }
-  // Hide and Seek Actions
   | { type: "PLAYER_CAUGHT"; payload: { playerId: string } }
   | { type: "PLAYER_CONVERTED"; payload: { playerId: string } }
   | { type: "FOOTPRINTS_UPDATE"; payload: { footprints: Footprint[] } }
@@ -91,6 +74,7 @@ interface GameState {
   isConnectionWarningDismissed: boolean;
   heistPadFeedback: { [padId: string]: 'correct' | 'incorrect' };
   revealedHidersUntil: number | null;
+  chatMessages: ChatMessage[];
 }
 
 const initialState: GameState = {
@@ -102,6 +86,7 @@ const initialState: GameState = {
   isConnectionWarningDismissed: false,
   heistPadFeedback: {},
   revealedHidersUntil: null,
+  chatMessages: [],
 };
 
 const gameReducer = (state: GameState, action: GameAction): GameState => {
@@ -111,19 +96,19 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
     case "SET_USER":
       return { ...state, user: action.payload };
     case "SET_ROOM":
-      return { ...state, room: action.payload };
+      // Clear chat messages when joining a new room
+      return { ...state, room: action.payload, chatMessages: [] };
     case "SET_CONNECTION_STATUS":
       if (action.payload) { // If connected
         return { ...state, isConnected: true, connectionError: null, isConnectionWarningDismissed: false };
       }
-      // If disconnected
       return { ...state, isConnected: false };
     case "SET_CONNECTION_ERROR":
       return { ...state, isConnected: false, connectionError: action.payload, isConnectionWarningDismissed: false };
     case "DISMISS_CONNECTION_WARNING":
-        return { ...state, isConnectionWarningDismissed: true };
+      return { ...state, isConnectionWarningDismissed: true };
     case "RESET_CONNECTION_WARNING":
-        return { ...state, isConnectionWarningDismissed: false };
+      return { ...state, isConnectionWarningDismissed: false };
     case "PLAYER_JOINED":
       if (!state.room) return state;
       return {
@@ -161,7 +146,7 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
         },
       };
     case "GAME_STARTED":
-      return { ...state, room: action.payload.room, revealedHidersUntil: null };
+      return { ...state, room: action.payload.room, revealedHidersUntil: null, chatMessages: [] };
     case "PLAYER_MOVED":
       if (!state.room) return state;
       return {
@@ -174,6 +159,11 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
               : p
           ),
         },
+      };
+    case "RECEIVE_CHAT_MESSAGE":
+      return {
+        ...state,
+        chatMessages: [...state.chatMessages, action.payload].slice(-100), // Keep last 100 messages
       };
     case "PLAYER_TAGGED":
       if (!state.room) return state;
@@ -323,7 +313,6 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
     case "PLAYER_GUESSED":
       if (!state.room) return state;
       return { ...state, room: { ...state.room, players: state.room.players.map((p) => p.id === action.payload.playerId ? { ...p, guess: action.payload.guess } : p), }, };
-    // Hide and Seek Reducers
     case "PLAYER_CAUGHT":
       if (!state.room) return state;
       return { ...state, room: { ...state.room, players: state.room.players.map(p => p.id === action.payload.playerId ? { ...p, isCaught: true } : p) } };
@@ -360,10 +349,18 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
     socketService.onConnect(() => dispatch({ type: "SET_CONNECTION_STATUS", payload: true }));
     socketService.onDisconnect(() => dispatch({ type: "SET_CONNECTION_STATUS", payload: false }));
     socketService.onConnectError((err) => {
-        console.error("Connection Error:", err.message);
-        dispatch({ type: "SET_CONNECTION_ERROR", payload: "Cannot connect to Pixel Arena servers. The server may be down for maintenance or there could be an issue with your network." });
+      console.error("Connection Error:", err.message);
+      dispatch({ type: "SET_CONNECTION_ERROR", payload: "Cannot connect to Pixel Arena servers. The server may be down for maintenance or there could be an issue with your network." });
     });
-    
+
+    // Chat listener
+    socketService.onNewMessage((message) => dispatch({ type: 'RECEIVE_CHAT_MESSAGE', payload: message }));
+    // Legacy reaction listener
+    // ChatManager.onReceiveLegacyReaction((emoji) => {
+    //   // This is where you would dispatch an action to show the emoji pop-up
+    //   // For now, we rely on the ReactionOverlay component which has its own listener
+    // });
+
     socketService.onGameStarted((data) => dispatch({ type: "GAME_STARTED", payload: data }));
     socketService.onPlayerJoined((data) => dispatch({ type: "PLAYER_JOINED", payload: data.player }));
     socketService.onPlayerLeft((data) => dispatch({ type: "PLAYER_LEFT", payload: data }));
@@ -389,8 +386,6 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
     socketService.onPhaseChanged((data) => dispatch({ type: "PHASE_CHANGED", payload: data }));
     socketService.onPlayerGuessed((data) => dispatch({ type: "PLAYER_GUESSED", payload: data }));
     socketService.onGameOver((data) => dispatch({ type: "GAME_OVER", payload: data }));
-
-    // Hide and Seek Listeners
     socketService.onPlayerCaught((data) => dispatch({ type: "PLAYER_CAUGHT", payload: data }));
     socketService.onPlayerConverted((data) => dispatch({ type: "PLAYER_CONVERTED", payload: data }));
     socketService.onFootprintsUpdate((data) => dispatch({ type: "FOOTPRINTS_UPDATE", payload: data }));
@@ -399,6 +394,7 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
     return () => {
       socketService.disconnect();
       socketService.offAll();
+      ChatManager.offAll();
     };
   }, []);
 
@@ -430,23 +426,24 @@ export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
   const dismissConnectionWarning = () => dispatch({ type: "DISMISS_CONNECTION_WARNING" });
   const resetConnectionWarning = () => dispatch({ type: "RESET_CONNECTION_WARNING" });
 
-  const value: GameContextType = { 
-      user: state.user, 
-      room: state.room, 
-      isLoading: state.isLoading,
-      isConnected: state.isConnected,
-      connectionError: state.connectionError,
-      isConnectionWarningDismissed: state.isConnectionWarningDismissed,
-      login, 
-      joinRoom, 
-      leaveRoom, 
-      endGame, 
-      dismissConnectionWarning,
-      resetConnectionWarning,
-      heistPadFeedback: state.heistPadFeedback, 
-      revealedHidersUntil: state.revealedHidersUntil, 
-      logout,
-    };
+  const value: GameContextType = {
+    user: state.user,
+    room: state.room,
+    isLoading: state.isLoading,
+    isConnected: state.isConnected,
+    connectionError: state.connectionError,
+    isConnectionWarningDismissed: state.isConnectionWarningDismissed,
+    chatMessages: state.chatMessages,
+    login,
+    joinRoom,
+    leaveRoom,
+    endGame,
+    dismissConnectionWarning,
+    resetConnectionWarning,
+    heistPadFeedback: state.heistPadFeedback,
+    revealedHidersUntil: state.revealedHidersUntil,
+    logout,
+  };
 
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>;
 };

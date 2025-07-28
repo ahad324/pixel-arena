@@ -5,6 +5,7 @@ import type {
   GameState,
   MazeRaceDifficulty,
   Footprint,
+  ChatMessage,
 } from "../types/index";
 
 // Forward declaration to avoid circular imports
@@ -42,6 +43,10 @@ export class SocketListeners {
 
   public offAvailableRoomsUpdate() {
     this.socketService.getSocket()?.off("available-rooms-update");
+  }
+
+  public onNewMessage(callback: (message: ChatMessage) => void) {
+    this.socketService.getSocket()?.on("new-message", callback);
   }
 
   public onGameStarted(callback: (data: { room: Room }) => void) {

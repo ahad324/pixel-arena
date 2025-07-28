@@ -132,3 +132,12 @@ export interface SendReactionPayload {
 export interface ReceiveReactionPayload {
   emoji: string;
 }
+
+export interface ChatMessage {
+  id: string;
+  senderId: string;
+  senderName: string;
+  senderColor: string;
+  message: string;
+  timestamp: number;
+}
