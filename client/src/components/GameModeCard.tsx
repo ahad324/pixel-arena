@@ -6,7 +6,7 @@ import {
   useSpring,
   Variants,
 } from "framer-motion";
-import { GameMode } from "../types";
+import { GameMode } from "@custom-types/index";
 import { GAME_DESCRIPTIONS } from "@constants/index";
 import type { GameStatus } from "@constants/index";
 import { StatusBadge } from "@components/StatusBadge";

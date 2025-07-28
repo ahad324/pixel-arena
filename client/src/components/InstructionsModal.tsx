@@ -1,6 +1,6 @@
 
 import React from "react";
-import { GameMode } from "../types";
+import { GameMode } from "@custom-types/index";
 import { GAME_INSTRUCTIONS } from "@constants/index";
 import { useDeviceDetection } from "@hooks/useDeviceDetection";
 import Modal from "@components/ui/Modal";

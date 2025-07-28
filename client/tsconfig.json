@@ -24,7 +24,7 @@
       "@services/*": ["src/services/*"],
       "@contexts/*": ["src/contexts/*"],
       "@constants/*": ["src/constants/*"],
-      "@types/*": ["src/types/*"],
+      "@custom-types/*": ["src/types/*"],
       "@utils/*": ["src/utils/*"],
       "@config/*": ["src/config/*"],
       "@routes/*": ["src/routes/*"],

@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import type { Emoji } from "../types";
+import type { Emoji } from "@custom-types/index";
 import { emojiData } from "../data/emojis";
 
 export const useEmojis = () => {

@@ -1,6 +1,6 @@
 
 import React from "react";
-import type { Room } from "../types";
+import type { Room } from "@custom-types/index";
 import { motion } from "framer-motion";
 
 const GameStatus: React.FC<{ room: Room; isFullscreen: boolean }> = ({ room, isFullscreen }) => {

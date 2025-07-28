@@ -1,9 +1,9 @@
 import React from "react";
 import { motion } from "framer-motion";
-import type { Player } from "../types";
+import type { Player } from "@custom-types/index";
 import { INFECTED_COLOR } from "@constants/index";
 import { useGame } from "@contexts/GameContext";
-import { GameMode } from "../types/index";
+import { GameMode } from "@custom-types/index";
 import { FreezeIcon } from "./icons";
 
 interface PlayerAvatarProps {

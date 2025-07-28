@@ -1,7 +1,7 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import type { Player, Room } from "../../types/index";
+import type { Player, Room } from "@custom-types/index";
 import { socketService } from "@services/socketService";
 
 const SpyDecodeUI: React.FC<{ room: Room; user: Omit<Player, "socketId"> }> = ({

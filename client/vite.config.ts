@@ -17,7 +17,7 @@ export default defineConfig({
       "@contexts": path.resolve(__dirname, "src/contexts"),
       "@constants": path.resolve(__dirname, "src/constants"),
       "@utils": path.resolve(__dirname, "src/utils"),
-      "@types": path.resolve(__dirname, "src/types"),
+      "@custom-types": path.resolve(__dirname, "src/types"),
       "@config": path.resolve(__dirname, "src/config"),
       "@routes": path.resolve(__dirname, "src/routes"),
       "@layouts": path.resolve(__dirname, "src/layouts"),
