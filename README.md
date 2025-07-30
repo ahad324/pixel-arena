@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/ahad324/Pixel-Arena/main/client/public/logo.svg" alt="Pixel Arena Logo" width="120">
+  <img src="https://raw.githubusercontent.com/ahad324/Pixel-Arena/main/client/public/logo.png" alt="Pixel Arena Logo" width="120">
 </p>
 
 <h1 align="center">Pixel Arena</h1>
