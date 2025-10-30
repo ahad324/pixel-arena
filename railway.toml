@@ -1,8 +1,13 @@
 [build]
-builder = "nixpacks"
-rootDirectory = "server"
+builder = "NIXPACKS"
 buildCommand = "npm install && npm run build"
+startCommand = "npm run start"
+rootDir = "server"
 
 [deploy]
-startCommand = "npm start"
+numReplicas = 1
+restartPolicyType = "ON_FAILURE"
 watchPaths = ["server/**"]
+
+[envs]
+NODE_ENV = "production"
